@@ -1,0 +1,15 @@
+{
+  "version": "0.1.0.0",
+  "last_activity": "2026-07-30T09:27:40.356884Z",
+  "last_action": "resumed — back at /dross-init step 3: confirm upstream toolchain, lock stack",
+  "history": [
+    {
+      "at": "2026-07-30T07:50:35.234165Z",
+      "action": "dross init"
+    },
+    {
+      "at": "2026-07-30T09:27:40.356884Z",
+      "action": "resumed — back at /dross-init step 3: confirm upstream toolchain, lock stack"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+[[rule]]
+  id = "r-01"
+  text = "Never run `dross project set` in this repo — it round-trips .dross/project.toml through a schema that silently deletes the [[competition]] note fields. Hand-edit .dross/project.toml instead."
+  severity = "hard"
+  created = "2026-07-30"
+
+[[rule]]
+  id = "r-02"
+  text = "Vendored upstream code under lua/codriver/vendor/ is upstream-identical modulo the scripted require-rewrite in scripts/vendor-sync.sh. Never hand-edit, reformat, or refactor those files; re-sync by re-running the script against a new pinned SHA and recording it in VENDOR.md. Codriver behaviour goes in wrapper modules outside vendor/."
+  severity = "hard"
+  created = "2026-07-30"

@@ -1,0 +1,62 @@
+# treefmt configuration — based on coder/claudecode.nvim's (see VENDOR.md).
+#
+# Run via `mise run format` (treefmt) or `mise run format-check` (treefmt --ci).
+# Every formatter/linter referenced here is provisioned by mise (see mise.toml).
+# treefmt's git walker already skips git-ignored paths; these also guard `--walk filesystem`.
+excludes = [
+  ".luarocks/**",
+  ".direnv/**",
+  # dross owns everything under .dross/ and rewrites it through its own
+  # serialisers; reformatting it here would fight them for no benefit.
+  ".dross/**",
+  # Vendored upstream code must stay byte-identical to what
+  # scripts/vendor-sync.sh produced. The require-rewrite lengthens module paths
+  # past stylua's column_width, so formatting here would re-wrap upstream's
+  # lines and turn every re-sync into a merge conflict.
+  "lua/codriver/vendor/**",
+]
+
+[formatter.stylua]
+command = "stylua"
+includes = ["*.lua"]
+
+[formatter.prettier]
+command = "prettier"
+options = ["--write"]
+includes = [
+  "*.css",
+  "*.html",
+  "*.js",
+  "*.json",
+  "*.json5",
+  "*.jsx",
+  "*.markdown",
+  "*.md",
+  "*.mdx",
+  "*.mjs",
+  "*.scss",
+  "*.ts",
+  "*.tsx",
+  "*.vue",
+  "*.yaml",
+  "*.yml",
+]
+
+[formatter.shfmt]
+command = "shfmt"
+options = ["-i", "2", "-w"]
+includes = ["*.sh"]
+
+[formatter.shellcheck]
+command = "shellcheck"
+options = ["--exclude=SC1091,SC2016"]
+includes = ["*.sh"]
+
+[formatter.actionlint]
+command = "actionlint"
+includes = [".forgejo/workflows/*.yml", ".forgejo/workflows/*.yaml", ".github/workflows/*.yml", ".github/workflows/*.yaml"]
+
+[formatter.zizmor]
+command = "zizmor"
+options = ["--offline"]
+includes = [".forgejo/workflows/*.yml", ".forgejo/workflows/*.yaml", ".github/workflows/*.yml", ".github/workflows/*.yaml"]

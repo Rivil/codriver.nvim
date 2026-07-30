@@ -1,0 +1,97 @@
+[project]
+  name = "codriver.nvim"
+  version = "0.1.0.0"
+  description = "A Neovim plugin that keeps Claude Code beside you as a navigator — watching, advising, and writing only when you hand over the keyboard."
+  created = "2026-07-30"
+
+[stack]
+
+  [[stack.locked]]
+    choice = "Lua targeting Neovim's embedded LuaJIT 2.1 — no transpiler, no Fennel, no Teal"
+    why = "The only sane choice for a Neovim plugin: it is the runtime nvim embeds, and the vendored claudecode.nvim protocol layer is already pure Lua. A transpiled layer would make re-syncing upstream fixes a translation exercise."
+    locked_at = "2026-07-30"
+
+  [[stack.locked]]
+    choice = "Vendor coder/claudecode.nvim (MIT) rather than depend on it"
+    why = "Role-switching and enforced read-only mode need to reach into protocol internals that upstream does not expose. Owning the code outright beats fighting the public API; accepted cost is manually re-syncing upstream fixes."
+    locked_at = "2026-07-30"
+
+  [[stack.locked]]
+    choice = "mise as the toolchain provisioner, mirroring upstream's mise.toml (luajit 2.1, lua 5.5 for luarocks, neovim 0.12.3, node, treefmt, stylua, prettier, shfmt, shellcheck, actionlint, zizmor), with a committed mise.lock"
+    why = "Mirrors upstream exactly so vendored files stay byte-identical and re-syncing a fix is a clean diff instead of a formatting war. Pinned versions also mean CI and local agree. Cost: mise is a new global dep and first install builds Lua from source."
+    locked_at = "2026-07-30"
+
+  [[stack.locked]]
+    choice = "busted 2.2.0 + luacov 0.16.0 under LuaJIT, rocks built into a project-local ./.luarocks tree"
+    why = "Upstream's runner. LuaJIT specifically is required, not PUC Lua 5.1: the blocking-diff tools yield coroutines across pcall/C-call boundaries, which 5.1 cannot do. A project-local rock tree keeps the machine's global Lua install untouched."
+    locked_at = "2026-07-30"
+
+  [[stack.locked]]
+    choice = "luacheck 1.2.0 for lint; treefmt driving stylua for format (plus prettier, shfmt, shellcheck, actionlint, zizmor)"
+    why = "Matching upstream's .luacheckrc and .stylua.toml (120 cols, 2-space, AutoPreferDouble, sorted requires) is what keeps vendored files from being reformatted on every save. actionlint/zizmor kept despite shipping to Forgejo — Forgejo Actions uses the same workflow YAML shape."
+    locked_at = "2026-07-30"
+
+[runtime]
+  mode = "native"
+  # Opens Neovim with only this plugin on runtimepath — no user config, no other
+  # plugins. Interactive, so it is not part of automated verification.
+  dev_command = "nvim --clean -u tests/minimal_init.lua"
+  test_command = "mise run test"
+  typecheck_command = "mise run typecheck"
+  lint_command = "mise run check"
+  format_command = "mise run format"
+  # A Lua plugin has no build step and no database.
+  build_command = ""
+  migrate_command = ""
+
+[repo]
+  layout = "single"
+  git_main_branch = "main"
+  squash_merge = false
+  commit_convention = "conventional"
+
+[remote]
+  provider = "forgejo"
+  url = "https://git.rivil.co.uk/rivil/codriver.nvim"
+  public = false
+  api_base = "https://git.rivil.co.uk/api/v1"
+  log_api = true
+  auth_env = "FORGEJO_TOKEN"
+
+[paths]
+
+[env]
+
+[goals]
+  core_value = "You stay the author — keep writing the code and holding the mental model, with an expert watching every line, instead of reviewing a wall of agent output you didn't write and don't understand."
+  audience = "Me first — built for my own Neovim + dross workflow. Secondary: the small set of Neovim users running dross who want an AI navigator rather than an AI author."
+  non_goals = ["Not an autonomous agent runner — never runs Claude unattended across a task list. No human at the keyboard, nothing happens.", "Not a Copilot-style inline completer — no ghost-text completion as you type; different product, different latency budget.", "Not multi-editor — Neovim only. No VS Code, no Emacs, no portability abstraction layer."]
+  differentiators = ["Turn-taking is first-class — explicit driver/navigator roles with a deliberate handoff, enforced rather than prompted. In navigator mode Claude's Edit/Write capability is withdrawn at the harness level (PreToolUse hook / plan mode / permissions.deny), so the role cannot drift. Every competitor is stateless about who holds the keyboard.", "dross-native task splitting — the pairing session is bound to a real dross phase and task graph; you and Claude split tracked work items and the plugin knows which are whose. No other Neovim AI plugin has any notion of a shared task list.", "Ambient review on save — Claude comments on what you just wrote as virtual text / quickfix, without proposing edits. Review flows human→agent, the inverse of every competitor's agent→human diff."]
+
+# NOTE: `note` is NOT in dross's project.toml schema — any `dross project set`
+# round-trips this file and silently deletes every note below. Edit this file by
+# hand only. See the project rule "never run dross project set".
+[[competition]]
+  name = "coder/claudecode.nvim"
+  url = "https://github.com/coder/claudecode.nvim"
+  note = "Closest prior art. Pure-Lua reimplementation of the Claude Code IDE WebSocket/MCP protocol; full command surface, external/tmux providers, diff accept-deny. Agent-first: Claude proposes, you approve. No review or turn-taking workflow. Source of our vendored protocol layer."
+
+[[competition]]
+  name = "folke/sidekick.nvim"
+  url = "https://github.com/folke/sidekick.nvim"
+  note = "Terminal/tmux wrapper around AI CLIs plus Copilot-LSP next-edit-suggestions. Rich context templating and file-watch autoreload, but talks to Claude as a dumb terminal — no native MCP, so Claude cannot query nvim back. Native ACP/MCP is an open issue."
+
+[[competition]]
+  name = "yetone/avante.nvim"
+  url = "https://github.com/yetone/avante.nvim"
+  note = "Cursor-in-Neovim. Own model calls and provider layer, sidebar diff apply/reject. Agent-first and Claude-Code-agnostic; competes for the same keybinds but not the same workflow."
+
+[[competition]]
+  name = "olimorris/codecompanion.nvim"
+  url = "https://github.com/olimorris/codecompanion.nvim"
+  note = "Chat buffers in splits, inline transforms, LSP-diagnostic aware, multi-provider. Most idiomatic-Neovim of the field. Conversation-shaped rather than pairing-shaped; no notion of a shared task list."
+
+[[competition]]
+  name = "Piotr1215/pairup.nvim"
+  url = "https://github.com/Piotr1215/pairup.nvim"
+  note = "Found during the name search — not yet reviewed. Name suggests overlapping pairing framing; assess before locking the phase plan."
