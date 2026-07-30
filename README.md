@@ -78,5 +78,8 @@ tiny and must not grow into a general-purpose Neovim mock.
 
 ## Licence
 
-MIT. Vendored claudecode.nvim is MIT, © Coder Technologies Inc. — see
-`lua/codriver/vendor/LICENSE.claudecode`.
+MIT — see [LICENSE](LICENSE).
+
+Vendored claudecode.nvim is MIT, © 2025 Coder Technologies Inc. Attribution and
+the scope of the vendoring transform are in [NOTICE](NOTICE); upstream's licence
+text is retained verbatim at `lua/codriver/vendor/LICENSE.claudecode`.

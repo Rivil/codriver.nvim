@@ -1,0 +1,20 @@
+codriver.nvim
+Copyright (c) 2026 Rivil
+
+This product includes software developed by Coder Technologies Inc.
+
+## Vendored: coder/claudecode.nvim
+
+`lua/codriver/vendor/claudecode/` is a vendored copy of
+https://github.com/coder/claudecode.nvim, MIT licensed,
+Copyright (c) 2025 Coder Technologies Inc.
+
+The full upstream licence text is retained verbatim at
+`lua/codriver/vendor/LICENSE.claudecode`.
+
+The vendored files are upstream-identical except for one mechanical transform:
+every Lua module path naming `claudecode` is re-rooted under
+`codriver.vendor.`, so this plugin can coexist on Neovim's runtimepath with a
+separate claudecode.nvim install. That transform is applied by
+`scripts/vendor-sync.sh` and is reproducible from the pinned upstream commit
+recorded in `VENDOR.md`. No other modifications are made.
