@@ -94,7 +94,7 @@ task_seq = 0
   covers = ["c-2"]
   depends_on = ["t-1", "t-6"]
   test_contract = ["if the CLI is launched without connection details, the provider's open is not called exactly once by :CodriverStart, or the captured env lacks CLAUDE_CODE_SSE_PORT == tostring(get_status().port), ENABLE_IDE_INTEGRATION == \"true\", or FORCE_CODE_TERMINAL == \"true\" — a terminal opened before the server is listening has no port key, which is exactly c-2 failing", "if ordering inverts, open is called before session.snapshot().listening is true — presence of the port key is not enough, the sequence is the contract", "if the pre-flight guard double-opens, :Codriver from cold with no prior start leaves more than one visible terminal: the provider's open/simple_toggle call count for that single command must be exactly one, and the captured env must still carry the live port", "if the launch command drifts, the captured command's first token is not claude (or the configured terminal_cmd), or a wrapper module is found assigning CLAUDE_CODE_SSE_PORT itself — one source, no drift", "if the wrapper starts hand-rolling an env table instead of routing through the vendored env builder, the captured no_proxy/NO_PROXY stop including 127.0.0.1"]
-  status = "pending"
+  status = "done"
 
 [[task]]
   id = "t-10"
@@ -105,7 +105,7 @@ task_seq = 0
   covers = ["c-3"]
   depends_on = ["t-1", "t-6"]
   test_contract = ["if a context tool stops being registered, tools/list no longer includes getCurrentSelection, getLatestSelection, checkDocumentDirty, saveDocument and getOpenEditors — catches a config that switched off track_selection or a start path that skipped tools.setup", "if dirty-state reporting breaks, checkDocumentDirty { filePath = <open file> } stops returning isDirty = true while the buffer has unwritten edits and false after :w; a missing surface shows as -32601 Tool not found", "if unsaved contents are not what Claude sees, then for a file opened, edited in-buffer, NOT written and visually selected, getCurrentSelection returns the on-disk line rather than the in-buffer edited line — this is the whole of c-3", "if the no-selection path regresses, getCurrentSelection on a buffer with no selection raises instead of returning success = true with isEmpty = true — an empty selection must not reach Claude as a tool error", "if tracking is not armed by start, selection.state.tracking_enabled is false after :CodriverStart"]
-  status = "pending"
+  status = "done"
 
 [[task]]
   id = "t-11"
@@ -127,7 +127,7 @@ task_seq = 0
   covers = ["c-6"]
   depends_on = ["t-1", "t-6", "t-14"]
   test_contract = ["if module namespaces shadow, require(\"claudecode\") stops returning the fixture table (marker set) or becomes the same table as require(\"codriver.vendor.claudecode\") (c-6)", "if codriver registers or deletes ClaudeCode* names, the fixture's :ClaudeCodeStart stops running the fixture's handler (asserted by invoking it and reading its marker), or the ^ClaudeCode command count differs from the fixture's — deletion is why suppression must be interception, not cleanup", "if the augroup bridge re-creates instead of renames, nvim_get_autocmds({group = \"ClaudeCodeShutdown\"}) after codriver setup no longer contains the fixture's entry — the rival's exit handler is destroyed and it silently leaks its lockfile", "if t-14's rename regresses, nvim_get_runtime_file(\"lua/**/claudecode/health.lua\", true) with the fixture loaded returns anything under lua/codriver/vendor/ — checkhealth resolves by directory name, so a vendored file literally named health.lua injects codriver's vendored section into the rival's :checkhealth claudecode report and into bare :checkhealth (c-6)", "if the fixture interferes with codriver's own operation, session.start() with it loaded stops writing exactly one lockfile and reporting a port"]
-  status = "pending"
+  status = "done"
 
 [[task]]
   id = "t-13"
@@ -138,7 +138,7 @@ task_seq = 0
   covers = ["c-7"]
   depends_on = ["t-1", "t-6"]
   test_contract = ["if the command surface drifts, some value in commands.map is missing from nvim_get_commands({}) or some captured name is not a key of commands.map — the tripwire for an upstream re-sync adding or renaming a command", "if a vendored terminal require starts failing, the five commands registered behind `if terminal_ok then` (ClaudeCode, Focus, Open, Close, SendText) go missing — the check reports the require failure by name rather than as five unexplained absences", "if re-exported command options are lost, CodriverSend loses range, CodriverAdd loses nargs = \"+\" / complete = \"file\", or CodriverSendText loses bang — breaking :'<,'>CodriverSend and :CodriverSendText! in ways no smoke test notices (c-7)", "if the re-exported handlers are not the vendored ones, then with the session started :CodriverAdd README.md fails to put one entry in vendor.state.mention_queue with file_path README.md, or :'<,'>CodriverSend fails to queue one entry naming the selected file (the queue holds when no client is connected) (c-7)", "if the diff and model handlers are named but not wired, :CodriverDiffAccept with no diff open or :CodriverSelectModel with vim.ui.select stubbed to cancel raises instead of completing (c-7)"]
-  status = "pending"
+  status = "done"
 
 [[task]]
   id = "t-14"

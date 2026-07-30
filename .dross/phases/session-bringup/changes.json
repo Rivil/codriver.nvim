@@ -19,6 +19,54 @@
         }
       ]
     },
+    "t-10": {
+      "files": [
+        "tests/nvim/mcp_context_check.lua"
+      ],
+      "commit": "1db2944",
+      "completed_at": "2026-07-30T15:32:08.822269Z",
+      "landmarks": [
+        {
+          "feature": "session bring-up",
+          "symbol": "call_tool",
+          "loc": "tests/nvim/mcp_context_check.lua:81",
+          "what": "headless check driving the real JSON-RPC tools/call dispatcher to prove Claude reads the unsaved buffer and live visual selection"
+        }
+      ]
+    },
+    "t-12": {
+      "files": [
+        "tests/nvim/coexistence_check.lua",
+        "tests/fixtures/claudecode.nvim/lua/claudecode/init.lua",
+        "tests/fixtures/claudecode.nvim/lua/claudecode/health.lua",
+        "tests/fixtures/claudecode.nvim/plugin/claudecode.lua"
+      ],
+      "commit": "f641166",
+      "completed_at": "2026-07-30T15:46:12.319972Z",
+      "landmarks": [
+        {
+          "feature": "coexistence with claudecode.nvim",
+          "symbol": "claude_commands",
+          "loc": "tests/nvim/coexistence_check.lua:54",
+          "what": "fixture plugin claiming the claudecode namespace, commands, shutdown augroup and health.lua, proving codriver shadows none of them"
+        }
+      ]
+    },
+    "t-13": {
+      "files": [
+        "tests/nvim/command_surface_check.lua"
+      ],
+      "commit": "3e298a9",
+      "completed_at": "2026-07-30T15:54:45.581852Z",
+      "landmarks": [
+        {
+          "feature": "codriver command surface",
+          "symbol": "as_registered",
+          "loc": "tests/nvim/command_surface_check.lua:97",
+          "what": "headless check that every vendored command is reachable under its :Codriver* name with range/nargs/bang/complete and its real handler intact"
+        }
+      ]
+    },
     "t-14": {
       "files": [
         "scripts/vendor-sync.sh",
@@ -147,6 +195,21 @@
           "symbol": "session_lifecycle_check",
           "loc": "tests/nvim/session_lifecycle_check.lua:90",
           "what": "headless checks over the real server proving start names its port, a second start is not a failure, stop clears lockfile and selection autocmds, a failed bind leaves no lockfile, and auto-start is off by default but gives its lockfile back on exit when opted in"
+        }
+      ]
+    },
+    "t-9": {
+      "files": [
+        "tests/nvim/terminal_env_check.lua"
+      ],
+      "commit": "25388d7",
+      "completed_at": "2026-07-30T15:25:00.5359Z",
+      "landmarks": [
+        {
+          "feature": "session bring-up",
+          "symbol": "expect_launch_env",
+          "loc": "tests/nvim/terminal_env_check.lua:102",
+          "what": "headless check proving the Claude CLI is launched with the live SSE port after the server is listening, and that :Codriver from cold opens exactly one terminal"
         }
       ]
     }

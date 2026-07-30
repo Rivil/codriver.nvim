@@ -3,8 +3,8 @@
   "current_milestone": "v0.1",
   "current_phase": "session-bringup",
   "current_phase_status": "planned",
-  "last_activity": "2026-07-30T15:19:33.202648Z",
-  "last_action": "executed t-8 (Headless session lifecycle and auto-start checks)",
+  "last_activity": "2026-07-30T15:54:45.595872Z",
+  "last_action": "executed t-13 (Headless command-surface fidelity and drift check)",
   "history": [
     {
       "at": "2026-07-30T07:50:35.234165Z",
@@ -93,6 +93,22 @@
     {
       "at": "2026-07-30T15:19:33.202648Z",
       "action": "executed t-8 (Headless session lifecycle and auto-start checks)"
+    },
+    {
+      "at": "2026-07-30T15:25:00.549979Z",
+      "action": "executed t-9 (Headless Claude-terminal environment check)"
+    },
+    {
+      "at": "2026-07-30T15:32:08.835601Z",
+      "action": "executed t-10 (Headless buffer and selection reachability check)"
+    },
+    {
+      "at": "2026-07-30T15:46:12.334105Z",
+      "action": "executed t-12 (Headless coexistence with a real claudecode install)"
+    },
+    {
+      "at": "2026-07-30T15:54:45.595872Z",
+      "action": "executed t-13 (Headless command-surface fidelity and drift check)"
     }
   ]
 }
