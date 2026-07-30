@@ -1,8 +1,11 @@
+phases = ["01-session-bringup", "02-role-enforcement", "03-handover", "04-role-visibility"]
+
 [milestone]
   version = "v0.1"
   title = "A pairing session where Claude advises in Neovim and provably cannot write until you hand over"
-  status = "planning"
+  status = "active"
   started = "2026-07-30"
 
 [scope]
-  success_criteria = ["With a file open in Neovim, starting a codriver session lets Claude answer a question about that buffer's current contents and selection without the user pasting any code."]
+  success_criteria = ["With a file open in Neovim, starting a codriver session lets Claude answer a question about that buffer's current contents and selection without the user pasting any code.", "While Claude is the navigator, a request that would edit a file is refused by Claude Code's permission layer rather than declined by the model, and the file on disk is byte-identical afterwards.", "Within a single session that is never restarted, handing over the keyboard makes a previously blocked edit succeed, and taking it back blocks the same edit again.", "At any moment the user can see which role Claude holds without running a command, via a persistent indicator that updates when the role changes."]
+  non_goals = ["No ambient review on save — Claude responds when asked, not automatically on what you just wrote. Deferred to a later milestone.", "The session is not bound to a dross phase or task graph; no shared task list between you and Claude. Deferred to a later milestone."]

@@ -1,7 +1,8 @@
 {
   "version": "0.1.0.0",
-  "last_activity": "2026-07-30T10:48:22.225273Z",
-  "last_action": "init complete — codriver.nvim scaffolded, vendored claudecode.nvim @ 2390c6e, all checks green",
+  "current_milestone": "v0.1",
+  "last_activity": "2026-07-30T11:05:36.265325Z",
+  "last_action": "scoped milestone v0.1: 4 criteria, 4 phases",
   "history": [
     {
       "at": "2026-07-30T07:50:35.234165Z",
@@ -14,6 +15,14 @@
     {
       "at": "2026-07-30T10:48:22.225273Z",
       "action": "init complete — codriver.nvim scaffolded, vendored claudecode.nvim @ 2390c6e, all checks green"
+    },
+    {
+      "at": "2026-07-30T11:05:36.258338Z",
+      "action": "set current_milestone=v0.1"
+    },
+    {
+      "at": "2026-07-30T11:05:36.265325Z",
+      "action": "scoped milestone v0.1: 4 criteria, 4 phases"
     }
   ]
 }
