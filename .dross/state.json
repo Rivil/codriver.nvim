@@ -1,10 +1,10 @@
 {
-  "version": "0.1.0.0",
+  "version": "0.1.1.0",
   "current_milestone": "v0.1",
   "current_phase": "session-bringup",
   "current_phase_status": "planned",
-  "last_activity": "2026-07-30T13:02:03.411792Z",
-  "last_action": "plan amended after 2 review rounds: session-bringup (14 tasks across 4 waves)",
+  "last_activity": "2026-07-30T14:47:31.951282Z",
+  "last_action": "executed t-14 (Stop vendored health.lua hijacking checkhealth)",
   "history": [
     {
       "at": "2026-07-30T07:50:35.234165Z",
@@ -53,6 +53,34 @@
     {
       "at": "2026-07-30T13:02:03.411792Z",
       "action": "plan amended after 2 review rounds: session-bringup (14 tasks across 4 waves)"
+    },
+    {
+      "at": "2026-07-30T13:03:24.155155Z",
+      "action": "set version=0.1.1.0"
+    },
+    {
+      "at": "2026-07-30T13:13:06.205581Z",
+      "action": "executed t-1 (Add headless check runner and harness)"
+    },
+    {
+      "at": "2026-07-30T13:17:30.840864Z",
+      "action": "executed t-2 (Resolve and validate codriver options)"
+    },
+    {
+      "at": "2026-07-30T13:21:59.495116Z",
+      "action": "executed t-3 (Capture and re-export vendored commands)"
+    },
+    {
+      "at": "2026-07-30T14:07:46.803048Z",
+      "action": "executed t-4 (Format listening and connected status lines)"
+    },
+    {
+      "at": "2026-07-30T14:13:38.436316Z",
+      "action": "executed t-5 (Add session ensure_server/start/stop/snapshot)"
+    },
+    {
+      "at": "2026-07-30T14:47:31.951282Z",
+      "action": "executed t-14 (Stop vendored health.lua hijacking checkhealth)"
     }
   ]
 }

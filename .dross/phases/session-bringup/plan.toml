@@ -1,387 +1,151 @@
+task_seq = 0
+
 [phase]
-id = "session-bringup"
+  id = "session-bringup"
 
 [[task]]
-id            = "t-1"
-wave          = 1
-title         = "Add headless check runner and harness"
-files         = [
-  "tests/nvim/harness.lua",
-  "tests/nvim/harness_selfcheck_check.lua",
-  "tests/nvim/vendor_smoke.lua",
-  "mise.toml",
-]
-description   = """
-`mise run test-nvim` runs one hardcoded script today, so any new headless file is
-dead code until the runner iterates the directory. Discovery is a single glob over
-`tests/nvim/*_check.lua`; the pre-existing `vendor_smoke.lua` is renamed to
-`vendor_smoke_check.lua` to join it rather than being special-cased, so there is
-one rule and no allowlist. Harness supplies assertion helpers and a per-run temp
-HOME/CLAUDE_CONFIG_DIR. Also fixes the `find -type f` precedence bug in
-`[tasks.test]` while in the file. Enabler task: owns no criterion, unlocks the
-headless half of all eight.
-"""
-covers        = []
-test_contract = [
-  "if the runner stops iterating tests/nvim/*_check.lua, or stops giving each check its own nvim process, the harness selfcheck fails: a server leaked by one check must not make the next one pass",
-  "if the runner stops failing on the first non-zero exit, the selfcheck's deliberately-failing child is reported as a pass",
-  "if discovery is hardcoded rather than glob-derived, the selfcheck fails: it writes a temporary failing tests/nvim/*_check.lua at runtime and requires the runner to pick it up and exit non-zero, then removes it — a hardcoded list cannot satisfy this, and no other task needs to touch mise.toml to register its own checks",
-  "if the vendor_smoke rename is not carried through, tests/nvim/vendor_smoke_check.lua is absent from the discovered set and the vendored-require-resolution coverage that t-12 leans on is silently lost — the old vendor_smoke.lua path must no longer exist",
-  "if a headless check is named *_spec.lua instead of *_check.lua, the busted glob in [tasks.test] sweeps it into bare LuaJIT where it fails on vim.api — the naming convention IS the separation (there is no tests/nvim exclusion), so the runner asserts every file it discovers under tests/nvim ends in _check.lua and that harness.lua is not among them",
-  "if the [tasks.test] find expression regresses to `find tests -type f -name \"*_test.lua\" -o -name \"*_spec.lua\"`, -type f binds to the first branch only and directories named *_spec.lua are handed to busted — the fixed form parenthesises the -o group",
-  "if harness.expect degrades to print-and-continue, the selfcheck fails: it spawns a child nvim --clean --headless -l on a script whose assertion fails and requires a non-zero exit",
-  "if CLAUDE_CONFIG_DIR (and hence vendor lockfile.lock_dir, computed at module load) resolves outside the run's temp dir, or the lock dir is non-empty before any start, the harness refuses to run — no check can unlink a live session's lockfile under the real ~/.claude/ide",
-]
-status        = "pending"
+  id = "t-1"
+  wave = 1
+  title = "Add headless check runner and harness"
+  files = ["tests/nvim/harness.lua", "tests/nvim/harness_selfcheck_check.lua", "tests/nvim/vendor_smoke.lua", "mise.toml"]
+  description = "`mise run test-nvim` runs one hardcoded script today, so any new headless file is\ndead code until the runner iterates the directory. Discovery is a single glob over\n`tests/nvim/*_check.lua`; the pre-existing `vendor_smoke.lua` is renamed to\n`vendor_smoke_check.lua` to join it rather than being special-cased, so there is\none rule and no allowlist. Harness supplies assertion helpers and a per-run temp\nHOME/CLAUDE_CONFIG_DIR. Also fixes the `find -type f` precedence bug in\n`[tasks.test]` while in the file. Enabler task: owns no criterion, unlocks the\nheadless half of all eight.\n"
+  test_contract = ["if the runner stops iterating tests/nvim/*_check.lua, or stops giving each check its own nvim process, the harness selfcheck fails: a server leaked by one check must not make the next one pass", "if the runner stops failing on the first non-zero exit, the selfcheck's deliberately-failing child is reported as a pass", "if discovery is hardcoded rather than glob-derived, the selfcheck fails: it writes a temporary failing tests/nvim/*_check.lua at runtime and requires the runner to pick it up and exit non-zero, then removes it — a hardcoded list cannot satisfy this, and no other task needs to touch mise.toml to register its own checks", "if the vendor_smoke rename is not carried through, tests/nvim/vendor_smoke_check.lua is absent from the discovered set and the vendored-require-resolution coverage that t-12 leans on is silently lost — the old vendor_smoke.lua path must no longer exist", "if a headless check is named *_spec.lua instead of *_check.lua, the busted glob in [tasks.test] sweeps it into bare LuaJIT where it fails on vim.api — the naming convention IS the separation (there is no tests/nvim exclusion), so the runner asserts every file it discovers under tests/nvim ends in _check.lua and that harness.lua is not among them", "if the [tasks.test] find expression regresses to `find tests -type f -name \"*_test.lua\" -o -name \"*_spec.lua\"`, -type f binds to the first branch only and directories named *_spec.lua are handed to busted — the fixed form parenthesises the -o group", "if harness.expect degrades to print-and-continue, the selfcheck fails: it spawns a child nvim --clean --headless -l on a script whose assertion fails and requires a non-zero exit", "if CLAUDE_CONFIG_DIR (and hence vendor lockfile.lock_dir, computed at module load) resolves outside the run's temp dir, or the lock dir is non-empty before any start, the harness refuses to run — no check can unlink a live session's lockfile under the real ~/.claude/ide"]
+  status = "done"
 
 [[task]]
-id            = "t-2"
-wave          = 1
-title         = "Resolve and validate codriver options"
-files         = [
-  "lua/codriver/config.lua",
-  "tests/codriver/config_spec.lua",
-]
-description   = """
-Pure resolver splitting top-level codriver keys from nested `claudecode = { … }`,
-rejecting unknown top-level keys, forcing the vendored `auto_start` false.
-Returns `{ codriver = …, claudecode = … }`. Owns the `track_selection` default
-that c-3 depends on — the vendored `start`/`stop` pair both gate selection
-arming and clearing on it, so the resolver is the only place c-3 can be
-switched off.
-"""
-covers        = ["c-3", "c-8"]
-test_contract = [
-  "if unknown top-level keys stop being rejected, resolve({ auto_strt = true }) returns instead of raising with the offending key named — no caller reaches vendored setup with a half-understood table",
-  "if the locked explicit-start decision can be overridden, resolve({}).claudecode.auto_start or resolve({ claudecode = { auto_start = true } }).claudecode.auto_start is true; the nested override must also emit one warning naming the top-level option",
-  "if the opt-in is forwarded downward, resolve({ auto_start = true }) yields claudecode.auto_start true instead of codriver.auto_start true with claudecode.auto_start false — the wrapper starts the session itself",
-  "if track_selection stops defaulting true, c-3's selection retrieval silently dies: resolve({}).claudecode.track_selection must be true, and resolve({ claudecode = { track_selection = false } }) must pass the false through (it is a supported opt-out, not a forced key) while warning that it disables the selection surface c-3 requires",
-  "if terminal.provider stops defaulting \"auto\", or { terminal = { provider = \"snacks\" } } fails to survive nesting, the defaults spec fails",
-  "if the resolver stops deep-copying, mutating a nested table in the returned value changes the caller's opts — vendored setup mutates what it is handed, and a lazy.nvim opts reused across reloads must not drift",
-  "if config.lua reaches for any vim.* beyond the existing minimal test stub, the spec errors on a nil field rather than passing under a widened stub",
-]
-status        = "pending"
+  id = "t-2"
+  wave = 1
+  title = "Resolve and validate codriver options"
+  files = ["lua/codriver/config.lua", "tests/codriver/config_spec.lua"]
+  description = "Pure resolver splitting top-level codriver keys from nested `claudecode = { … }`,\nrejecting unknown top-level keys, forcing the vendored `auto_start` false.\nReturns `{ codriver = …, claudecode = … }`. Owns the `track_selection` default\nthat c-3 depends on — the vendored `start`/`stop` pair both gate selection\narming and clearing on it, so the resolver is the only place c-3 can be\nswitched off.\n"
+  covers = ["c-3", "c-8"]
+  test_contract = ["if unknown top-level keys stop being rejected, resolve({ auto_strt = true }) returns instead of raising with the offending key named — no caller reaches vendored setup with a half-understood table", "if the locked explicit-start decision can be overridden, resolve({}).claudecode.auto_start or resolve({ claudecode = { auto_start = true } }).claudecode.auto_start is true; the nested override must also emit one warning naming the top-level option", "if the opt-in is forwarded downward, resolve({ auto_start = true }) yields claudecode.auto_start true instead of codriver.auto_start true with claudecode.auto_start false — the wrapper starts the session itself", "if track_selection stops defaulting true, c-3's selection retrieval silently dies: resolve({}).claudecode.track_selection must be true, and resolve({ claudecode = { track_selection = false } }) must pass the false through (it is a supported opt-out, not a forced key) while warning that it disables the selection surface c-3 requires", "if terminal.provider stops defaulting \"auto\", or { terminal = { provider = \"snacks\" } } fails to survive nesting, the defaults spec fails", "if the resolver stops deep-copying, mutating a nested table in the returned value changes the caller's opts — vendored setup mutates what it is handed, and a lazy.nvim opts reused across reloads must not drift", "if config.lua reaches for any vim.* beyond the existing minimal test stub, the spec errors on a nil field rather than passing under a widened stub"]
+  status = "done"
 
 [[task]]
-id            = "t-3"
-wave          = 1
-title         = "Capture and re-export vendored commands"
-files         = [
-  "lua/codriver/commands.lua",
-  "tests/codriver/commands_spec.lua",
-]
-description   = """
-`commands.capture(fn)` swaps `nvim_create_user_command` for a recorder while `fn`
-runs, plus `commands.map` (vendored name to `:Codriver*`) and
-`commands.register(captured)`. Takes the api table as an argument so it is
-testable without Neovim. Scoped to the `setup()` call only, never around
-start/stop. The shim is only safe because t-2 forces `auto_start` off: vendored
-`setup()` calls `start()` before `_create_commands()`, so a leaked
-`auto_start = true` would run `selection.enable` inside the shim and rename the
-`ClaudeCodeSelection` augroup, which `selection.disable` clears by literal name.
-"""
-covers        = ["c-6", "c-7"]
-test_contract = [
-  "if capture stops recording faithfully, a body calling nvim_create_user_command three times yields fewer than three records with name/handler/opts intact, or creates real commands",
-  "if captured entries lose their flags, the spec fails: range = true for ClaudeCodeSend, nargs = \"+\" / complete = \"file\" for ClaudeCodeAdd, bang = true for ClaudeCodeSendText",
-  "if the shim is not restored on error, nvim_create_user_command and nvim_create_augroup fail identity comparison against the original function values after the body raises — a leaked shim swallows every command any later plugin registers",
-  "if commands.map drifts, it stops having 15 keys (one per vendored command: ClaudeCode, Focus, Open, Close, Send, Add, TreeAdd, SendText, DiffAccept, DiffDeny, CloseAllDiffs, SelectModel, Start, Stop, Status), or a value begins with ClaudeCode, or two keys share a target",
-  "if the augroup bridge breaks, nvim_create_augroup(\"ClaudeCodeShutdown\", {clear=true}) inside the scope stops producing CodriverShutdown; the spec also asserts the bridge is NOT usable around start/stop, because vendored selection clears ClaudeCodeSelection by literal name and a renamed group makes stop() throw",
-  "if the auto_start coupling is broken, capturing a body that calls selection.enable renames ClaudeCodeSelection — the spec asserts the shim bridges only the Shutdown group and leaves Selection and DiffCleanup untouched, so a future auto_start leak surfaces here rather than as a stop() crash",
-]
-status        = "pending"
+  id = "t-3"
+  wave = 1
+  title = "Capture and re-export vendored commands"
+  files = ["lua/codriver/commands.lua", "tests/codriver/commands_spec.lua"]
+  description = "`commands.capture(fn)` swaps `nvim_create_user_command` for a recorder while `fn`\nruns, plus `commands.map` (vendored name to `:Codriver*`) and\n`commands.register(captured)`. Takes the api table as an argument so it is\ntestable without Neovim. Scoped to the `setup()` call only, never around\nstart/stop. The shim is only safe because t-2 forces `auto_start` off: vendored\n`setup()` calls `start()` before `_create_commands()`, so a leaked\n`auto_start = true` would run `selection.enable` inside the shim and rename the\n`ClaudeCodeSelection` augroup, which `selection.disable` clears by literal name.\n"
+  covers = ["c-6", "c-7"]
+  test_contract = ["if capture stops recording faithfully, a body calling nvim_create_user_command three times yields fewer than three records with name/handler/opts intact, or creates real commands", "if captured entries lose their flags, the spec fails: range = true for ClaudeCodeSend, nargs = \"+\" / complete = \"file\" for ClaudeCodeAdd, bang = true for ClaudeCodeSendText", "if the shim is not restored on error, nvim_create_user_command and nvim_create_augroup fail identity comparison against the original function values after the body raises — a leaked shim swallows every command any later plugin registers", "if commands.map drifts, it stops having 15 keys (one per vendored command: ClaudeCode, Focus, Open, Close, Send, Add, TreeAdd, SendText, DiffAccept, DiffDeny, CloseAllDiffs, SelectModel, Start, Stop, Status), or a value begins with ClaudeCode, or two keys share a target", "if the augroup bridge breaks, nvim_create_augroup(\"ClaudeCodeShutdown\", {clear=true}) inside the scope stops producing CodriverShutdown; the spec also asserts the bridge is NOT usable around start/stop, because vendored selection clears ClaudeCodeSelection by literal name and a renamed group makes stop() throw", "if the auto_start coupling is broken, capturing a body that calls selection.enable renames ClaudeCodeSelection — the spec asserts the shim bridges only the Shutdown group and leaves Selection and DiffCleanup untouched, so a future auto_start leak surfaces here rather than as a stop() crash"]
+  status = "done"
 
 [[task]]
-id            = "t-4"
-wave          = 1
-title         = "Format listening and connected status lines"
-files         = [
-  "lua/codriver/status.lua",
-  "tests/codriver/status_spec.lua",
-]
-description   = """
-Pure `status.describe(snapshot)` over
-`{ listening, port, connected, client_count, lockfile }`, producing the one-line
-`:CodriverStatus` answer.
-"""
-covers        = ["c-4"]
-test_contract = [
-  "if listening and connected stop being distinguishable, the three snapshots (not listening / listening+not connected / listening+connected) no longer produce three distinct strings, or the not-connected line starts matching the pattern the connected assertion uses",
-  "if the in-flow answer stops naming the port, describe{ listening = true, port = 12345, … } no longer contains \"12345\" and the user needs a health split to find it",
-  "if connected degrades to a raw client count, describe{ listening = true, connected = false, client_count = 1 } reports connected — an unupgraded TCP client is not Claude. Note the underlying signal is the WebSocket upgrade (client.handshake_complete), not MCP initialize, so this phase does not distinguish MCP-level readiness",
-]
-status        = "pending"
+  id = "t-4"
+  wave = 1
+  title = "Format listening and connected status lines"
+  files = ["lua/codriver/status.lua", "tests/codriver/status_spec.lua"]
+  description = "Pure `status.describe(snapshot)` over\n`{ listening, port, connected, client_count, lockfile }`, producing the one-line\n`:CodriverStatus` answer.\n"
+  covers = ["c-4"]
+  test_contract = ["if listening and connected stop being distinguishable, the three snapshots (not listening / listening+not connected / listening+connected) no longer produce three distinct strings, or the not-connected line starts matching the pattern the connected assertion uses", "if the in-flow answer stops naming the port, describe{ listening = true, port = 12345, … } no longer contains \"12345\" and the user needs a health split to find it", "if connected degrades to a raw client count, describe{ listening = true, connected = false, client_count = 1 } reports connected — an unupgraded TCP client is not Claude. Note the underlying signal is the WebSocket upgrade (client.handshake_complete), not MCP initialize, so this phase does not distinguish MCP-level readiness"]
+  status = "done"
 
 [[task]]
-id            = "t-5"
-wave          = 1
-title         = "Add session ensure_server/start/stop/snapshot"
-files         = [
-  "lua/codriver/session.lua",
-  "tests/codriver/session_spec.lua",
-]
-description   = """
-Two distinct entry points over the vendored module: `ensure_server()` brings the
-server up and never touches the terminal; `start()` is ensure_server plus one
-terminal open (the `:CodriverStart` path). Both return structured results
-(`{ started, already_running, port, error }`) rather than printing. `snapshot()`
-computes `connected` from client handshake info itself rather than delegating to
-the vendored `is_claude_connected`. Selection arming stays with the vendored
-`start`/`stop` pair — the wrapper only forwards the resolved config — so
-`track_selection = false` remains a real opt-out and nothing leaks past stop.
-Reaches the vendored module only through a call-time `require`, so specs can
-inject a fake into `package.loaded`.
-"""
-covers        = ["c-1", "c-2", "c-3", "c-5"]
-test_contract = [
-  "if a re-start surfaces as a failure, session.start() against a fake whose state.server is set stops returning already_running = true with the same port, or the fake's start counter moves off 0 — the vendored path returns false, \"Already running\", which is not an error (c-1)",
-  "if start ordering inverts, session.start() on a fresh fake no longer calls vendor.start(false) once and then the fake terminal's open exactly once in that order — terminal-first means the CLI gets no port",
-  "if ensure_server stops being terminal-free, session.ensure_server() on a fresh fake calls vendor.start(false) once and the fake terminal's open exactly zero times — this is what t-6's pre-flight guard calls, so a terminal opened here means :Codriver from cold opens one terminal and then the vendored toggle hides or duplicates it",
-  "if a failed bind still opens a terminal, a fake vendor.start returning false, \"port unavailable\" stops yielding { started = false, error = … } with terminal.open never called — no Claude terminal without a server behind it",
-  "if stop stops being idempotent, session.stop() with no server raises or calls the fake's stop; with a server it must return the port it tore down and still report success when the lockfile was already deleted underneath it (c-5)",
-  "if connected is delegated back to the vendored helper, snapshot() against a fake whose get_status returns client_count = 1 with clients = {} reports connected — the vendored is_claude_connected falls back to client_count > 0 when clients is empty, which is exactly the listening-reported-as-connected conflation c-4 exists to prevent (this is the one path no other task leaves unstubbed)",
-  "if the wrapper arms selection tracking itself, the fake records a selection.enable call from session.start — it must not: vendored start already arms it when track_selection is set and vendored stop only clears it under the same condition, so wrapper-side arming would make t-2's opt-out inert and strand ClaudeCodeSelection autocmds past :CodriverStop (c-3)",
-  "if the resolved config stops reaching the vendored layer, session.start() with track_selection true does not result in the fake's config carrying it — this is how c-3's selection surface is actually armed",
-]
-status        = "pending"
+  id = "t-5"
+  wave = 1
+  title = "Add session ensure_server/start/stop/snapshot"
+  files = ["lua/codriver/session.lua", "tests/codriver/session_spec.lua"]
+  description = "Two distinct entry points over the vendored module: `ensure_server()` brings the\nserver up and never touches the terminal; `start()` is ensure_server plus one\nterminal open (the `:CodriverStart` path). Both return structured results\n(`{ started, already_running, port, error }`) rather than printing. `snapshot()`\ncomputes `connected` from client handshake info itself rather than delegating to\nthe vendored `is_claude_connected`. Selection arming stays with the vendored\n`start`/`stop` pair — the wrapper only forwards the resolved config — so\n`track_selection = false` remains a real opt-out and nothing leaks past stop.\nReaches the vendored module only through a call-time `require`, so specs can\ninject a fake into `package.loaded`.\n"
+  covers = ["c-1", "c-2", "c-3", "c-5"]
+  test_contract = ["if a re-start surfaces as a failure, session.start() against a fake whose state.server is set stops returning already_running = true with the same port, or the fake's start counter moves off 0 — the vendored path returns false, \"Already running\", which is not an error (c-1)", "if start ordering inverts, session.start() on a fresh fake no longer calls vendor.start(false) once and then the fake terminal's open exactly once in that order — terminal-first means the CLI gets no port", "if ensure_server stops being terminal-free, session.ensure_server() on a fresh fake calls vendor.start(false) once and the fake terminal's open exactly zero times — this is what t-6's pre-flight guard calls, so a terminal opened here means :Codriver from cold opens one terminal and then the vendored toggle hides or duplicates it", "if a failed bind still opens a terminal, a fake vendor.start returning false, \"port unavailable\" stops yielding { started = false, error = … } with terminal.open never called — no Claude terminal without a server behind it", "if stop stops being idempotent, session.stop() with no server raises or calls the fake's stop; with a server it must return the port it tore down and still report success when the lockfile was already deleted underneath it (c-5)", "if connected is delegated back to the vendored helper, snapshot() against a fake whose get_status returns client_count = 1 with clients = {} reports connected — the vendored is_claude_connected falls back to client_count > 0 when clients is empty, which is exactly the listening-reported-as-connected conflation c-4 exists to prevent (this is the one path no other task leaves unstubbed)", "if the wrapper arms selection tracking itself, the fake records a selection.enable call from session.start — it must not: vendored start already arms it when track_selection is set and vendored stop only clears it under the same condition, so wrapper-side arming would make t-2's opt-out inert and strand ClaudeCodeSelection autocmds past :CodriverStop (c-3)", "if the resolved config stops reaching the vendored layer, session.start() with track_selection true does not result in the fake's config carrying it — this is how c-3's selection surface is actually armed"]
+  status = "done"
 
 [[task]]
-id            = "t-6"
-wave          = 2
-depends_on    = ["t-2", "t-3", "t-4", "t-5"]
-title         = "Wire setup: options, commands, auto-start, pre-flight"
-files         = [
-  "lua/codriver/init.lua",
-  "tests/codriver/init_spec.lua",
-]
-description   = """
-`setup(opts)` resolves options (t-2), runs the vendored `setup` inside the
-capture shim (t-3), registers only `:Codriver*` — Start/Stop/Status bound to
-session/status, the rest to captured vendored handlers — then starts the session
-iff `codriver.auto_start`. Terminal-opening commands carry a pre-flight guard
-calling `session.ensure_server()` (server only, never the terminal), leaving the
-vendored handler to own the terminal. Also bumps `M.version` to track the dross
-phase version (0.1.1) and de-hardcodes the existing spec assertion, which
-currently pins the literal "0.1.0".
-"""
-covers        = ["c-1", "c-2", "c-6", "c-7", "c-8"]
-test_contract = [
-  "if any vendored command name leaks through, a recorded command after setup({}) with a fake vendor fails to match ^Codriver, or one matches ^ClaudeCode (c-6)",
-  "if an upstream re-sync adds a command, the rename map is no longer complete against the capture — a captured vendored command with no :Codriver* entry fails (c-7)",
-  "if auto-start's default flips, setup({ auto_start = true }) stops calling session.start exactly once or setup({}) calls it at all (c-8)",
-  "if the pre-flight guard is lost, :Codriver / :CodriverOpen / :CodriverFocus / :CodriverSelectModel invoked with no session stop bringing the server up first — the vendored env builder omits CLAUDE_CODE_SSE_PORT when the server is down, launching a Claude that can never connect back (c-2)",
-  "if the guard calls session.start instead of session.ensure_server, :Codriver from cold calls the fake terminal's open twice (once from start, once from the vendored toggle handler) instead of exactly once — the guard must be server-only",
-  "if setup is not re-entrant, calling setup({}) twice leaves duplicate or missing :Codriver* commands, leaves any :ClaudeCode*, or raises (plugin-manager double setup)",
-  "if snapshot's keys drift from what status.describe consumes, status.describe(session.snapshot()) against a fake with one handshake-complete client stops yielding the connected line",
-  "if the version assertion is left pinned to a literal, the next phase bump reddens this spec for a reason unrelated to its work — version:string() is asserted to equal the major.minor.patch fields of M.version rather than a hardcoded string, and to match the first three parts of .dross/state.json's version",
-  "if requiring codriver starts pulling in the protocol layer eagerly, the existing init_spec assertion that package.loaded[\"codriver.vendor.claudecode\"] is nil after require breaks — the fake-vendor tests must restore package.loaded so the file is not order-dependent",
-]
-status        = "pending"
+  id = "t-6"
+  wave = 2
+  title = "Wire setup: options, commands, auto-start, pre-flight"
+  files = ["lua/codriver/init.lua", "tests/codriver/init_spec.lua"]
+  description = "`setup(opts)` resolves options (t-2), runs the vendored `setup` inside the\ncapture shim (t-3), registers only `:Codriver*` — Start/Stop/Status bound to\nsession/status, the rest to captured vendored handlers — then starts the session\niff `codriver.auto_start`. Terminal-opening commands carry a pre-flight guard\ncalling `session.ensure_server()` (server only, never the terminal), leaving the\nvendored handler to own the terminal. Also bumps `M.version` to track the dross\nphase version (0.1.1) and de-hardcodes the existing spec assertion, which\ncurrently pins the literal \"0.1.0\".\n"
+  covers = ["c-1", "c-2", "c-6", "c-7", "c-8"]
+  depends_on = ["t-2", "t-3", "t-4", "t-5"]
+  test_contract = ["if any vendored command name leaks through, a recorded command after setup({}) with a fake vendor fails to match ^Codriver, or one matches ^ClaudeCode (c-6)", "if an upstream re-sync adds a command, the rename map is no longer complete against the capture — a captured vendored command with no :Codriver* entry fails (c-7)", "if auto-start's default flips, setup({ auto_start = true }) stops calling session.start exactly once or setup({}) calls it at all (c-8)", "if the pre-flight guard is lost, :Codriver / :CodriverOpen / :CodriverFocus / :CodriverSelectModel invoked with no session stop bringing the server up first — the vendored env builder omits CLAUDE_CODE_SSE_PORT when the server is down, launching a Claude that can never connect back (c-2)", "if the guard calls session.start instead of session.ensure_server, :Codriver from cold calls the fake terminal's open twice (once from start, once from the vendored toggle handler) instead of exactly once — the guard must be server-only", "if setup is not re-entrant, calling setup({}) twice leaves duplicate or missing :Codriver* commands, leaves any :ClaudeCode*, or raises (plugin-manager double setup)", "if snapshot's keys drift from what status.describe consumes, status.describe(session.snapshot()) against a fake with one handshake-complete client stops yielding the connected line", "if the version assertion is left pinned to a literal, the next phase bump reddens this spec for a reason unrelated to its work — version:string() is asserted to equal the major.minor.patch fields of M.version rather than a hardcoded string, and to match the first three parts of .dross/state.json's version", "if requiring codriver starts pulling in the protocol layer eagerly, the existing init_spec assertion that package.loaded[\"codriver.vendor.claudecode\"] is nil after require breaks — the fake-vendor tests must restore package.loaded so the file is not order-dependent"]
+  status = "pending"
 
 [[task]]
-id            = "t-7"
-wave          = 3
-depends_on    = ["t-1", "t-5", "t-6"]
-title         = "Add codriver checkhealth report"
-files         = [
-  "lua/codriver/health.lua",
-  "tests/nvim/health_check.lua",
-]
-description   = """
-`require("codriver.health").check()` for `:checkhealth codriver` — Neovim floor,
-`claude` CLI, terminal provider, then listening / lockfile / connected as
-separate lines, built from `session.snapshot()` rather than the vendored report
-(which conflates the two and routes through its own log level). The check drives
-the real surface through `require("codriver").setup(…)`, hence the t-6
-dependency.
-"""
-covers        = ["c-4"]
-test_contract = [
-  "if listening and connected are conflated, the report with the server up and no client stops showing the listening line OK and the connected line not-OK as two separate states (c-4)",
-  "if the advice names commands codriver does not register, the no-session report stops mentioning :CodriverStart or starts containing :ClaudeCodeStart / :ClaudeCodeStop",
-  "if lockfile state is not reported, unlinking <port>.lock behind a listening server no longer produces an error naming the missing lockfile path",
-  "if the module is not placed where Neovim's checkhealth globs for it, :checkhealth codriver finds nothing: resolution is by directory, lua/**/codriver/health.lua, so the file must sit at lua/codriver/health.lua and the check asserts the report renders rather than reporting healthcheck-not-found",
-]
-status        = "pending"
+  id = "t-7"
+  wave = 3
+  title = "Add codriver checkhealth report"
+  files = ["lua/codriver/health.lua", "tests/nvim/health_check.lua"]
+  description = "`require(\"codriver.health\").check()` for `:checkhealth codriver` — Neovim floor,\n`claude` CLI, terminal provider, then listening / lockfile / connected as\nseparate lines, built from `session.snapshot()` rather than the vendored report\n(which conflates the two and routes through its own log level). The check drives\nthe real surface through `require(\"codriver\").setup(…)`, hence the t-6\ndependency.\n"
+  covers = ["c-4"]
+  depends_on = ["t-1", "t-5", "t-6"]
+  test_contract = ["if listening and connected are conflated, the report with the server up and no client stops showing the listening line OK and the connected line not-OK as two separate states (c-4)", "if the advice names commands codriver does not register, the no-session report stops mentioning :CodriverStart or starts containing :ClaudeCodeStart / :ClaudeCodeStop", "if lockfile state is not reported, unlinking <port>.lock behind a listening server no longer produces an error naming the missing lockfile path", "if the module is not placed where Neovim's checkhealth globs for it, :checkhealth codriver finds nothing: resolution is by directory, lua/**/codriver/health.lua, so the file must sit at lua/codriver/health.lua and the check asserts the report renders rather than reporting healthcheck-not-found"]
+  status = "pending"
 
 [[task]]
-id            = "t-8"
-wave          = 3
-depends_on    = ["t-1", "t-6"]
-title         = "Headless session lifecycle and auto-start checks"
-files         = [
-  "tests/nvim/session_lifecycle_check.lua",
-  "tests/nvim/autostart_off_check.lua",
-  "tests/nvim/autostart_on_check.lua",
-]
-description   = """
-Three scripts (auto-start needs a fresh process per scenario) driving real
-`:CodriverStart` / `:CodriverStop` against the real server and the harness's temp
-lock dir. Deliberately overlaps t-5's fake-vendor spec: it is what keeps the fake
-honest against the real module's shape.
-"""
-covers        = ["c-1", "c-5", "c-8"]
-test_contract = [
-  "if start stops reporting its port, execute(\"CodriverStart\") output no longer contains server.get_status().port, or the lock dir does not hold exactly one *.lock (c-1)",
-  "if a second start is treated as an error, get_status().port changes, a second lockfile appears, or the output stops matching an already/existing-session pattern without an error-level line (c-1)",
-  "if a bind failure leaves a lockfile, then with port_range = {min = P, max = P} and P pre-bound by the check via vim.uv.new_tcp, start stops returning a failure naming the exhausted range, or status reports listening, or the lock dir is non-empty — no lockfile advertising a dead port",
-  "if stop stops cleaning up, get_status().running stays true or filereadable(<lock_dir>/<port>.lock) stays 1 after :CodriverStop; a following :CodriverStart must return a fresh port and exactly one lockfile (c-5)",
-  "if stopping with nothing running raises instead of printing a not-running message, or leaves anything in the lock dir, the check fails",
-  "if selection tracking stops following the session, nvim_get_autocmds({group = \"ClaudeCodeSelection\"}) is empty after start or non-empty after stop, or stop throws — catches the augroup-rename trap in t-3; asserted under the default and again with track_selection = false, where the group must never be created at all",
-  "if auto-start's default regresses, autostart_off finds running == true or any *.lock after setup({}); autostart_on finds running == false or not exactly one lockfile after setup({ auto_start = true }), and a child nvim that auto-starts then :qa must leave an empty lock dir — proving VimLeavePre shutdown still fires after the rename to CodriverShutdown (c-8)",
-]
-status        = "pending"
+  id = "t-8"
+  wave = 3
+  title = "Headless session lifecycle and auto-start checks"
+  files = ["tests/nvim/session_lifecycle_check.lua", "tests/nvim/autostart_off_check.lua", "tests/nvim/autostart_on_check.lua"]
+  description = "Three scripts (auto-start needs a fresh process per scenario) driving real\n`:CodriverStart` / `:CodriverStop` against the real server and the harness's temp\nlock dir. Deliberately overlaps t-5's fake-vendor spec: it is what keeps the fake\nhonest against the real module's shape.\n"
+  covers = ["c-1", "c-5", "c-8"]
+  depends_on = ["t-1", "t-6"]
+  test_contract = ["if start stops reporting its port, execute(\"CodriverStart\") output no longer contains server.get_status().port, or the lock dir does not hold exactly one *.lock (c-1)", "if a second start is treated as an error, get_status().port changes, a second lockfile appears, or the output stops matching an already/existing-session pattern without an error-level line (c-1)", "if a bind failure leaves a lockfile, then with port_range = {min = P, max = P} and P pre-bound by the check via vim.uv.new_tcp, start stops returning a failure naming the exhausted range, or status reports listening, or the lock dir is non-empty — no lockfile advertising a dead port", "if stop stops cleaning up, get_status().running stays true or filereadable(<lock_dir>/<port>.lock) stays 1 after :CodriverStop; a following :CodriverStart must return a fresh port and exactly one lockfile (c-5)", "if stopping with nothing running raises instead of printing a not-running message, or leaves anything in the lock dir, the check fails", "if selection tracking stops following the session, nvim_get_autocmds({group = \"ClaudeCodeSelection\"}) is empty after start or non-empty after stop, or stop throws — catches the augroup-rename trap in t-3; asserted under the default and again with track_selection = false, where the group must never be created at all", "if auto-start's default regresses, autostart_off finds running == true or any *.lock after setup({}); autostart_on finds running == false or not exactly one lockfile after setup({ auto_start = true }), and a child nvim that auto-starts then :qa must leave an empty lock dir — proving VimLeavePre shutdown still fires after the rename to CodriverShutdown (c-8)"]
+  status = "pending"
 
 [[task]]
-id            = "t-9"
-wave          = 3
-depends_on    = ["t-1", "t-6"]
-title         = "Headless Claude-terminal environment check"
-files         = [
-  "tests/nvim/terminal_env_check.lua",
-]
-description   = """
-`setup({ claudecode = { terminal = { provider = <capture table> } } })` with a
-custom table provider (setup/open/close/simple_toggle/focus_toggle/
-get_active_bufnr/is_available), then `:CodriverStart`, asserting what env the CLI
-would actually be launched with. Also covers the cold `:Codriver` path, where the
-pre-flight guard must not produce a second terminal.
-"""
-covers        = ["c-2"]
-test_contract = [
-  "if the CLI is launched without connection details, the provider's open is not called exactly once by :CodriverStart, or the captured env lacks CLAUDE_CODE_SSE_PORT == tostring(get_status().port), ENABLE_IDE_INTEGRATION == \"true\", or FORCE_CODE_TERMINAL == \"true\" — a terminal opened before the server is listening has no port key, which is exactly c-2 failing",
-  "if ordering inverts, open is called before session.snapshot().listening is true — presence of the port key is not enough, the sequence is the contract",
-  "if the pre-flight guard double-opens, :Codriver from cold with no prior start leaves more than one visible terminal: the provider's open/simple_toggle call count for that single command must be exactly one, and the captured env must still carry the live port",
-  "if the launch command drifts, the captured command's first token is not claude (or the configured terminal_cmd), or a wrapper module is found assigning CLAUDE_CODE_SSE_PORT itself — one source, no drift",
-  "if the wrapper starts hand-rolling an env table instead of routing through the vendored env builder, the captured no_proxy/NO_PROXY stop including 127.0.0.1",
-]
-status        = "pending"
+  id = "t-9"
+  wave = 3
+  title = "Headless Claude-terminal environment check"
+  files = ["tests/nvim/terminal_env_check.lua"]
+  description = "`setup({ claudecode = { terminal = { provider = <capture table> } } })` with a\ncustom table provider (setup/open/close/simple_toggle/focus_toggle/\nget_active_bufnr/is_available), then `:CodriverStart`, asserting what env the CLI\nwould actually be launched with. Also covers the cold `:Codriver` path, where the\npre-flight guard must not produce a second terminal.\n"
+  covers = ["c-2"]
+  depends_on = ["t-1", "t-6"]
+  test_contract = ["if the CLI is launched without connection details, the provider's open is not called exactly once by :CodriverStart, or the captured env lacks CLAUDE_CODE_SSE_PORT == tostring(get_status().port), ENABLE_IDE_INTEGRATION == \"true\", or FORCE_CODE_TERMINAL == \"true\" — a terminal opened before the server is listening has no port key, which is exactly c-2 failing", "if ordering inverts, open is called before session.snapshot().listening is true — presence of the port key is not enough, the sequence is the contract", "if the pre-flight guard double-opens, :Codriver from cold with no prior start leaves more than one visible terminal: the provider's open/simple_toggle call count for that single command must be exactly one, and the captured env must still carry the live port", "if the launch command drifts, the captured command's first token is not claude (or the configured terminal_cmd), or a wrapper module is found assigning CLAUDE_CODE_SSE_PORT itself — one source, no drift", "if the wrapper starts hand-rolling an env table instead of routing through the vendored env builder, the captured no_proxy/NO_PROXY stop including 127.0.0.1"]
+  status = "pending"
 
 [[task]]
-id            = "t-10"
-wave          = 3
-depends_on    = ["t-1", "t-6"]
-title         = "Headless buffer and selection reachability check"
-files         = [
-  "tests/nvim/mcp_context_check.lua",
-]
-description   = """
-With the session started, drive the real JSON-RPC dispatcher
-(`server.state.handlers["tools/call"]`) against a stub client over a modified
-buffer. The tripwire for c-3, whose owned surfaces are t-2's track_selection
-default and t-5's config forwarding; a defect found here is fixed in
-`lua/codriver/config.lua` or `lua/codriver/session.lua`, never in `vendor/`.
-"""
-covers        = ["c-3"]
-test_contract = [
-  "if a context tool stops being registered, tools/list no longer includes getCurrentSelection, getLatestSelection, checkDocumentDirty, saveDocument and getOpenEditors — catches a config that switched off track_selection or a start path that skipped tools.setup",
-  "if dirty-state reporting breaks, checkDocumentDirty { filePath = <open file> } stops returning isDirty = true while the buffer has unwritten edits and false after :w; a missing surface shows as -32601 Tool not found",
-  "if unsaved contents are not what Claude sees, then for a file opened, edited in-buffer, NOT written and visually selected, getCurrentSelection returns the on-disk line rather than the in-buffer edited line — this is the whole of c-3",
-  "if the no-selection path regresses, getCurrentSelection on a buffer with no selection raises instead of returning success = true with isEmpty = true — an empty selection must not reach Claude as a tool error",
-  "if tracking is not armed by start, selection.state.tracking_enabled is false after :CodriverStart",
-]
-status        = "pending"
+  id = "t-10"
+  wave = 3
+  title = "Headless buffer and selection reachability check"
+  files = ["tests/nvim/mcp_context_check.lua"]
+  description = "With the session started, drive the real JSON-RPC dispatcher\n(`server.state.handlers[\"tools/call\"]`) against a stub client over a modified\nbuffer. The tripwire for c-3, whose owned surfaces are t-2's track_selection\ndefault and t-5's config forwarding; a defect found here is fixed in\n`lua/codriver/config.lua` or `lua/codriver/session.lua`, never in `vendor/`.\n"
+  covers = ["c-3"]
+  depends_on = ["t-1", "t-6"]
+  test_contract = ["if a context tool stops being registered, tools/list no longer includes getCurrentSelection, getLatestSelection, checkDocumentDirty, saveDocument and getOpenEditors — catches a config that switched off track_selection or a start path that skipped tools.setup", "if dirty-state reporting breaks, checkDocumentDirty { filePath = <open file> } stops returning isDirty = true while the buffer has unwritten edits and false after :w; a missing surface shows as -32601 Tool not found", "if unsaved contents are not what Claude sees, then for a file opened, edited in-buffer, NOT written and visually selected, getCurrentSelection returns the on-disk line rather than the in-buffer edited line — this is the whole of c-3", "if the no-selection path regresses, getCurrentSelection on a buffer with no selection raises instead of returning success = true with isEmpty = true — an empty selection must not reach Claude as a tool error", "if tracking is not armed by start, selection.state.tracking_enabled is false after :CodriverStart"]
+  status = "pending"
 
 [[task]]
-id            = "t-11"
-wave          = 4
-depends_on    = ["t-1", "t-6", "t-7"]
-title         = "Headless status and checkhealth check"
-files         = [
-  "tests/nvim/status_check.lua",
-]
-description   = """
-Drives the real `:CodriverStatus` and `:checkhealth codriver` surfaces. The
-genuinely-connected state needs the `claude` CLI completing a real WebSocket
-upgrade, so it stays human-checkable; this check stubs `is_claude_connected` at
-the snapshot boundary as the closest headless proxy. t-5 covers the unstubbed
-empty-clients fallback and t-9 proves the CLI is launched with the right port.
-"""
-covers        = ["c-4"]
-test_contract = [
-  "if the two states collapse through the real command, then with the server up and no client execute(\"CodriverStatus\") stops containing the live port and a not-connected phrase, or with is_claude_connected stubbed true the output fails to match the connected phrase or still matches the not-connected one (c-4)",
-  "if the detailed surface loses information, checkhealth codriver's buffer stops containing the live port, the lockfile path under the harness CLAUDE_CONFIG_DIR, a connected-client count and a Claude-CLI line, or it contains ClaudeCodeStart instead of :CodriverStart",
-  "if a status query gains side effects, :CodriverStatus before any start reports running, or creates a lockfile or a server",
-]
-status        = "pending"
+  id = "t-11"
+  wave = 4
+  title = "Headless status and checkhealth check"
+  files = ["tests/nvim/status_check.lua"]
+  description = "Drives the real `:CodriverStatus` and `:checkhealth codriver` surfaces. The\ngenuinely-connected state needs the `claude` CLI completing a real WebSocket\nupgrade, so it stays human-checkable; this check stubs `is_claude_connected` at\nthe snapshot boundary as the closest headless proxy. t-5 covers the unstubbed\nempty-clients fallback and t-9 proves the CLI is launched with the right port.\n"
+  covers = ["c-4"]
+  depends_on = ["t-1", "t-6", "t-7"]
+  test_contract = ["if the two states collapse through the real command, then with the server up and no client execute(\"CodriverStatus\") stops containing the live port and a not-connected phrase, or with is_claude_connected stubbed true the output fails to match the connected phrase or still matches the not-connected one (c-4)", "if the detailed surface loses information, checkhealth codriver's buffer stops containing the live port, the lockfile path under the harness CLAUDE_CONFIG_DIR, a connected-client count and a Claude-CLI line, or it contains ClaudeCodeStart instead of :CodriverStart", "if a status query gains side effects, :CodriverStatus before any start reports running, or creates a lockfile or a server"]
+  status = "pending"
 
 [[task]]
-id            = "t-12"
-wave          = 3
-depends_on    = ["t-1", "t-6", "t-14"]
-title         = "Headless coexistence with a real claudecode install"
-files         = [
-  "tests/nvim/coexistence_check.lua",
-  "tests/fixtures/claudecode.nvim/lua/claudecode/init.lua",
-  "tests/fixtures/claudecode.nvim/lua/claudecode/health.lua",
-  "tests/fixtures/claudecode.nvim/plugin/claudecode.lua",
-]
-description   = """
-A fixture standing in for a real claudecode.nvim install — it claims
-`lua/claudecode/` (including `health.lua`), the `:ClaudeCode*` names and the
-`ClaudeCodeShutdown` augroup, each carrying a marker — prepended to runtimepath
-alongside codriver. Separate process because `vendor_smoke_check.lua` asserts the
-bare `claudecode` namespace is never loaded. A fake, not a real upstream
-checkout: c-6's failure modes are all name collisions. Asserts t-14's fix from
-the outside.
-"""
-covers        = ["c-6"]
-test_contract = [
-  "if module namespaces shadow, require(\"claudecode\") stops returning the fixture table (marker set) or becomes the same table as require(\"codriver.vendor.claudecode\") (c-6)",
-  "if codriver registers or deletes ClaudeCode* names, the fixture's :ClaudeCodeStart stops running the fixture's handler (asserted by invoking it and reading its marker), or the ^ClaudeCode command count differs from the fixture's — deletion is why suppression must be interception, not cleanup",
-  "if the augroup bridge re-creates instead of renames, nvim_get_autocmds({group = \"ClaudeCodeShutdown\"}) after codriver setup no longer contains the fixture's entry — the rival's exit handler is destroyed and it silently leaks its lockfile",
-  "if t-14's rename regresses, nvim_get_runtime_file(\"lua/**/claudecode/health.lua\", true) with the fixture loaded returns anything under lua/codriver/vendor/ — checkhealth resolves by directory name, so a vendored file literally named health.lua injects codriver's vendored section into the rival's :checkhealth claudecode report and into bare :checkhealth (c-6)",
-  "if the fixture interferes with codriver's own operation, session.start() with it loaded stops writing exactly one lockfile and reporting a port",
-]
-status        = "pending"
+  id = "t-12"
+  wave = 3
+  title = "Headless coexistence with a real claudecode install"
+  files = ["tests/nvim/coexistence_check.lua", "tests/fixtures/claudecode.nvim/lua/claudecode/init.lua", "tests/fixtures/claudecode.nvim/lua/claudecode/health.lua", "tests/fixtures/claudecode.nvim/plugin/claudecode.lua"]
+  description = "A fixture standing in for a real claudecode.nvim install — it claims\n`lua/claudecode/` (including `health.lua`), the `:ClaudeCode*` names and the\n`ClaudeCodeShutdown` augroup, each carrying a marker — prepended to runtimepath\nalongside codriver. Separate process because `vendor_smoke_check.lua` asserts the\nbare `claudecode` namespace is never loaded. A fake, not a real upstream\ncheckout: c-6's failure modes are all name collisions. Asserts t-14's fix from\nthe outside.\n"
+  covers = ["c-6"]
+  depends_on = ["t-1", "t-6", "t-14"]
+  test_contract = ["if module namespaces shadow, require(\"claudecode\") stops returning the fixture table (marker set) or becomes the same table as require(\"codriver.vendor.claudecode\") (c-6)", "if codriver registers or deletes ClaudeCode* names, the fixture's :ClaudeCodeStart stops running the fixture's handler (asserted by invoking it and reading its marker), or the ^ClaudeCode command count differs from the fixture's — deletion is why suppression must be interception, not cleanup", "if the augroup bridge re-creates instead of renames, nvim_get_autocmds({group = \"ClaudeCodeShutdown\"}) after codriver setup no longer contains the fixture's entry — the rival's exit handler is destroyed and it silently leaks its lockfile", "if t-14's rename regresses, nvim_get_runtime_file(\"lua/**/claudecode/health.lua\", true) with the fixture loaded returns anything under lua/codriver/vendor/ — checkhealth resolves by directory name, so a vendored file literally named health.lua injects codriver's vendored section into the rival's :checkhealth claudecode report and into bare :checkhealth (c-6)", "if the fixture interferes with codriver's own operation, session.start() with it loaded stops writing exactly one lockfile and reporting a port"]
+  status = "pending"
 
 [[task]]
-id            = "t-13"
-wave          = 3
-depends_on    = ["t-1", "t-6"]
-title         = "Headless command-surface fidelity and drift check"
-files         = [
-  "tests/nvim/command_surface_check.lua",
-]
-description   = """
-Asserts the re-exported `:Codriver*` surface behaves as the vendored one did —
-option flags preserved, handlers are the vendored handlers, map matches capture.
-Needs no fixture, so a fixture bug can never read as a c-7 failure.
-"""
-covers        = ["c-7"]
-test_contract = [
-  "if the command surface drifts, some value in commands.map is missing from nvim_get_commands({}) or some captured name is not a key of commands.map — the tripwire for an upstream re-sync adding or renaming a command",
-  "if a vendored terminal require starts failing, the five commands registered behind `if terminal_ok then` (ClaudeCode, Focus, Open, Close, SendText) go missing — the check reports the require failure by name rather than as five unexplained absences",
-  "if re-exported command options are lost, CodriverSend loses range, CodriverAdd loses nargs = \"+\" / complete = \"file\", or CodriverSendText loses bang — breaking :'<,'>CodriverSend and :CodriverSendText! in ways no smoke test notices (c-7)",
-  "if the re-exported handlers are not the vendored ones, then with the session started :CodriverAdd README.md fails to put one entry in vendor.state.mention_queue with file_path README.md, or :'<,'>CodriverSend fails to queue one entry naming the selected file (the queue holds when no client is connected) (c-7)",
-  "if the diff and model handlers are named but not wired, :CodriverDiffAccept with no diff open or :CodriverSelectModel with vim.ui.select stubbed to cancel raises instead of completing (c-7)",
-]
-status        = "pending"
+  id = "t-13"
+  wave = 3
+  title = "Headless command-surface fidelity and drift check"
+  files = ["tests/nvim/command_surface_check.lua"]
+  description = "Asserts the re-exported `:Codriver*` surface behaves as the vendored one did —\noption flags preserved, handlers are the vendored handlers, map matches capture.\nNeeds no fixture, so a fixture bug can never read as a c-7 failure.\n"
+  covers = ["c-7"]
+  depends_on = ["t-1", "t-6"]
+  test_contract = ["if the command surface drifts, some value in commands.map is missing from nvim_get_commands({}) or some captured name is not a key of commands.map — the tripwire for an upstream re-sync adding or renaming a command", "if a vendored terminal require starts failing, the five commands registered behind `if terminal_ok then` (ClaudeCode, Focus, Open, Close, SendText) go missing — the check reports the require failure by name rather than as five unexplained absences", "if re-exported command options are lost, CodriverSend loses range, CodriverAdd loses nargs = \"+\" / complete = \"file\", or CodriverSendText loses bang — breaking :'<,'>CodriverSend and :CodriverSendText! in ways no smoke test notices (c-7)", "if the re-exported handlers are not the vendored ones, then with the session started :CodriverAdd README.md fails to put one entry in vendor.state.mention_queue with file_path README.md, or :'<,'>CodriverSend fails to queue one entry naming the selected file (the queue holds when no client is connected) (c-7)", "if the diff and model handlers are named but not wired, :CodriverDiffAccept with no diff open or :CodriverSelectModel with vim.ui.select stubbed to cancel raises instead of completing (c-7)"]
+  status = "pending"
 
 [[task]]
-id            = "t-14"
-wave          = 1
-title         = "Stop vendored health.lua hijacking checkhealth"
-files         = [
-  "scripts/vendor-sync.sh",
-  "VENDOR.md",
-  "lua/codriver/vendor/claudecode/health.lua",
-]
-description   = """
-Neovim resolves `:checkhealth claudecode` by globbing
-`lua/**/claudecode/health.lua`, which today matches
-`lua/codriver/vendor/claudecode/health.lua` — so installing codriver injects a
-section into a real claudecode.nvim's health report and into bare `:checkhealth`.
-Nothing in the vendored tree requires that module, so `vendor-sync.sh` gains a
-scripted rename step (health.lua to health_vendored.lua) alongside the existing
-require-rewrite, recorded in VENDOR.md as the second sanctioned transformation.
-Per r-02 the change is made by the script, not by hand-editing vendor/.
-"""
-covers        = ["c-6"]
-test_contract = [
-  "if the rename step is dropped from vendor-sync.sh, re-running the script leaves a file at lua/codriver/vendor/claudecode/health.lua and the script's own verify stage fails — the rename is asserted in-script, not left to a later checkout to notice",
-  "if the rename is done by hand instead of by the script, re-running vendor-sync.sh against the pinned SHA reintroduces health.lua — the check is that a fresh sync converges to the renamed form (r-02: vendor/ is only ever changed by the script)",
-  "if the rename breaks the vendored tree, the script's existing residual-require and luajit parse stages fail: nothing may end up requiring codriver.vendor.claudecode.health under either name",
-  "if VENDOR.md stops recording the transformation, the vendored tree is no longer described as upstream-identical-modulo-scripted-changes and the next re-sync has no record of why a file was renamed",
-]
-status        = "pending"
+  id = "t-14"
+  wave = 1
+  title = "Stop vendored health.lua hijacking checkhealth"
+  files = ["scripts/vendor-sync.sh", "VENDOR.md", "lua/codriver/vendor/claudecode/health.lua"]
+  description = "Neovim resolves `:checkhealth claudecode` by globbing\n`lua/**/claudecode/health.lua`, which today matches\n`lua/codriver/vendor/claudecode/health.lua` — so installing codriver injects a\nsection into a real claudecode.nvim's health report and into bare `:checkhealth`.\nNothing in the vendored tree requires that module, so `vendor-sync.sh` gains a\nscripted rename step (health.lua to health_vendored.lua) alongside the existing\nrequire-rewrite, recorded in VENDOR.md as the second sanctioned transformation.\nPer r-02 the change is made by the script, not by hand-editing vendor/.\n"
+  covers = ["c-6"]
+  test_contract = ["if the rename step is dropped from vendor-sync.sh, re-running the script leaves a file at lua/codriver/vendor/claudecode/health.lua and the script's own verify stage fails — the rename is asserted in-script, not left to a later checkout to notice", "if the rename is done by hand instead of by the script, re-running vendor-sync.sh against the pinned SHA reintroduces health.lua — the check is that a fresh sync converges to the renamed form (r-02: vendor/ is only ever changed by the script)", "if the rename breaks the vendored tree, the script's existing residual-require and luajit parse stages fail: nothing may end up requiring codriver.vendor.claudecode.health under either name", "if VENDOR.md stops recording the transformation, the vendored tree is no longer described as upstream-identical-modulo-scripted-changes and the next re-sync has no record of why a file was renamed"]
+  status = "done"
