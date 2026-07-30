@@ -99,6 +99,56 @@
           "what": "server-only pre-flight distinct from start's server-then-terminal order, idempotent stop, and a snapshot whose connected flag requires a completed WebSocket handshake rather than a client count"
         }
       ]
+    },
+    "t-6": {
+      "files": [
+        "lua/codriver/init.lua",
+        "tests/codriver/init_spec.lua",
+        "lua/codriver/commands.lua"
+      ],
+      "commit": "d8e2355",
+      "completed_at": "2026-07-30T15:09:37.149038Z",
+      "landmarks": [
+        {
+          "feature": "plugin setup",
+          "symbol": "M.setup",
+          "loc": "lua/codriver/init.lua:171",
+          "what": "resolves options, runs the vendored setup inside the capture shim, re-exports only :Codriver* with a server-only pre-flight on the terminal-opening commands, and starts the session iff codriver.auto_start"
+        }
+      ]
+    },
+    "t-7": {
+      "files": [
+        "lua/codriver/health.lua",
+        "tests/nvim/health_check.lua"
+      ],
+      "commit": "d94c503",
+      "completed_at": "2026-07-30T15:13:57.248899Z",
+      "landmarks": [
+        {
+          "feature": "status surface",
+          "symbol": "health.check",
+          "loc": "lua/codriver/health.lua:131",
+          "what": ":checkhealth codriver reports listening, lockfile and connected as three independently-failing lines built from session.snapshot() rather than the vendored is_claude_connected fallback"
+        }
+      ]
+    },
+    "t-8": {
+      "files": [
+        "tests/nvim/session_lifecycle_check.lua",
+        "tests/nvim/autostart_off_check.lua",
+        "tests/nvim/autostart_on_check.lua"
+      ],
+      "commit": "fe75764",
+      "completed_at": "2026-07-30T15:19:33.189458Z",
+      "landmarks": [
+        {
+          "feature": "session lifecycle",
+          "symbol": "session_lifecycle_check",
+          "loc": "tests/nvim/session_lifecycle_check.lua:90",
+          "what": "headless checks over the real server proving start names its port, a second start is not a failure, stop clears lockfile and selection autocmds, a failed bind leaves no lockfile, and auto-start is off by default but gives its lockfile back on exit when opted in"
+        }
+      ]
     }
   }
 }

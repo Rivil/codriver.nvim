@@ -61,7 +61,7 @@ task_seq = 0
   covers = ["c-1", "c-2", "c-6", "c-7", "c-8"]
   depends_on = ["t-2", "t-3", "t-4", "t-5"]
   test_contract = ["if any vendored command name leaks through, a recorded command after setup({}) with a fake vendor fails to match ^Codriver, or one matches ^ClaudeCode (c-6)", "if an upstream re-sync adds a command, the rename map is no longer complete against the capture — a captured vendored command with no :Codriver* entry fails (c-7)", "if auto-start's default flips, setup({ auto_start = true }) stops calling session.start exactly once or setup({}) calls it at all (c-8)", "if the pre-flight guard is lost, :Codriver / :CodriverOpen / :CodriverFocus / :CodriverSelectModel invoked with no session stop bringing the server up first — the vendored env builder omits CLAUDE_CODE_SSE_PORT when the server is down, launching a Claude that can never connect back (c-2)", "if the guard calls session.start instead of session.ensure_server, :Codriver from cold calls the fake terminal's open twice (once from start, once from the vendored toggle handler) instead of exactly once — the guard must be server-only", "if setup is not re-entrant, calling setup({}) twice leaves duplicate or missing :Codriver* commands, leaves any :ClaudeCode*, or raises (plugin-manager double setup)", "if snapshot's keys drift from what status.describe consumes, status.describe(session.snapshot()) against a fake with one handshake-complete client stops yielding the connected line", "if the version assertion is left pinned to a literal, the next phase bump reddens this spec for a reason unrelated to its work — version:string() is asserted to equal the major.minor.patch fields of M.version rather than a hardcoded string, and to match the first three parts of .dross/state.json's version", "if requiring codriver starts pulling in the protocol layer eagerly, the existing init_spec assertion that package.loaded[\"codriver.vendor.claudecode\"] is nil after require breaks — the fake-vendor tests must restore package.loaded so the file is not order-dependent"]
-  status = "pending"
+  status = "done"
 
 [[task]]
   id = "t-7"
@@ -72,7 +72,7 @@ task_seq = 0
   covers = ["c-4"]
   depends_on = ["t-1", "t-5", "t-6"]
   test_contract = ["if listening and connected are conflated, the report with the server up and no client stops showing the listening line OK and the connected line not-OK as two separate states (c-4)", "if the advice names commands codriver does not register, the no-session report stops mentioning :CodriverStart or starts containing :ClaudeCodeStart / :ClaudeCodeStop", "if lockfile state is not reported, unlinking <port>.lock behind a listening server no longer produces an error naming the missing lockfile path", "if the module is not placed where Neovim's checkhealth globs for it, :checkhealth codriver finds nothing: resolution is by directory, lua/**/codriver/health.lua, so the file must sit at lua/codriver/health.lua and the check asserts the report renders rather than reporting healthcheck-not-found"]
-  status = "pending"
+  status = "done"
 
 [[task]]
   id = "t-8"
@@ -83,7 +83,7 @@ task_seq = 0
   covers = ["c-1", "c-5", "c-8"]
   depends_on = ["t-1", "t-6"]
   test_contract = ["if start stops reporting its port, execute(\"CodriverStart\") output no longer contains server.get_status().port, or the lock dir does not hold exactly one *.lock (c-1)", "if a second start is treated as an error, get_status().port changes, a second lockfile appears, or the output stops matching an already/existing-session pattern without an error-level line (c-1)", "if a bind failure leaves a lockfile, then with port_range = {min = P, max = P} and P pre-bound by the check via vim.uv.new_tcp, start stops returning a failure naming the exhausted range, or status reports listening, or the lock dir is non-empty — no lockfile advertising a dead port", "if stop stops cleaning up, get_status().running stays true or filereadable(<lock_dir>/<port>.lock) stays 1 after :CodriverStop; a following :CodriverStart must return a fresh port and exactly one lockfile (c-5)", "if stopping with nothing running raises instead of printing a not-running message, or leaves anything in the lock dir, the check fails", "if selection tracking stops following the session, nvim_get_autocmds({group = \"ClaudeCodeSelection\"}) is empty after start or non-empty after stop, or stop throws — catches the augroup-rename trap in t-3; asserted under the default and again with track_selection = false, where the group must never be created at all", "if auto-start's default regresses, autostart_off finds running == true or any *.lock after setup({}); autostart_on finds running == false or not exactly one lockfile after setup({ auto_start = true }), and a child nvim that auto-starts then :qa must leave an empty lock dir — proving VimLeavePre shutdown still fires after the rename to CodriverShutdown (c-8)"]
-  status = "pending"
+  status = "done"
 
 [[task]]
   id = "t-9"

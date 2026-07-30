@@ -3,8 +3,8 @@
   "current_milestone": "v0.1",
   "current_phase": "session-bringup",
   "current_phase_status": "planned",
-  "last_activity": "2026-07-30T14:47:31.951282Z",
-  "last_action": "executed t-14 (Stop vendored health.lua hijacking checkhealth)",
+  "last_activity": "2026-07-30T15:19:33.202648Z",
+  "last_action": "executed t-8 (Headless session lifecycle and auto-start checks)",
   "history": [
     {
       "at": "2026-07-30T07:50:35.234165Z",
@@ -81,6 +81,18 @@
     {
       "at": "2026-07-30T14:47:31.951282Z",
       "action": "executed t-14 (Stop vendored health.lua hijacking checkhealth)"
+    },
+    {
+      "at": "2026-07-30T15:09:37.163133Z",
+      "action": "executed t-6 (Wire setup: options, commands, auto-start, pre-flight)"
+    },
+    {
+      "at": "2026-07-30T15:13:57.260522Z",
+      "action": "executed t-7 (Add codriver checkhealth report)"
+    },
+    {
+      "at": "2026-07-30T15:19:33.202648Z",
+      "action": "executed t-8 (Headless session lifecycle and auto-start checks)"
     }
   ]
 }
