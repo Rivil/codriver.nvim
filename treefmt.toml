@@ -54,9 +54,9 @@ includes = ["*.sh"]
 
 [formatter.actionlint]
 command = "actionlint"
-includes = [".forgejo/workflows/*.yml", ".forgejo/workflows/*.yaml", ".github/workflows/*.yml", ".github/workflows/*.yaml"]
+includes = [".github/workflows/*.yml", ".github/workflows/*.yaml"]
 
 [formatter.zizmor]
 command = "zizmor"
 options = ["--offline"]
-includes = [".forgejo/workflows/*.yml", ".forgejo/workflows/*.yaml", ".github/workflows/*.yml", ".github/workflows/*.yaml"]
+includes = [".github/workflows/*.yml", ".github/workflows/*.yaml"]

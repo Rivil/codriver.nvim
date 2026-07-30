@@ -28,7 +28,7 @@
 
   [[stack.locked]]
     choice = "luacheck 1.2.0 for lint; treefmt driving stylua for format (plus prettier, shfmt, shellcheck, actionlint, zizmor)"
-    why = "Matching upstream's .luacheckrc and .stylua.toml (120 cols, 2-space, AutoPreferDouble, sorted requires) is what keeps vendored files from being reformatted on every save. actionlint/zizmor kept despite shipping to Forgejo — Forgejo Actions uses the same workflow YAML shape."
+    why = "Matching upstream's .luacheckrc and .stylua.toml (120 cols, 2-space, AutoPreferDouble, sorted requires) is what keeps vendored files from being reformatted on every save. actionlint/zizmor earn their place now that the repo ships to GitHub Actions."
     locked_at = "2026-07-30"
 
 [runtime]
@@ -51,12 +51,12 @@
   commit_convention = "conventional"
 
 [remote]
-  provider = "forgejo"
-  url = "https://git.rivil.co.uk/rivil/codriver.nvim"
-  public = false
-  api_base = "https://git.rivil.co.uk/api/v1"
+  provider = "github"
+  url = "https://github.com/Rivil/codriver.nvim"
+  public = true
+  api_base = "https://api.github.com"
   log_api = true
-  auth_env = "FORGEJO_TOKEN"
+  auth_env = "GITHUB_TOKEN"
 
 [paths]
 

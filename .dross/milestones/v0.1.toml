@@ -1,0 +1,8 @@
+[milestone]
+  version = "v0.1"
+  title = "A pairing session where Claude advises in Neovim and provably cannot write until you hand over"
+  status = "planning"
+  started = "2026-07-30"
+
+[scope]
+  success_criteria = ["With a file open in Neovim, starting a codriver session lets Claude answer a question about that buffer's current contents and selection without the user pasting any code."]
