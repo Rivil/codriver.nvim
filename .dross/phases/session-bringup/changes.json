@@ -34,6 +34,21 @@
         }
       ]
     },
+    "t-11": {
+      "files": [
+        "tests/nvim/status_check.lua"
+      ],
+      "commit": "0afebd8",
+      "completed_at": "2026-07-30T16:32:33.67333Z",
+      "landmarks": [
+        {
+          "feature": "session status surface",
+          "symbol": "status_check",
+          "loc": "tests/nvim/status_check.lua:74",
+          "what": "headless check driving :CodriverStatus and :checkhealth codriver, proving listening and attached read as two distinguishable states"
+        }
+      ]
+    },
     "t-12": {
       "files": [
         "tests/nvim/coexistence_check.lua",

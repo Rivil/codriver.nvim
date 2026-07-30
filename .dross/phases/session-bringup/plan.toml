@@ -116,7 +116,7 @@ task_seq = 0
   covers = ["c-4"]
   depends_on = ["t-1", "t-6", "t-7"]
   test_contract = ["if the two states collapse through the real command, then with the server up and no client execute(\"CodriverStatus\") stops containing the live port and a not-connected phrase, or with is_claude_connected stubbed true the output fails to match the connected phrase or still matches the not-connected one (c-4)", "if the detailed surface loses information, checkhealth codriver's buffer stops containing the live port, the lockfile path under the harness CLAUDE_CONFIG_DIR, a connected-client count and a Claude-CLI line, or it contains ClaudeCodeStart instead of :CodriverStart", "if a status query gains side effects, :CodriverStatus before any start reports running, or creates a lockfile or a server"]
-  status = "pending"
+  status = "done"
 
 [[task]]
   id = "t-12"
