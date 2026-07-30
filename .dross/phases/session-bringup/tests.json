@@ -1,0 +1,127 @@
+{
+  "phase": "session-bringup",
+  "generated_at": "2026-07-30T16:34:15.090485Z",
+  "languages": null,
+  "skipped": [
+    {
+      "file": "VENDOR.md",
+      "reason": "no mutation adapter for .md"
+    },
+    {
+      "file": "lua/codriver/commands.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "lua/codriver/config.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "lua/codriver/health.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "lua/codriver/init.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "lua/codriver/session.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "lua/codriver/status.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "lua/codriver/vendor/claudecode/health_vendored.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "mise.toml",
+      "reason": "no mutation adapter for .toml"
+    },
+    {
+      "file": "scripts/vendor-sync.sh",
+      "reason": "no mutation adapter for .sh"
+    },
+    {
+      "file": "tests/codriver/commands_spec.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/codriver/config_spec.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/codriver/init_spec.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/codriver/session_spec.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/codriver/status_spec.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/fixtures/claudecode.nvim/lua/claudecode/health.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/fixtures/claudecode.nvim/lua/claudecode/init.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/fixtures/claudecode.nvim/plugin/claudecode.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/nvim/autostart_off_check.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/nvim/autostart_on_check.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/nvim/coexistence_check.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/nvim/command_surface_check.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/nvim/harness.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/nvim/harness_selfcheck_check.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/nvim/health_check.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/nvim/mcp_context_check.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/nvim/session_lifecycle_check.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/nvim/status_check.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/nvim/terminal_env_check.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/nvim/vendor_smoke_check.lua",
+      "reason": "no mutation adapter for .lua"
+    }
+  ]
+}
