@@ -1,0 +1,66 @@
+[phase]
+  id        = "session-bringup"
+  title     = "session-bringup"
+  milestone = "v0.1"
+
+[[criteria]]
+  id   = "c-1"
+  text = "A single command starts a codriver session and reports the port it is listening on; running it again while a session is live reports the existing session rather than erroring."
+
+[[criteria]]
+  id   = "c-2"
+  text = "Starting a session launches the Claude CLI in a terminal already connected to this Neovim instance — the user sets no environment variables, port, or lockfile path by hand."
+
+[[criteria]]
+  id   = "c-3"
+  text = "With a session live and a file open, Claude can retrieve that buffer's current unsaved contents and the user's active visual selection without the user pasting any code."
+
+[[criteria]]
+  id   = "c-4"
+  text = "A status surface reports, as two distinguishable states, whether the server is listening and whether Claude has actually connected back to it."
+
+[[criteria]]
+  id   = "c-5"
+  text = "Stopping a session shuts down the server and removes its lockfile, and a subsequent start in the same Neovim session succeeds."
+
+[[criteria]]
+  id   = "c-6"
+  text = "Codriver runs alongside a real claudecode.nvim install on runtimepath — neither plugin's modules or user commands shadow the other's."
+
+[[criteria]]
+  id   = "c-7"
+  text = "The vendored context and diff commands are reachable under `:Codriver*` names — sending the buffer or visual selection to Claude, adding files as @-mentions, accepting or denying a proposed diff, and selecting the model."
+
+[[criteria]]
+  id   = "c-8"
+  text = "With the auto-start option enabled, `setup()` opens the session on Neovim launch; with it absent or disabled — the default — no server is listening and no lockfile exists until the start command is run."
+
+[[decisions]]
+  key    = "session_start"
+  choice = "Sessions start explicitly by default — force the vendored `auto_start` off so no server or lockfile exists until the start command runs. An opt-in codriver option can re-enable launch-time start (c-8)."
+  why    = "Codriver's non-goal is \"no human at the keyboard, nothing happens\"; opening a WebSocket server and writing a lockfile on every nvim launch contradicts that and litters a lockfile per instance. Opt-in keeps it available for users who want Claude always reachable."
+  locked = true
+
+[[decisions]]
+  key    = "command_surface"
+  choice = "Suppress the vendored `:ClaudeCode*` command registration entirely; expose only `:Codriver*` commands, re-exporting the vendored handlers behind them."
+  why    = "One namespace means c-6's coexistence with a real claudecode.nvim install is satisfied by construction rather than by collision handling, and the surface grows deliberately phase by phase. Suppression must happen in the wrapper — `vendor/` is never hand-edited."
+  locked = true
+
+[[decisions]]
+  key    = "options_shape"
+  choice = "`require(\"codriver\").setup(opts)` takes codriver keys at the top level and vendored claudecode config nested under `claudecode = { … }`."
+  why    = "Clear ownership boundary: an unknown top-level key can be rejected outright, and re-syncing upstream can add or rename its keys without ever colliding with codriver's own key space."
+  locked = true
+
+[[decisions]]
+  key    = "status_surface"
+  choice = "`:CodriverStatus` echoes a one-line answer for the in-flow case; `:checkhealth codriver` gives the detailed report (port, lockfile path, connected client count, toolchain)."
+  why    = "Health is where Neovim users already look when something is wrong, but leaving the buffer for a health split mid-session is friction — the two surfaces serve different moments. The vendored `:ClaudeCodeStatus` conflates listening with connected and routes through its own log level, so neither is reusable as-is."
+  locked = true
+
+[[decisions]]
+  key    = "terminal_provider"
+  choice = "Keep the vendored terminal provider default of \"auto\", overridable through the nested `claudecode` config."
+  why    = "Upstream's auto-detection already picks snacks/native/external correctly and is the path c-2 depends on; overriding it would be a divergence with no benefit this phase."
+  locked = true

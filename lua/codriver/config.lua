@@ -1,0 +1,187 @@
+---@brief Turning a user's `setup()` table into two configs.
+---
+--- Codriver keeps its own options at the top level and the vendored layer's
+--- options nested under `claudecode`:
+---
+---   require("codriver").setup({
+---     auto_start = true,                      -- codriver's
+---     claudecode = { log_level = "debug" },   -- the vendored layer's
+---   })
+---
+--- The boundary is what makes an unknown top-level key an error rather than a
+--- guess, and what lets a vendor re-sync add or rename keys upstream without
+--- ever colliding with codriver's own key space.
+---
+--- This module is pure. It touches `vim.notify`, `vim.log.levels` and
+--- `vim.inspect` and nothing else, so it can be tested under bare LuaJIT
+--- against the tiny stub in tests/busted_setup.lua. Reaching for anything
+--- wider — `vim.tbl_deep_extend` above all — would mean either widening that
+--- stub or moving these tests into headless Neovim, and both are worse than
+--- twenty lines of merging.
+
+local M = {}
+
+---Options codriver owns. Everything else belongs to the vendored layer.
+---@type table<string, true>
+local CODRIVER_KEYS = {
+  auto_start = true,
+  claudecode = true,
+}
+
+---@class CodriverOptions
+---@field auto_start boolean Open a session when `setup()` runs.
+
+---Codriver's own defaults.
+---
+---`auto_start` is off because codriver's premise is that nothing happens
+---without a human at the keyboard. Opening a WebSocket server and writing a
+---lockfile on every `nvim` launch contradicts that, and litters one lockfile
+---per Neovim instance. Users who want Claude always reachable opt in.
+---@type CodriverOptions
+M.defaults = {
+  auto_start = false,
+}
+
+---Vendored defaults codriver has an opinion about. Deliberately short: every
+---other vendored key is left alone for the vendored `config.apply()` to
+---default, so a re-sync that changes one of those changes it here too.
+---@type table
+M.claudecode_defaults = {
+  -- Claude reading your buffer and your visual selection depends on this. It
+  -- is upstream's default too, but pinning it here means the one place it can
+  -- be switched off is a place that warns about what that costs.
+  track_selection = true,
+  terminal = {
+    -- Upstream's auto-detection already picks snacks/native/external
+    -- correctly. Overriding it would be a divergence with nothing to gain.
+    provider = "auto",
+  },
+}
+
+---Copy a value, following tables. Functions, userdata and the like are shared
+---by reference — a terminal provider passed in as a table of callbacks has to
+---come out the other side still calling the same functions.
+---@generic T
+---@param value T
+---@param seen table|nil
+---@return T
+local function deep_copy(value, seen)
+  if type(value) ~= "table" then
+    return value
+  end
+  seen = seen or {}
+  if seen[value] then
+    return seen[value]
+  end
+  local copy = {}
+  seen[value] = copy
+  for key, item in pairs(value) do
+    copy[key] = deep_copy(item, seen)
+  end
+  return copy
+end
+
+---Merge `override` onto a copy of `base`. Neither is mutated.
+---@param base table
+---@param override table|nil
+---@return table
+local function deep_merge(base, override)
+  local out = deep_copy(base)
+  for key, value in pairs(override or {}) do
+    if type(value) == "table" and type(out[key]) == "table" then
+      out[key] = deep_merge(out[key], value)
+    else
+      out[key] = deep_copy(value)
+    end
+  end
+  return out
+end
+
+---@param message string
+local function warn(message)
+  vim.notify("codriver.config: " .. message, vim.log.levels.WARN)
+end
+
+---Sorted list of the option names codriver accepts at the top level.
+---@return string
+local function codriver_key_list()
+  local keys = {}
+  for key in pairs(CODRIVER_KEYS) do
+    table.insert(keys, key)
+  end
+  table.sort(keys)
+  return table.concat(keys, ", ")
+end
+
+---Split a user's `setup()` table into codriver's config and the vendored one.
+---
+---Raises on an unknown top-level key rather than passing a half-understood
+---table down: a typo that silently does nothing is worse than a stack trace.
+---@param opts table|nil
+---@return { codriver: CodriverOptions, claudecode: table }
+function M.resolve(opts)
+  if opts == nil then
+    opts = {}
+  end
+  if type(opts) ~= "table" then
+    error(("codriver.config: setup() expects a table, got %s"):format(vim.inspect(opts)), 2)
+  end
+
+  local unknown = {}
+  for key in pairs(opts) do
+    if not CODRIVER_KEYS[key] then
+      table.insert(unknown, tostring(key))
+    end
+  end
+  if #unknown > 0 then
+    table.sort(unknown)
+    error(
+      ("codriver.config: unknown top-level option%s: %s. codriver's options are: %s — everything else belongs to "):format(
+        #unknown > 1 and "s" or "",
+        table.concat(unknown, ", "),
+        codriver_key_list()
+      ) .. "the vendored layer and goes under `claudecode = { ... }`",
+      2
+    )
+  end
+
+  local auto_start = M.defaults.auto_start
+  if opts.auto_start ~= nil then
+    if type(opts.auto_start) ~= "boolean" then
+      error(("codriver.config: auto_start must be a boolean, got %s"):format(vim.inspect(opts.auto_start)), 2)
+    end
+    auto_start = opts.auto_start
+  end
+
+  if opts.claudecode ~= nil and type(opts.claudecode) ~= "table" then
+    error(("codriver.config: claudecode must be a table, got %s"):format(vim.inspect(opts.claudecode)), 2)
+  end
+
+  local claudecode = deep_merge(M.claudecode_defaults, opts.claudecode)
+
+  if opts.claudecode and opts.claudecode.auto_start ~= nil then
+    warn(
+      "`claudecode.auto_start` is not yours to set — codriver starts the session itself. "
+        .. "Use the top-level `auto_start` option to open one when Neovim launches."
+    )
+  end
+  -- Forced, not defaulted. The vendored `setup()` starts a server and writes a
+  -- lockfile when this is true, and it does it before codriver has registered a
+  -- single command. Launch-time start is codriver's `auto_start` to run, from
+  -- the wrapper, after everything else is in place.
+  claudecode.auto_start = false
+
+  if claudecode.track_selection == false then
+    warn(
+      "`claudecode.track_selection = false` turns off selection tracking — Claude will not be able to read "
+        .. "your visual selection or the buffer you are working in."
+    )
+  end
+
+  return {
+    codriver = { auto_start = auto_start },
+    claudecode = claudecode,
+  }
+end
+
+return M

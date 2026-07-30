@@ -99,7 +99,9 @@ depends = ["setup"]
 run = '''
 set -eu
 echo "Running all tests..."
-TEST_FILES=$(find tests -type f -name "*_test.lua" -o -name "*_spec.lua" | sort)
+# The -o group must be parenthesised: without it -type f binds to the first
+# -name only, and a *directory* named *_spec.lua would be handed to busted.
+TEST_FILES=$(find tests -type f \( -name "*_test.lua" -o -name "*_spec.lua" \) | sort)
 echo "Found test files:"
 echo "$TEST_FILES"
 if [ -n "$TEST_FILES" ]; then
@@ -128,8 +130,52 @@ echo "typecheck: no diagnostics"
 '''
 
 [tasks."test-nvim"]
-description = "Load every vendored module in real Neovim (proves the require-rewrite resolves)"
-run = "nvim --clean --headless -l tests/nvim/vendor_smoke.lua"
+description = "Run every tests/nvim/*_check.lua in its own headless Neovim"
+run = '''
+set -eu
+DIR=tests/nvim
+
+[ -f "$DIR/harness.lua" ] || { echo "test-nvim: $DIR/harness.lua is missing" >&2; exit 1; }
+
+# A check registers itself by being named *_check.lua. Discovery is this glob
+# and nothing else — no allowlist for a new check to be forgotten out of.
+#
+# The naming convention is load-bearing in the other direction too: [tasks.test]
+# hands every tests/**/*_spec.lua to busted, which runs under bare LuaJIT with
+# no vim API. A headless check misnamed *_spec.lua would be swept in there and
+# die on vim.api, so refuse anything here that is neither a check nor the
+# shared harness.
+for f in "$DIR"/*.lua; do
+  case "$f" in
+  "$DIR"/harness.lua) ;;
+  *_check.lua) ;;
+  *)
+    echo "test-nvim: $f is neither harness.lua nor a *_check.lua — busted would sweep it up" >&2
+    exit 1
+    ;;
+  esac
+done
+
+CHECKS=$(printf '%s\n' "$DIR"/*_check.lua)
+case "$CHECKS" in
+*"$DIR/harness.lua"*)
+  echo "test-nvim: the shared harness must not be discovered as a check" >&2
+  exit 1
+  ;;
+*'*_check.lua'*)
+  echo "test-nvim: no *_check.lua found under $DIR" >&2
+  exit 1
+  ;;
+esac
+
+# One nvim process per check: a server, a lockfile or a stubbed module leaked by
+# one check must not be what makes the next one pass. Stop at the first failure.
+for f in "$DIR"/*_check.lua; do
+  echo "--- $f"
+  nvim --clean --headless -l "$f" || { echo "test-nvim: FAILED $f" >&2; exit 1; }
+done
+echo "test-nvim: all checks passed"
+'''
 
 [tasks.format]
 description = "Format the whole tree with treefmt"

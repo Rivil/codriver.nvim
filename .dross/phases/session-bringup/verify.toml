@@ -1,0 +1,204 @@
+[verify]
+  phase = "session-bringup"
+  generated_at = 2026-07-30T16:34:15.090485Z
+  verdict = "pass"
+  finalized = true
+  finalized_at = 2026-07-30T16:36:48.978445Z
+
+[summary]
+  mutation_status = "skipped"
+  mutation_score = 0.0
+  mutants_killed = 0
+  mutants_survived = 0
+  mutants_not_covered = 0
+  criteria_total = 8
+  criteria_covered = 8
+  criteria_uncovered = 0
+
+[[criterion]]
+  id = "c-1"
+  status = "covered"
+  tests = ["tests/nvim/session_lifecycle_check.lua:107 (start names its port)", "tests/nvim/session_lifecycle_check.lua:130 (a second start reports the live session, not an error)", "tests/codriver/init_spec.lua:437 (reports a second start as the session it already has)", "tests/codriver/session_spec.lua:154 (reports an existing session without calling the vendored start)"]
+  notes = "Asserts the start output contains the bound port, that a second :CodriverStart keeps the same port, writes no second lockfile, says \"already\", and is not notified at ERROR level. A failed bind is separately proven to leave no lockfile."
+
+[[criterion]]
+  id = "c-2"
+  status = "covered"
+  tests = ["tests/nvim/terminal_env_check.lua:102 (expect_launch_env: CLAUDE_CODE_SSE_PORT, ENABLE_IDE_INTEGRATION, FORCE_CODE_TERMINAL, no_proxy loopback, cmd token \"claude\")", "tests/nvim/terminal_env_check.lua:158 (server listening at the moment the terminal is opened)", "tests/nvim/terminal_env_check.lua:182 (no wrapper module assigns CLAUDE_CODE_SSE_PORT itself)", "tests/codriver/session_spec.lua:168 (brings the server up before opening the terminal)"]
+  notes = "Each recorded provider call carries whether the server was listening at the moment it was made, so terminal-before-server is caught rather than masked by a later port value. The user-sets-nothing half is proven by asserting the env table handed to the provider, plus a source scan forbidding a second assignment site."
+
+[[criterion]]
+  id = "c-3"
+  status = "covered"
+  tests = ["tests/nvim/mcp_context_check.lua:178 (getCurrentSelection returns the unsaved buffer line and not the on-disk line)", "tests/nvim/mcp_context_check.lua:163 (checkDocumentDirty flips false->true->false around an unwritten edit)", "tests/nvim/mcp_context_check.lua:125 (tools/list offers every context tool Claude asks for)"]
+  notes = "Driven through the real server.state.handlers[\"tools/call\"] dispatcher against a stub client, and through a real V/<Esc> visual selection so the vendored ModeChanged flush is the path exercised. expect_not_contains(DISK_LINE) is what makes a stale-file read fail rather than pass."
+
+[[criterion]]
+  id = "c-4"
+  status = "covered"
+  tests = ["tests/nvim/status_check.lua:109 (listening names the port and says \"waiting for Claude\", never \"Claude attached\")", "tests/nvim/status_check.lua:113 (attached says so and no longer reads as waiting)", "tests/nvim/status_check.lua:124 (checkhealth codriver reports port, lockfile path and client count)", "tests/codriver/session_spec.lua:301 (never reads a bare client count as Claude)", "tests/codriver/session_spec.lua:324 (does not accept a client that only claims to be connected)", "tests/codriver/status_spec.lua:36 (the listening line does not read as connected)"]
+  notes = "Both directions asserted with expect_not_contains, so a formatter that collapsed the two states fails rather than passing on a substring. The two obvious cheats — inferring connected from a TCP client count, or from a client that merely claims it — are killed explicitly in session_spec."
+
+[[criterion]]
+  id = "c-5"
+  status = "covered"
+  tests = ["tests/nvim/session_lifecycle_check.lua:145 (stop: server down, named lockfile gone, lock dir empty, selection autocmds cleared)", "tests/nvim/session_lifecycle_check.lua:157 (a start after a stop comes back up, names its port, one lockfile named for the new port)", "tests/codriver/session_spec.lua:282 (lets a fresh start follow a stop)"]
+  notes = "The restart is asserted against the real server in the same process, which is what makes an incomplete stop observable. Idle stop is separately proven to say \"no session\" at non-ERROR level and to leave the lock dir untouched."
+
+[[criterion]]
+  id = "c-6"
+  status = "covered"
+  tests = ["tests/nvim/coexistence_check.lua:85 (require(\"claudecode\") resolves to the fixture, not to the vendored table)", "tests/nvim/coexistence_check.lua:109 (codriver.setup leaves the :ClaudeCode* command surface byte-identical, and the fixture handler still runs afterwards)", "tests/nvim/coexistence_check.lua:133 (the fixture keeps its ClaudeCodeShutdown autocmd; codriver has its own CodriverShutdown)", "tests/nvim/coexistence_check.lua:148 (no vendored file answers :checkhealth claudecode)", "tests/nvim/coexistence_check.lua:170 (codriver still starts and stops cleanly with the rival loaded)"]
+  notes = "A real fixture plugin is prepended to runtimepath so it wins any contested resolution, and each of the four collision surfaces carries a marker. The checkhealth assertion guards against passing vacuously by first requiring the glob to match something."
+
+[[criterion]]
+  id = "c-7"
+  status = "covered"
+  tests = ["tests/nvim/command_surface_check.lua:69 (every vendored command captured from the real registration has a :Codriver* name and is registered)", "tests/nvim/command_surface_check.lua:106 (range/nargs/bang/complete preserved per command, normalised on both sides)", "tests/nvim/command_surface_check.lua:139 (CodriverAdd and '<,'>CodriverSend put real entries in the vendored mention queue)", "tests/nvim/command_surface_check.lua:166 (CodriverDiffAccept and CodriverSelectModel complete rather than raise)", "tests/codriver/commands_spec.lua:173 (the rename map covers every vendored command and nothing else)"]
+  notes = "Drift is checked against commands.capture(vendor._create_commands) rather than a hand-written list, so an upstream re-sync that adds or renames a command fails here. Handlers pass through register() by reference in one loop, so the four behavioural spot-checks exercise the mechanism all fifteen share."
+
+[[criterion]]
+  id = "c-8"
+  status = "covered"
+  tests = ["tests/nvim/autostart_off_check.lua:21 (setup({}) leaves nothing listening, no lockfile, snapshot false, commands still registered)", "tests/nvim/autostart_on_check.lua:50 (auto_start = true opens a session at launch, one lockfile named for the port)", "tests/nvim/autostart_on_check.lua:100 (a child nvim that auto-starts and quits gives its lockfile back on exit)", "tests/codriver/config_spec.lua:72 (forces the vendored auto_start off even when set)", "tests/codriver/config_spec.lua:83 (does not forward the codriver opt-in down to the vendored layer)"]
+  notes = "Each half runs in its own process, because \"never started\" is not recoverable once something has. The child-nvim exit path is what proves the ClaudeCodeShutdown -> CodriverShutdown rename did not silently become a re-create."
+
+[[finding]]
+  severity = "NOTE"
+  text = "mutation skipped: no mutation adapter exists for .lua, so all 30 touched files were skipped and the 0.0 score is a 0/0 artifact, not a signal. Verdict is based on criterion coverage alone. Partial compensation: tests/nvim/harness_selfcheck_check.lua plants deliberately-failing child checks and asserts the harness exits non-zero, the failure text reaches stderr, and `mise run test-nvim` goes red and stops at the first failure — the theatrical-coverage failure mode mutation testing would have caught first."
+
+[[finding]]
+  severity = "NOTE"
+  text = "c-2 residual: no headless process can launch a real `claude` and observe it connect back. terminal_env_check asserts the (cmd, env) handed to the vendored terminal provider and the server-before-terminal ordering — everything codriver owns. The remaining segment (vendored provider actually spawning the CLI, CLI completing the WebSocket upgrade) is unverified by automated test and wants a manual smoke run before release."
+
+[[finding]]
+  severity = "NOTE"
+  text = "c-4 residual: the attached state is faked at the snapshot boundary by patching claudecode.state.server.get_status to report a handshake-complete client, so the real snapshot, formatter and command all run below the fake. The unfaked segment — a real Claude driving handshake_complete to true — is vendored surface and unverified here."
+
+[[finding]]
+  severity = "NOTE"
+  text = "c-7 residual: CodriverDiffAccept is exercised only with no diff open and CodriverDiffDeny only at registration/flag level, because a real proposed diff needs a connected client. Low risk: neither command is decorated in codriver.init (PREFLIGHT/OWNED exclude both), so both take register()'s verbatim pass-through path, which CodriverAdd and '<,'>CodriverSend exercise behaviourally."
+
+[[finding]]
+  severity = "NOTE"
+  text = "observed green this session: `mise run test` — 98 busted successes / 0 failures / 0 errors, and all 12 tests/nvim/*_check.lua passed."
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped VENDOR.md: no mutation adapter for .md"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/commands.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/config.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/health.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/init.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/session.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/status.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/vendor/claudecode/health_vendored.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped mise.toml: no mutation adapter for .toml"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped scripts/vendor-sync.sh: no mutation adapter for .sh"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/codriver/commands_spec.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/codriver/config_spec.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/codriver/init_spec.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/codriver/session_spec.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/codriver/status_spec.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/fixtures/claudecode.nvim/lua/claudecode/health.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/fixtures/claudecode.nvim/lua/claudecode/init.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/fixtures/claudecode.nvim/plugin/claudecode.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/nvim/autostart_off_check.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/nvim/autostart_on_check.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/nvim/coexistence_check.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/nvim/command_surface_check.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/nvim/harness.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/nvim/harness_selfcheck_check.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/nvim/health_check.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/nvim/mcp_context_check.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/nvim/session_lifecycle_check.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/nvim/status_check.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/nvim/terminal_env_check.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/nvim/vendor_smoke_check.lua: no mutation adapter for .lua"
