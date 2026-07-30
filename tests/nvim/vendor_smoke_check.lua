@@ -1,6 +1,6 @@
--- Vendor smoke test — run under real Neovim:
+-- Vendor smoke check — run under real Neovim by `mise run test-nvim`, or alone:
 --
---   nvim --clean --headless -l tests/nvim/vendor_smoke.lua
+--   nvim --clean --headless -l tests/nvim/vendor_smoke_check.lua
 --
 -- scripts/vendor-sync.sh rewrites every `claudecode` module path to sit under
 -- `codriver.vendor.`. It checks that the files still *parse*, but parsing does
@@ -12,11 +12,10 @@
 -- test that would have caught the `pcall(require, "claudecode.terminal." .. x)`
 -- dynamic prefix if the rewrite had missed it.
 
-local script = vim.fn.resolve(debug.getinfo(1, "S").source:sub(2))
-local repo_root = vim.fn.fnamemodify(script, ":p:h:h:h")
-vim.opt.runtimepath:prepend(repo_root)
+local here = vim.fn.fnamemodify(vim.fn.resolve(debug.getinfo(1, "S").source:sub(2)), ":p:h")
+local harness = dofile(here .. "/harness.lua").setup()
 
-local vendor_root = repo_root .. "/lua/codriver/vendor/claudecode"
+local vendor_root = harness.repo_root .. "/lua/codriver/vendor/claudecode"
 
 local failures = {}
 local checked = 0
@@ -34,8 +33,7 @@ local files = vim.fn.globpath(vendor_root, "**/*.lua", false, true)
 table.sort(files)
 
 if #files == 0 then
-  io.stderr:write(("vendor_smoke: no vendored files found under %s\n"):format(vendor_root))
-  vim.cmd("cquit 1")
+  harness.fail("no vendored files found under %s", vendor_root)
 end
 
 for _, path in ipairs(files) do
@@ -57,30 +55,24 @@ for name in pairs(package.loaded) do
 end
 
 if #failures > 0 then
-  io.stderr:write(
-    ("vendor_smoke: %d/%d modules failed:\n%s\n"):format(#failures, checked, table.concat(failures, "\n"))
-  )
-  vim.cmd("cquit 1")
+  harness.fail("%d/%d modules failed:\n%s", #failures, checked, table.concat(failures, "\n"))
 end
 
 -- The wrapper must sit on top of the vendored layer without either shadowing
 -- the other.
 local codriver_ok, codriver = pcall(require, "codriver")
 if not codriver_ok then
-  io.stderr:write(('vendor_smoke: require("codriver") failed: %s\n'):format(codriver))
-  vim.cmd("cquit 1")
+  harness.fail('require("codriver") failed: %s', codriver)
 end
 
 local version_ok, version = pcall(codriver.get_version)
 if not version_ok then
-  io.stderr:write(("vendor_smoke: codriver.get_version() failed: %s\n"):format(version))
-  vim.cmd("cquit 1")
+  harness.fail("codriver.get_version() failed: %s", version)
 end
 
-print(
-  ("vendor_smoke: %d vendored modules loaded; codriver %s wrapping claudecode %s"):format(
-    checked,
-    version.codriver,
-    version.claudecode
-  )
+harness.ok(
+  "%d vendored modules loaded; codriver %s wrapping claudecode %s",
+  checked,
+  version.codriver,
+  version.claudecode
 )
