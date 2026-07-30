@@ -2,9 +2,9 @@
   "version": "0.1.0.0",
   "current_milestone": "v0.1",
   "current_phase": "session-bringup",
-  "current_phase_status": "created",
-  "last_activity": "2026-07-30T12:08:05.550742Z",
-  "last_action": "spec locked: session-bringup",
+  "current_phase_status": "planned",
+  "last_activity": "2026-07-30T13:02:03.411792Z",
+  "last_action": "plan amended after 2 review rounds: session-bringup (14 tasks across 4 waves)",
   "history": [
     {
       "at": "2026-07-30T07:50:35.234165Z",
@@ -37,6 +37,22 @@
     {
       "at": "2026-07-30T12:08:05.550742Z",
       "action": "spec locked: session-bringup"
+    },
+    {
+      "at": "2026-07-30T12:34:49.471573Z",
+      "action": "set current_phase_status=planned"
+    },
+    {
+      "at": "2026-07-30T12:34:49.479464Z",
+      "action": "plan locked: session-bringup (12 tasks across 4 waves)"
+    },
+    {
+      "at": "2026-07-30T12:40:00.083434Z",
+      "action": "plan reviewed: session-bringup (0 blocking, 9 flags)"
+    },
+    {
+      "at": "2026-07-30T13:02:03.411792Z",
+      "action": "plan amended after 2 review rounds: session-bringup (14 tasks across 4 waves)"
     }
   ]
 }
