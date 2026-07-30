@@ -1,8 +1,10 @@
 {
   "version": "0.1.0.0",
   "current_milestone": "v0.1",
-  "last_activity": "2026-07-30T11:05:36.265325Z",
-  "last_action": "scoped milestone v0.1: 4 criteria, 4 phases",
+  "current_phase": "session-bringup",
+  "current_phase_status": "created",
+  "last_activity": "2026-07-30T12:08:05.550742Z",
+  "last_action": "spec locked: session-bringup",
   "history": [
     {
       "at": "2026-07-30T07:50:35.234165Z",
@@ -23,6 +25,18 @@
     {
       "at": "2026-07-30T11:05:36.265325Z",
       "action": "scoped milestone v0.1: 4 criteria, 4 phases"
+    },
+    {
+      "at": "2026-07-30T11:44:01.679056Z",
+      "action": "created session-bringup"
+    },
+    {
+      "at": "2026-07-30T12:08:05.543486Z",
+      "action": "set current_phase=session-bringup"
+    },
+    {
+      "at": "2026-07-30T12:08:05.550742Z",
+      "action": "spec locked: session-bringup"
     }
   ]
 }

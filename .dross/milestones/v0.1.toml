@@ -1,4 +1,4 @@
-phases = ["01-session-bringup", "02-role-enforcement", "03-handover", "04-role-visibility"]
+phases = ["session-bringup", "role-enforcement", "handover", "role-visibility"]
 
 [milestone]
   version = "v0.1"
