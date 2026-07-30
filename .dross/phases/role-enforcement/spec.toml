@@ -1,0 +1,87 @@
+[phase]
+  id = "role-enforcement"
+  title = "role-enforcement"
+  milestone = "v0.1"
+
+[[criteria]]
+  id = "c-1"
+  text = "Starting a session launches Claude with codriver's permission configuration already applied; the user hand-edits no Claude settings."
+
+[[criteria]]
+  id = "c-2"
+  text = "While Claude is navigator, a file-editing tool call is refused before it runs and the target file is byte-identical afterwards."
+
+[[criteria]]
+  id = "c-3"
+  text = "The refusal is a permission-layer denial carrying a codriver-authored reason, not the model choosing to decline — it fires even when Claude is explicitly told to edit."
+
+[[criteria]]
+  id = "c-4"
+  text = "A shell command that writes to a file is refused on the same grounds as the edit tool."
+
+[[criteria]]
+  id = "c-5"
+  text = "Read-only work still succeeds while navigator: reading, searching, and running the project's test command."
+
+[[criteria]]
+  id = "c-6"
+  text = "The allow/deny decision reads live role state at the moment of the tool call, not a value fixed when Claude launched."
+
+[[criteria]]
+  id = "c-7"
+  text = "If the role cannot be determined inside a live session, the tool call is refused rather than allowed."
+
+[[criteria]]
+  id = "c-8"
+  text = "A write refused while navigator raises a Neovim notification naming the blocked operation, without the user reading the Claude terminal."
+
+[[decisions]]
+  key = "settings_delivery"
+  choice = "Register the PreToolUse hook in the project's `.claude/settings.local.json`, written by codriver rather than by hand."
+  why = "Conventional and gitignored, so the repo's other users are unaffected and codriver never has to compose the Claude argv — no fight with a user-supplied `claudecode.terminal_cmd`. Accepted cost: codriver mutates a file in the working tree and the hook outlives the session, which `no_session_behaviour` answers."
+  locked = true
+
+[[decisions]]
+  key = "no_session_behaviour"
+  choice = "No live codriver session means no enforcement — the hook allows everything and gets out of the way. Fail-closed (c-7) applies only inside a live session, where role state should be readable but is not."
+  why = "The hook lives in the repo permanently, so failing closed everywhere would make a plain `claude` run unable to write in this repo whenever Neovim is not up. Cost: \"is a session live\" becomes a security-relevant check."
+  locked = true
+
+[[decisions]]
+  key = "bash_policy"
+  choice = "Bash is refused while navigator unless the command matches an allowlist of read-only invocations — search and read tools, read-only git subcommands, and a codriver-configured test command."
+  why = "c-2's byte-identity guarantee cannot rest on out-parsing a shell: `eval`, command substitution, or a wrapper script defeat any deny-list. An allowlist is sound by construction; the accepted cost is noise and an allowlist that has to grow."
+  locked = true
+
+[[decisions]]
+  key = "nvim_write_tools"
+  choice = "The vendored Neovim-side MCP tools (openDiff, saveDocument, close_tab, closeAllDiffTabs) stay available while navigator; enforcement targets Claude's own file-writing tools and Bash."
+  why = "A diff is advice made concrete, and it reaches disk only through the human-initiated `:CodriverDiffAccept` — the human is still the one writing. Keeps the vendored diff surface alive rather than leaving `:CodriverDiffAccept`/`:CodriverDiffDeny` dead until handover."
+  locked = true
+
+[[decisions]]
+  key = "role_channel"
+  choice = "Codriver writes the role to a session-scoped state file on every change; the hook reads that file for its decision and pushes refusal notifications back over Neovim's RPC server address. Both paths reach Claude through the launch environment."
+  why = "Keeps the hot path — every gated tool call, including allowlisted Bash — off a blocking RPC round-trip, while still satisfying c-8's push. A state file outliving a crashed Neovim is covered by the no-session check."
+  locked = true
+
+[[decisions]]
+  key = "refusal_message"
+  choice = "The denial text names the navigator role and states the block is harness-level and not retryable; it does not name a handover command."
+  why = "Telling Claude to stop rather than rephrase is what makes c-3 hold under an explicit instruction to edit. No handover command exists until the next phase, and naming one that does not would be a lie in the most-read string in the plugin."
+  locked = true
+
+[[deferred]]
+  text = "Enforcement survives a `setup()` re-run or plugin hot-reload — a reload must not leave a live session unenforced."
+  why = "Lifecycle machinery shared with handover; cheaper to solve once the role can flip live within one session."
+  target = "handover"
+
+[[deferred]]
+  text = "Multi-instance role resolution — which Neovim instance's role governs when two sessions are live in the same repo."
+  why = "The state file is keyed per session now; the tie-break only bites a workflow that does not exist yet."
+  target = "handover"
+
+[[deferred]]
+  text = "Expose the read-only Bash allowlist as a documented user-facing config option."
+  why = "The phase needs a working allowlist, not a configurable one — harden the default set before fixing its shape in public API."
+  target = "role-visibility"
