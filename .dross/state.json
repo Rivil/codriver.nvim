@@ -1,7 +1,7 @@
 {
   "version": "0.1.0.0",
-  "last_activity": "2026-07-30T09:27:40.356884Z",
-  "last_action": "resumed — back at /dross-init step 3: confirm upstream toolchain, lock stack",
+  "last_activity": "2026-07-30T10:48:22.225273Z",
+  "last_action": "init complete — codriver.nvim scaffolded, vendored claudecode.nvim @ 2390c6e, all checks green",
   "history": [
     {
       "at": "2026-07-30T07:50:35.234165Z",
@@ -10,6 +10,10 @@
     {
       "at": "2026-07-30T09:27:40.356884Z",
       "action": "resumed — back at /dross-init step 3: confirm upstream toolchain, lock stack"
+    },
+    {
+      "at": "2026-07-30T10:48:22.225273Z",
+      "action": "init complete — codriver.nvim scaffolded, vendored claudecode.nvim @ 2390c6e, all checks green"
     }
   ]
 }
