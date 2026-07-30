@@ -126,6 +126,9 @@ function M.register(captured, api, decorate)
       )
     end
 
+    ---`decorate` may drop the command entirely, so the local is nil-able from
+    ---the start rather than being narrowed to `entry`'s type and reassigned.
+    ---@type CodriverCapturedCommand|nil
     local final = entry
     if decorate then
       final = decorate(entry.name, entry)
