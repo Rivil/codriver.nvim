@@ -2,9 +2,9 @@
   "version": "0.1.1.0",
   "current_milestone": "v0.1",
   "current_phase": "role-enforcement",
-  "current_phase_status": "created",
-  "last_activity": "2026-07-30T18:59:48.868412Z",
-  "last_action": "spec locked: role-enforcement",
+  "current_phase_status": "planned",
+  "last_activity": "2026-07-31T06:52:50.317891Z",
+  "last_action": "plan reviewed: role-enforcement (2 blocking resolved, 4 flags) — amended to 14 tasks across 4 waves",
   "history": [
     {
       "at": "2026-07-30T07:50:35.234165Z",
@@ -145,6 +145,18 @@
     {
       "at": "2026-07-30T18:59:48.868412Z",
       "action": "spec locked: role-enforcement"
+    },
+    {
+      "at": "2026-07-31T06:35:40.25388Z",
+      "action": "set current_phase_status=planned"
+    },
+    {
+      "at": "2026-07-31T06:35:40.261153Z",
+      "action": "plan locked: role-enforcement (14 tasks across 5 waves)"
+    },
+    {
+      "at": "2026-07-31T06:52:50.317891Z",
+      "action": "plan reviewed: role-enforcement (2 blocking resolved, 4 flags) — amended to 14 tasks across 4 waves"
     }
   ]
 }
