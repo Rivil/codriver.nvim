@@ -1,0 +1,24 @@
+# Editor defaults for this repo, mirroring what the formatters already enforce.
+#
+# stylua (.stylua.toml) and shfmt (treefmt.toml) both indent with two spaces, so
+# an editor whose global default is four fights the formatter on every save.
+# Neovim reads this natively; most other editors need a plugin.
+#
+# Deliberately no max_line_length: editors translate it to `textwidth` and then
+# hard-wrap code mid-line as you type. stylua already wraps Lua at 120 columns
+# when it formats, which is the right moment for it.
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.md]
+# Two trailing spaces is a hard line break in Markdown — stripping them silently
+# reflows the rendered output.
+trim_trailing_whitespace = false
