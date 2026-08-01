@@ -1,10 +1,10 @@
 {
-  "version": "0.1.1.0",
+  "version": "0.1.2.0",
   "current_milestone": "v0.1",
   "current_phase": "role-enforcement",
   "current_phase_status": "planned",
-  "last_activity": "2026-07-31T06:52:50.317891Z",
-  "last_action": "plan reviewed: role-enforcement (2 blocking resolved, 4 flags) — amended to 14 tasks across 4 waves",
+  "last_activity": "2026-08-01T06:40:56.308768Z",
+  "last_action": "resumed — next: Claude lands the init.lua version chore commit, then the one_line() sanitizer in notify.lua for t-4",
   "history": [
     {
       "at": "2026-07-30T07:50:35.234165Z",
@@ -157,6 +157,18 @@
     {
       "at": "2026-07-31T06:52:50.317891Z",
       "action": "plan reviewed: role-enforcement (2 blocking resolved, 4 flags) — amended to 14 tasks across 4 waves"
+    },
+    {
+      "at": "2026-07-31T07:08:38.921235Z",
+      "action": "set version=0.1.2.0"
+    },
+    {
+      "at": "2026-07-31T16:21:44.913844Z",
+      "action": "paused mid-t-4 — notify.lua at 5/8 spec assertions, next is the one_line() sanitizer"
+    },
+    {
+      "at": "2026-08-01T06:40:56.308768Z",
+      "action": "resumed — next: Claude lands the init.lua version chore commit, then the one_line() sanitizer in notify.lua for t-4"
     }
   ]
 }

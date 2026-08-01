@@ -67,3 +67,6 @@ luacov.stats.out
 .claude/*
 !.claude/settings.json
 !.claude/hooks/
+
+# dross handoff — local working memory, not tracked
+.dross/handoff.md
