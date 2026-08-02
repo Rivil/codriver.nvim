@@ -1,0 +1,53 @@
+{
+  "phase": "role-enforcement",
+  "tasks": {
+    "t-1": {
+      "files": [
+        "lua/codriver/hook/state.lua",
+        "tests/nvim/hook_state_check.lua"
+      ],
+      "commit": "b2ad947",
+      "completed_at": "2026-08-02T08:10:17.441659Z",
+      "landmarks": [
+        {
+          "feature": "role state channel",
+          "symbol": "M.probe",
+          "loc": "lua/codriver/hook/state.lua:41",
+          "what": "session-scoped JSON record with atomic publish and a three-state liveness probe keyed on kill(pid 0)"
+        }
+      ]
+    },
+    "t-2": {
+      "files": [
+        "lua/codriver/hook/bash.lua",
+        "tests/codriver/hook_bash_spec.lua"
+      ],
+      "commit": "82af5f3",
+      "completed_at": "2026-08-02T15:32:32.787447Z",
+      "landmarks": [
+        {
+          "feature": "bash allowlist matching",
+          "symbol": "M.allows",
+          "loc": "lua/codriver/hook/bash.lua:85",
+          "what": "matches Bash commands against a sound-by-construction read-only allowlist, refusing redirection/substitution/chaining and admitting only the configured test command as an exception"
+        }
+      ]
+    },
+    "t-4": {
+      "files": [
+        "lua/codriver/hook/notify.lua",
+        "tests/codriver/hook_notify_spec.lua"
+      ],
+      "commit": "e1661e8",
+      "completed_at": "2026-08-01T08:24:54.365926Z",
+      "landmarks": [
+        {
+          "feature": "refusal reporting",
+          "symbol": "M.refused",
+          "loc": "lua/codriver/hook/notify.lua:21",
+          "what": "coalesced WARN notification naming the blocked tool and path, hardened against untrusted RPC payloads"
+        }
+      ]
+    }
+  }
+}

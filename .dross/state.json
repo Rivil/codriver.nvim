@@ -3,8 +3,8 @@
   "current_milestone": "v0.1",
   "current_phase": "role-enforcement",
   "current_phase_status": "planned",
-  "last_activity": "2026-08-01T06:40:56.308768Z",
-  "last_action": "resumed — next: Claude lands the init.lua version chore commit, then the one_line() sanitizer in notify.lua for t-4",
+  "last_activity": "2026-08-02T15:32:32.825094Z",
+  "last_action": "executed t-2 (Read-only Bash allowlist matcher)",
   "history": [
     {
       "at": "2026-07-30T07:50:35.234165Z",
@@ -169,6 +169,22 @@
     {
       "at": "2026-08-01T06:40:56.308768Z",
       "action": "resumed — next: Claude lands the init.lua version chore commit, then the one_line() sanitizer in notify.lua for t-4"
+    },
+    {
+      "at": "2026-08-01T08:24:54.391443Z",
+      "action": "executed t-4 (Neovim-side refusal notification receiver)"
+    },
+    {
+      "at": "2026-08-02T08:10:17.454123Z",
+      "action": "executed t-1 (Session state file and liveness probe)"
+    },
+    {
+      "at": "2026-08-02T08:50:27.786878Z",
+      "action": "paused mid-t-2 — bash matcher skeleton in, next is the exact test-command match (micro-step mode)"
+    },
+    {
+      "at": "2026-08-02T15:32:32.825094Z",
+      "action": "executed t-2 (Read-only Bash allowlist matcher)"
     }
   ]
 }
