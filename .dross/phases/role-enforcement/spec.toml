@@ -85,3 +85,7 @@
   text = "Expose the read-only Bash allowlist as a documented user-facing config option."
   why = "The phase needs a working allowlist, not a configurable one — harden the default set before fixing its shape in public API."
   target = "role-visibility"
+
+[[deferred]]
+  text = "Shorten the send commands — `:CodriverSend` and `:CodriverSendText` are too long to type at the frequency they are used. Default keymaps are the likely answer (visual-mode binding for SendText), not shorter command names: commands.lua deliberately exposes exactly one `:Codriver*` namespace so an unnamed command surfacing in an upstream re-sync cannot slip through, and a second short namespace doubles what that invariant has to police. Neovim's own prefix abbreviation does not help — `:CodriverSe` is ambiguous across Send/SendText/SelectModel."
+  why = "Earmarked for a /dross-quick once role-enforcement ships — small, self-contained, and shares no files with the hook lane this phase is about."
