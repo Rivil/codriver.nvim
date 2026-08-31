@@ -70,3 +70,6 @@ luacov.stats.out
 
 # dross handoff — local working memory, not tracked
 .dross/handoff.md
+
+# dross per-machine exec consent — must not travel with the repo
+.dross/local.toml
