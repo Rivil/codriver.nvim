@@ -3,8 +3,8 @@
   "current_milestone": "v0.1",
   "current_phase": "role-enforcement",
   "current_phase_status": "planned",
-  "last_activity": "2026-08-02T16:59:16.094066Z",
-  "last_action": "executed t-3 (Merge codriver hook into Claude settings)",
+  "last_activity": "2026-08-31T14:57:28.885615Z",
+  "last_action": "resumed — next runnable t-6 (launch channel and test_command option)",
   "history": [
     {
       "at": "2026-07-30T07:50:35.234165Z",
@@ -189,6 +189,10 @@
     {
       "at": "2026-08-02T16:59:16.094066Z",
       "action": "executed t-3 (Merge codriver hook into Claude settings)"
+    },
+    {
+      "at": "2026-08-31T14:57:28.885615Z",
+      "action": "resumed — next runnable t-6 (launch channel and test_command option)"
     }
   ]
 }
