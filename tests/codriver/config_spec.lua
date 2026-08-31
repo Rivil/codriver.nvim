@@ -171,4 +171,88 @@ describe("codriver.config", function()
       assert.are.equal("auto", config.resolve({}).claudecode.terminal.provider, "the defaults were mutated")
     end)
   end)
+
+  describe("the launch channel", function()
+    local CHANNEL = { state_file = "/state/codriver-42.json", nvim_address = "/tmp/nvim.42.0.sock" }
+
+    it("injects the channel into claudecode.env without clobbering the user's own entries", function()
+      local resolved = config.resolve({ claudecode = { env = { FOO = "1" } } }, CHANNEL)
+
+      assert.are.equal("1", resolved.claudecode.env.FOO, "codriver adds keys, it does not own the table")
+      assert.are.equal(CHANNEL.state_file, resolved.claudecode.env.CODRIVER_STATE_FILE)
+      assert.are.equal(CHANNEL.nvim_address, resolved.claudecode.env.CODRIVER_NVIM_ADDRESS)
+    end)
+
+    it("forces its own keys even when the user set one, warning exactly once", function()
+      local resolved = config.resolve({ claudecode = { env = { CODRIVER_STATE_FILE = "/evil/path" } } }, CHANNEL)
+
+      assert.are.equal(
+        CHANNEL.state_file,
+        resolved.claudecode.env.CODRIVER_STATE_FILE,
+        "role state must not become user-writable"
+      )
+      assert.are.equal(CHANNEL.nvim_address, resolved.claudecode.env.CODRIVER_NVIM_ADDRESS)
+
+      local warning = only_notification()
+      assert.is_truthy(warning, "silently overriding it would hide that role state is not user-controllable")
+      assert.are.equal(vim.log.levels.WARN, warning.level)
+      assert.is_truthy(warning.msg:find("CODRIVER_STATE_FILE", 1, true), "the warning must name the ignored key")
+    end)
+
+    it("omits both keys entirely when no channel is supplied", function()
+      local resolved = config.resolve({})
+
+      assert.is_nil(
+        resolved.claudecode.env.CODRIVER_STATE_FILE,
+        "an empty value would read downstream as a live session with an unreadable file"
+      )
+      assert.is_nil(resolved.claudecode.env.CODRIVER_NVIM_ADDRESS)
+    end)
+
+    it("never reaches for vim.fn to compute the channel itself", function()
+      -- The bare stub carries no vim.fn table at all -- resolve would error the
+      -- instant it tried stdpath() or serverstart() rather than taking the
+      -- channel as a parameter. Ensuring and publishing the channel before
+      -- resolve is called is t-8's job, not this module's.
+      assert.has_no.errors(function()
+        config.resolve({}, CHANNEL)
+      end)
+    end)
+
+    it("stringifies every channel value before it reaches env", function()
+      local resolved = config.resolve({}, { state_file = "/s", nvim_address = 4321 })
+
+      assert.are.equal(
+        "4321",
+        resolved.claudecode.env.CODRIVER_NVIM_ADDRESS,
+        "a non-string value in env takes down the vendored config.apply assert"
+      )
+    end)
+  end)
+
+  describe("the test_command option", function()
+    it("rejects a non-string test_command", function()
+      assert.has_error(function()
+        config.resolve({ test_command = 42 })
+      end)
+    end)
+
+    it("still rejects a misspelled key as unknown", function()
+      local ok, err = pcall(config.resolve, { test_commnd = "mise run test" })
+
+      assert.is_false(ok)
+      assert.is_truthy(tostring(err):find("test_commnd", 1, true))
+    end)
+
+    it("defaults to nil", function()
+      assert.is_nil(config.resolve({}).codriver.test_command)
+    end)
+
+    it("surfaces under .codriver, never .claudecode", function()
+      local resolved = config.resolve({ test_command = "mise run test" })
+
+      assert.are.equal("mise run test", resolved.codriver.test_command)
+      assert.is_nil(resolved.claudecode.test_command)
+    end)
+  end)
 end)

@@ -26,6 +26,7 @@ local M = {}
 local CODRIVER_KEYS = {
   auto_start = true,
   claudecode = true,
+  test_command = true,
 }
 
 ---@class CodriverOptions
@@ -119,7 +120,7 @@ end
 ---table down: a typo that silently does nothing is worse than a stack trace.
 ---@param opts table|nil
 ---@return { codriver: CodriverOptions, claudecode: table }
-function M.resolve(opts)
+function M.resolve(opts, channel)
   if opts == nil then
     opts = {}
   end
@@ -152,12 +153,38 @@ function M.resolve(opts)
     end
     auto_start = opts.auto_start
   end
-
+  local test_command = nil
+  if opts.test_command ~= nil then
+    if type(opts.test_command) ~= "string" then
+      error(("codriver.config: test_command must be a string, got %s"):format(vim.inspect(opts.test_command)), 2)
+    end
+    test_command = opts.test_command
+  end
   if opts.claudecode ~= nil and type(opts.claudecode) ~= "table" then
     error(("codriver.config: claudecode must be a table, got %s"):format(vim.inspect(opts.claudecode)), 2)
   end
 
   local claudecode = deep_merge(M.claudecode_defaults, opts.claudecode)
+  claudecode.env = claudecode.env or {}
+
+  if channel ~= nil then
+    if claudecode ~= nil then
+      if claudecode.env ~= nil then
+        local set = {}
+        for _, key in pairs({ "CODRIVER_NVIM_ADDRESS", "CODRIVER_STATE_FILE" }) do
+          if claudecode.env[key] ~= nil then
+            table.insert(set, tostring(key))
+          end
+        end
+        if #set > 0 then
+          warn(("claudecode env values already set: %s"):format(table.concat(set, ", ")))
+        end
+      end
+    end
+
+    claudecode.env.CODRIVER_STATE_FILE = tostring(channel.state_file)
+    claudecode.env.CODRIVER_NVIM_ADDRESS = tostring(channel.nvim_address)
+  end
 
   if opts.claudecode and opts.claudecode.auto_start ~= nil then
     warn(
@@ -179,7 +206,7 @@ function M.resolve(opts)
   end
 
   return {
-    codriver = { auto_start = auto_start },
+    codriver = { auto_start = auto_start, test_command = test_command },
     claudecode = claudecode,
   }
 end
