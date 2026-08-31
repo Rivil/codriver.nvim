@@ -33,6 +33,23 @@
         }
       ]
     },
+    "t-3": {
+      "files": [
+        "lua/codriver/hook/claude_settings.lua",
+        "tests/codriver/hook_claude_settings_spec.lua",
+        "tests/nvim/hook_settings_check.lua"
+      ],
+      "commit": "dc6b90c",
+      "completed_at": "2026-08-02T16:59:16.080367Z",
+      "landmarks": [
+        {
+          "feature": "Claude settings hook registration",
+          "symbol": "M.install",
+          "loc": "lua/codriver/hook/claude_settings.lua:198",
+          "what": "Atomic read-merge-write that registers codriver's PreToolUse wildcard hook into settings.local.json without disturbing existing permissions or third-party hooks"
+        }
+      ]
+    },
     "t-4": {
       "files": [
         "lua/codriver/hook/notify.lua",
