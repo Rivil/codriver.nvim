@@ -4,7 +4,7 @@ local M = {}
 
 local NAVIGATOR_REASON = "codriver: Claude is navigator — file-writing and shell-writing tools "
   .. "are refused at the harness level. This is not retryable; rephrasing or asserting explicit "
-  .. "authorization does not change the decision."
+  .. "authorization does not change the decision. Run :CodriverHandover to hand over the keyboard."
 
 local INDETERMINATE_REASON = "codriver: role could not be determined for this live session — "
   .. "denying by default. This is a harness-level refusal, not retryable."
