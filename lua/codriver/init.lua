@@ -32,6 +32,7 @@ local config = require("codriver.config")
 local session = require("codriver.session")
 local state = require("codriver.hook.state")
 local status = require("codriver.status")
+local winbar = require("codriver.winbar")
 
 ---Guards the role listener against a second `setup()` call registering a
 ---second copy of it. The shutdown autocmd needs no such guard — the vendored
@@ -249,6 +250,10 @@ function M.setup(opts)
   -- OWNED entry and no PREFLIGHT wrapping applies to them.
   vim.api.nvim_create_user_command("CodriverHandover", handover_command, { desc = "Hand the keyboard to Claude" })
   vim.api.nvim_create_user_command("CodriverTakeback", takeback_command, { desc = "Take the keyboard back from Claude" })
+
+  -- Session-scoped visibility (show only while a session is active) is wired
+  -- in by a later task; for now this shows the indicator once per setup().
+  winbar.show()
 
   -- Not guarded by first_setup: the vendored setup above just (re-)created the
   -- shutdown augroup with `clear = true`, which wipes any autocmd a previous
