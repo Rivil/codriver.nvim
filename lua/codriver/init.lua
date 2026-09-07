@@ -206,6 +206,16 @@ function M.setup(opts)
 
   local resolved = config.resolve(opts, { state_file = state.path(), nvim_address = address })
 
+  -- A `setup()` re-run or plugin hot-reload resets this Lua module's
+  -- in-memory role back to the "navigator" default even when a driver session
+  -- is still live on disk. Restore from this pid's own record first, before
+  -- anything below republishes — a reload must never silently end an active
+  -- handover the human didn't ask to end (c-4).
+  local existing = state.read(state.path())
+  if existing and existing.role and existing.role ~= M.role.get() then
+    M.role.set(existing.role)
+  end
+
   ---Publish the role, keeping the resolved test_command that was here before —
   ---the on_change republish must not drop the field it is not changing, or
   ---c-5's allowlisted test command silently stops working after the first

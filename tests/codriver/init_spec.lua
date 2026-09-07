@@ -608,6 +608,38 @@ describe("codriver", function()
         assert.are.equal("driver", codriver.role.get())
       end)
     end)
+
+    describe("reload", function()
+      before_each(function()
+        codriver.role._reset()
+      end)
+
+      it("restores a live role after setup() re-runs post hot-reload", function()
+        codriver.setup({})
+
+        -- Simulate a plugin hot-reload: the Lua module's in-memory role resets
+        -- to the default even though this pid's on-disk record still says a
+        -- driver session was live.
+        codriver.role._reset()
+        readable[require("codriver.hook.state").path()] = true
+        _G.vim.fn.readfile = function()
+          return { "{}" }
+        end
+        _G.vim.json.decode = function()
+          return { role = "driver" }
+        end
+
+        codriver.setup({})
+
+        assert.are.equal("driver", codriver.role.get())
+      end)
+
+      it("does not restore when this pid has no live record", function()
+        codriver.setup({})
+
+        assert.are.equal("navigator", codriver.role.get())
+      end)
+    end)
   end)
 
   describe("laziness", function()
