@@ -90,12 +90,12 @@ harness.expect_eq(
   "phrasing must not change the reason"
 )
 
--- 3. The runtime half of t-5's unit assertion: no handover command exists
--- yet, and naming one that does not would be a lie in the most-read string
--- in the plugin.
+-- 3. The runtime half of t-1/t-2's unit assertion: the deny reason names the
+-- real :CodriverHandover command rather than leaving the refused human silent
+-- about how to get their keyboard back.
 harness.expect(
-  not plain_decoded.hookSpecificOutput.permissionDecisionReason:find(":Codriver", 1, true),
-  "the deny reason names a handover command that does not exist yet: %s",
+  plain_decoded.hookSpecificOutput.permissionDecisionReason:find(":CodriverHandover", 1, true),
+  "the deny reason does not name :CodriverHandover: %s",
   plain_decoded.hookSpecificOutput.permissionDecisionReason
 )
 
@@ -124,6 +124,6 @@ harness.expect_eq(driver_result.stdout, "", "driver mode must release enforcemen
 
 harness.ok(
   "a denied Edit leaves its target byte-identical, an explicit-approval instruction does not change the deny or "
-    .. "its reason, the reason names no handover command that does not exist yet, an unrecognised tool defaults to "
+    .. "its reason, the reason names :CodriverHandover, an unrecognised tool defaults to "
     .. "deny, the vendored diff surface stays allowed, and driver mode releases the same payload"
 )

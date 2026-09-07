@@ -98,7 +98,7 @@ describe("codriver.hook.decision", function()
       assert.are.equal("allow", decide("Bash", { command = "rm -rf build" }, DRIVER).permission)
     end)
 
-    it("names the navigator role, is harness-level and not retryable, and never names a handover command", function()
+    it("names the navigator role, is harness-level and not retryable, and names :CodriverHandover", function()
       -- The refusal_message lock, read back out of the actual reason string
       -- rather than assumed: satisfies c-3 only if this holds regardless of
       -- what Claude was told to do (see the phrasing-independence test below).
@@ -109,7 +109,7 @@ describe("codriver.hook.decision", function()
       assert.is_not_nil(lowered:find("navigator", 1, true), "reason must name the navigator role")
       assert.is_not_nil(lowered:find("harness", 1, true), "reason must state the block is harness-level")
       assert.is_not_nil(lowered:find("retr", 1, true), "reason must state the block is not retryable")
-      assert.is_nil(reason:find(":Codriver", 1, true), "reason must not name a handover command")
+      assert.is_not_nil(reason:find(":CodriverHandover", 1, true), "reason must name :CodriverHandover verbatim")
     end)
 
     it("denies with a distinct INDETERMINATE reason when role is nil, empty, or garbled", function()

@@ -1,0 +1,54 @@
+task_seq = 0
+
+[phase]
+  id = "handover"
+
+[[task]]
+  id = "t-1"
+  wave = 1
+  title = "Add :CodriverHandover/:CodriverTakeback commands"
+  files = ["lua/codriver/init.lua", "tests/codriver/init_spec.lua"]
+  description = "Register two new user commands in M.setup(): :CodriverHandover calls\nrole.set(\"driver\"), :CodriverTakeback calls role.set(\"navigator\"). Each\nnotifies the user immediately that the role changed. nvim_create_user_command\nis naturally idempotent on re-registration, so no first_setup guard is needed\nhere (unlike the role listener, which does need one to avoid stacking\nduplicate listeners).\n\nShares lua/codriver/init.lua's M.setup() with t-3: put these registrations\nnear the other vim.api.nvim_create_user_command / OWNED-command wiring,\nleaving the top of setup() (role restoration, publish_role) to t-3, so the\ntwo edits land in disjoint regions of the function.\n\nNew tests go in a new top-level describe(\"handover commands\", ...) block\nappended to tests/codriver/init_spec.lua, disjoint from t-3's describe block.\n"
+  covers = ["c-1", "c-6"]
+  test_contract = ["if :CodriverHandover doesn't call role.set('driver'), a test asserting role.get() == 'driver' after invoking the command fails", "if :CodriverTakeback doesn't call role.set('navigator'), the mirrored assertion fails", "if the handler doesn't vim.notify on change, a spy asserting a notification mentioning the new role fails", "if the commands break when setup() runs a second time, the existing 'survives being set up twice' test pattern extended to these two commands fails"]
+  status = "done"
+
+[[task]]
+  id = "t-2"
+  wave = 1
+  title = "Name :CodriverHandover in the navigator refusal reason"
+  files = ["lua/codriver/hook/decision.lua", "tests/codriver/hook_decision_spec.lua", "tests/nvim/enforcement_write_check.lua"]
+  description = "NAVIGATOR_REASON in decision.lua now names ':CodriverHandover' verbatim\ninstead of staying silent about it. Flip enforcement_write_check.lua's\nexisting \"names no handover command that does not exist yet\" assertion to\nassert the reason now does contain it. hook_decision_spec.lua's matching test\nat line 101 is titled \"...and never names a handover command\" — update both\nits title and body, not just the assertion, or the title reads\nself-contradictory once the command exists.\n"
+  test_contract = ["if NAVIGATOR_REASON stops naming ':CodriverHandover' verbatim, hook_decision_spec's reason-content assertion fails", "if enforcement_write_check.lua's assertion isn't flipped from absence to presence, the check keeps testing the old absence and passes vacuously even after the command exists"]
+  status = "done"
+
+[[task]]
+  id = "t-3"
+  wave = 1
+  title = "Preserve live role across setup()/hot-reload"
+  files = ["lua/codriver/init.lua", "tests/codriver/init_spec.lua"]
+  description = "Before publish_role(M.role.get()) runs in setup(), check this pid's existing\nstate file. If it is present and live with a role different from the\nin-memory default, restore role.set() to that recorded value first, so a\nsetup() re-run or hot-reload that reset the Lua module does not silently\nrevert an active driver session to navigator.\n\nShares lua/codriver/init.lua's M.setup() with t-1: this edit is scoped to the\ntop of setup() (before publish_role), while t-1's command registrations land\nnear the other command wiring further down — disjoint regions of the same\nfunction.\n\nNew tests go in a new top-level describe(\"reload\", ...) block appended to\ntests/codriver/init_spec.lua, disjoint from t-1's describe block.\n"
+  covers = ["c-4"]
+  test_contract = ["if setup() publishes role.get() without first restoring from this pid's existing state file, a test seeding state.publish({role='driver'}), resetting the role module, then calling setup() again and asserting role.get() == 'driver' afterward, fails", "if setup() restores from a stale or foreign-pid record it should not read, a test with no matching live record present, asserting role stays 'navigator' on a fresh setup(), fails"]
+  status = "done"
+
+[[task]]
+  id = "t-4"
+  wave = 1
+  title = "Lock in multi-instance role isolation"
+  files = ["tests/nvim/multi_instance_check.lua"]
+  description = "Headless check only, no production code change. Per multi_instance_tiebreak\n(reworded during plan review to match the actual role-enforcement\narchitecture): each live session's role is decided solely by whichever\nNeovim instance opened it, via a per-pid state file with no shared resource\nbetween instances. Publish two live per-pid state records with different\nroles and prove a hook process pointed at one is never swayed by the\nother's concurrent role.\n"
+  covers = ["c-5"]
+  test_contract = ["if a hook process pointed at instance A's CODRIVER_STATE_FILE is ever swayed by instance B's concurrently-published role, a test publishing role='driver' under A's pid-file and role='navigator' under a second live pid-file B, then running the hook against A's file and asserting an Edit is allowed, fails", "if overwriting instance B's own state file from navigator to driver does not immediately win for a hook process pointed at B's file, a test re-running the hook against B afterward and asserting allow, fails"]
+  status = "done"
+
+[[task]]
+  id = "t-5"
+  wave = 2
+  title = "End-to-end: handover unblocks, takeback re-blocks byte-identically"
+  files = ["tests/nvim/handover_write_check.lua"]
+  description = "Headless check driving the real :CodriverHandover/:CodriverTakeback commands\nagainst a live hook subprocess: deny under navigator, handover, identical\nEdit payload now allows without restarting the session, takeback, identical\npayload denies again, target file sha256-identical throughout.\n"
+  covers = ["c-2", "c-3"]
+  depends_on = ["t-1"]
+  test_contract = ["if :CodriverHandover doesn't take effect for the live hook process without restarting the session, a test that denies an Edit under navigator, runs :CodriverHandover, and re-runs the identical Edit payload asserting allow with no process restart, fails", "if :CodriverTakeback doesn't re-block, continuing the same sequence with :CodriverTakeback then the identical Edit payload again, asserting deny, fails", "if the re-blocked deny doesn't leave the file byte-identical to before the handover, a sha256 comparison taken before, after handover, and after takeback fails"]
+  status = "done"

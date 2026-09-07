@@ -1,0 +1,166 @@
+{
+  "phase": "handover",
+  "generated_at": "2026-09-07T10:43:23.33581Z",
+  "languages": null,
+  "skipped": [
+    {
+      "file": "lua/codriver/hook/decision.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "lua/codriver/init.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/codriver/hook_decision_spec.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/codriver/init_spec.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/nvim/enforcement_write_check.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/nvim/handover_write_check.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/nvim/multi_instance_check.lua",
+      "reason": "no mutation adapter for .lua"
+    }
+  ],
+  "scope": {
+    "files": [
+      ".dross/phases/handover/REVIEW.md",
+      ".dross/phases/handover/changes.json",
+      ".dross/phases/handover/plan.toml",
+      ".dross/phases/handover/spec.toml",
+      ".dross/phases/handover/tests.json",
+      ".dross/phases/handover/verify.toml",
+      ".dross/project.toml",
+      "lua/codriver/hook/decision.lua",
+      "lua/codriver/init.lua",
+      "tests/codriver/hook_decision_spec.lua",
+      "tests/codriver/init_spec.lua",
+      "tests/nvim/enforcement_write_check.lua",
+      "tests/nvim/handover_write_check.lua",
+      "tests/nvim/multi_instance_check.lua"
+    ],
+    "hunks": {
+      ".dross/phases/handover/REVIEW.md": [
+        {
+          "start": 1,
+          "end": 20
+        }
+      ],
+      ".dross/phases/handover/changes.json": [
+        {
+          "start": 1,
+          "end": 86
+        }
+      ],
+      ".dross/phases/handover/plan.toml": [
+        {
+          "start": 1,
+          "end": 54
+        }
+      ],
+      ".dross/phases/handover/spec.toml": [
+        {
+          "start": 1,
+          "end": 58
+        }
+      ],
+      ".dross/phases/handover/tests.json": [
+        {
+          "start": 1,
+          "end": 152
+        }
+      ],
+      ".dross/phases/handover/verify.toml": [
+        {
+          "start": 1,
+          "end": 87
+        }
+      ],
+      ".dross/project.toml": [
+        {
+          "start": 3,
+          "end": 3
+        }
+      ],
+      "lua/codriver/hook/decision.lua": [
+        {
+          "start": 7,
+          "end": 7
+        }
+      ],
+      "lua/codriver/init.lua": [
+        {
+          "start": 20,
+          "end": 20
+        },
+        {
+          "start": 121,
+          "end": 132
+        },
+        {
+          "start": 209,
+          "end": 218
+        },
+        {
+          "start": 248,
+          "end": 252
+        }
+      ],
+      "tests/codriver/hook_decision_spec.lua": [
+        {
+          "start": 101,
+          "end": 101
+        },
+        {
+          "start": 112,
+          "end": 112
+        }
+      ],
+      "tests/codriver/init_spec.lua": [
+        {
+          "start": 560,
+          "end": 642
+        }
+      ],
+      "tests/nvim/enforcement_write_check.lua": [
+        {
+          "start": 93,
+          "end": 95
+        },
+        {
+          "start": 97,
+          "end": 98
+        },
+        {
+          "start": 127,
+          "end": 127
+        }
+      ],
+      "tests/nvim/handover_write_check.lua": [
+        {
+          "start": 1,
+          "end": 114
+        }
+      ],
+      "tests/nvim/multi_instance_check.lua": [
+        {
+          "start": 1,
+          "end": 103
+        }
+      ]
+    },
+    "base": "230c6b14c658d83fb7fad4243d8f5d4311e9e246",
+    "source": "git+changes"
+  },
+  "measured_on": "local"
+}

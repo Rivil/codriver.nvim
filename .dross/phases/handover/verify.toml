@@ -1,0 +1,83 @@
+[verify]
+  phase = "handover"
+  generated_at = 2026-09-07T10:43:23.33581Z
+  verdict = "pass"
+  finalized = true
+  finalized_at = 2026-09-07T10:43:56.18469Z
+
+[summary]
+  mutation_status = "skipped"
+  measured_on = "local"
+  mutation_score = 0.0
+  mutants_killed = 0
+  mutants_survived = 0
+  mutants_not_covered = 0
+  mutants_in_scope = 0
+  unclassified_in_scope = 0
+  criteria_total = 6
+  criteria_covered = 6
+  criteria_uncovered = 0
+
+[[criterion]]
+  id = "c-1"
+  status = "covered"
+  tests = ["tests/codriver/init_spec.lua:it('hands the keyboard to Claude')", "tests/codriver/init_spec.lua:it('takes the keyboard back')", "tests/nvim/handover_write_check.lua"]
+  notes = ":CodriverHandover/:CodriverTakeback flip role.get() in unit tests; handover_write_check.lua proves both are callable mid-session against a live, never-restarted hook process."
+
+[[criterion]]
+  id = "c-2"
+  status = "covered"
+  tests = ["tests/nvim/handover_write_check.lua"]
+  notes = "Step 2 denies an Edit under navigator, runs :CodriverHandover, then re-runs the identical payload and asserts allow with no process restart."
+
+[[criterion]]
+  id = "c-3"
+  status = "covered"
+  tests = ["tests/nvim/handover_write_check.lua"]
+  notes = "Step 3 runs :CodriverTakeback and asserts deny again, with the same permissionDecision/permissionDecisionReason as the original navigator deny and a byte-identical fixture sha256 throughout."
+
+[[criterion]]
+  id = "c-4"
+  status = "covered"
+  tests = ["tests/codriver/init_spec.lua:describe('reload')/it('restores a live role after setup() re-runs post hot-reload')", "tests/codriver/init_spec.lua:describe('reload')/it('does not restore when this pid has no live record')"]
+  notes = "Simulates a hot-reload by resetting the in-memory role and re-running setup() with a live on-disk driver record; asserts the role is restored, and asserts a fresh setup() with no matching record stays navigator."
+
+[[criterion]]
+  id = "c-5"
+  status = "covered"
+  tests = ["tests/nvim/multi_instance_check.lua"]
+  notes = "Publishes opposite roles under two real, concurrently-live pids and proves a hook process pointed at one instance's state file is never swayed by the other's, including after the other's record changes."
+
+[[criterion]]
+  id = "c-6"
+  status = "covered"
+  tests = ["tests/codriver/init_spec.lua:it('notifies on handover')", "tests/codriver/init_spec.lua:it('notifies on takeback')"]
+  notes = "Amended 2026-09-07 (was 'weak'): 'notifies on takeback' now asserts last_notification():find(\"you're driving\") — takeback_command's distinguishing text, not the \"driving\" substring shared with handover's message. If takeback_command's notify() call were deleted, last_notification() would return the leftover \"codriver: Claude is driving\" from the preceding handover call, which does not contain \"you're driving\", so the test now fails as intended. 'notifies on handover' remains solid in isolation (only one notification exists by that point)."
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/hook/decision.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/init.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/codriver/hook_decision_spec.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/codriver/init_spec.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/nvim/enforcement_write_check.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/nvim/handover_write_check.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/nvim/multi_instance_check.lua: no mutation adapter for .lua"

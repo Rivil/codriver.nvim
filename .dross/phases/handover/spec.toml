@@ -1,0 +1,58 @@
+[phase]
+  id = "handover"
+  title = "handover"
+  milestone = "v0.1"
+
+[[criteria]]
+  id = "c-1"
+  text = "A user command hands the keyboard from Claude to the human and back, callable at any point in a live session."
+
+[[criteria]]
+  id = "c-2"
+  text = "Immediately after handover, a file-editing tool call that was just refused now succeeds, without restarting the session."
+
+[[criteria]]
+  id = "c-3"
+  text = "Taking the keyboard back re-blocks that same edit, in the same session, with the same refusal guarantees as role-enforcement (byte-identical file, permission-layer denial)."
+
+[[criteria]]
+  id = "c-4"
+  text = "A `setup()` re-run or plugin hot-reload mid-session does not disturb the live role — enforcement stays in sync with whatever role was held before the reload."
+
+[[criteria]]
+  id = "c-5"
+  text = "When two Neovim instances are live against the same repo, the hook's decision follows a well-defined tie-break rather than being ambiguous or split-brain."
+
+[[criteria]]
+  id = "c-6"
+  text = "Handing over or taking back produces immediate feedback in Neovim confirming the role actually changed, at the moment of the switch."
+
+[[decisions]]
+  key = "who_initiates"
+  choice = "The handover/take-back commands are purely human-triggered. Nothing in the plugin gives Claude a lever to request, suggest, or trigger a handover through any tool call."
+  why = "Keeps the trust boundary simple: Claude's only channel of influence is conversation, never a mechanism. Matches role-enforcement's premise that the human explicitly holds the keyboard by default."
+  locked = true
+
+[[decisions]]
+  key = "multi_instance_tiebreak"
+  choice = "Each live Claude session's role is decided solely by whichever Neovim instance opened it: role-enforcement's state file is scoped per-instance (keyed by that instance's pid) and injected into that instance's own Claude terminal env. Two instances never write to a shared file, so there is no race to break a tie on."
+  why = "Verified against the actual role-enforcement architecture (lua/codriver/hook/state.lua, lua/codriver/config.lua) while planning handover: the state file was never shared to begin with, so 'last-writer-wins on a shared file' described a resource that doesn't exist. Per-instance isolation is not a new mechanism — it is what role-enforcement already built — so this reflects reality rather than approving a design change."
+  locked = true
+
+[[decisions]]
+  key = "reload_behaviour"
+  choice = "A `setup()` re-run or plugin hot-reload mid-session preserves whatever role was live before the reload; it never resets to navigator."
+  why = "The milestone frames this as a session that is never restarted — a reload silently ending an active driver session the human didn't ask to end would violate that framing."
+  locked = true
+
+[[decisions]]
+  key = "trigger_surface"
+  choice = "Command-only, no default keymap. A keymap binding is left to the user's own config."
+  why = "Matches the plugin's current zero-keymap convention; nothing else in codriver ships a default binding."
+  locked = true
+
+[[decisions]]
+  key = "command_naming"
+  choice = "Two explicit direction-named commands: `:CodriverHandover` (navigator to driver) and `:CodriverTakeback` (driver to navigator), rather than one toggle command."
+  why = "Unambiguous from the command name alone regardless of current role, and lets role-enforcement's locked refusal message name the exact command to run instead of staying silent about it."
+  locked = true

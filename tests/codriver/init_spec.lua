@@ -557,6 +557,89 @@ describe("codriver", function()
         assert.is_nil(vendor.state.server, "a status query must have no side effects")
       end)
     end)
+
+    describe("handover commands", function()
+      before_each(function()
+        codriver.role._reset()
+      end)
+
+      it("hands the keyboard to Claude", function()
+        codriver.setup({})
+
+        handler_for(_G.vim.api, "CodriverHandover")({})
+
+        assert.are.equal("driver", codriver.role.get())
+      end)
+
+      it("takes the keyboard back", function()
+        codriver.setup({})
+        handler_for(_G.vim.api, "CodriverHandover")({})
+
+        handler_for(_G.vim.api, "CodriverTakeback")({})
+
+        assert.are.equal("navigator", codriver.role.get())
+      end)
+
+      it("notifies on handover", function()
+        codriver.setup({})
+
+        handler_for(_G.vim.api, "CodriverHandover")({})
+
+        assert.is_truthy(last_notification():find("driving", 1, true))
+      end)
+
+      it("notifies on takeback", function()
+        codriver.setup({})
+        handler_for(_G.vim.api, "CodriverHandover")({})
+
+        handler_for(_G.vim.api, "CodriverTakeback")({})
+
+        assert.is_truthy(last_notification():find("you're driving", 1, true))
+      end)
+
+      it("survives being set up twice", function()
+        codriver.setup({})
+
+        assert.has_no.errors(function()
+          codriver.setup({})
+        end)
+
+        handler_for(_G.vim.api, "CodriverHandover")({})
+        assert.are.equal("driver", codriver.role.get())
+      end)
+    end)
+
+    describe("reload", function()
+      before_each(function()
+        codriver.role._reset()
+      end)
+
+      it("restores a live role after setup() re-runs post hot-reload", function()
+        codriver.setup({})
+
+        -- Simulate a plugin hot-reload: the Lua module's in-memory role resets
+        -- to the default even though this pid's on-disk record still says a
+        -- driver session was live.
+        codriver.role._reset()
+        readable[require("codriver.hook.state").path()] = true
+        _G.vim.fn.readfile = function()
+          return { "{}" }
+        end
+        _G.vim.json.decode = function()
+          return { role = "driver" }
+        end
+
+        codriver.setup({})
+
+        assert.are.equal("driver", codriver.role.get())
+      end)
+
+      it("does not restore when this pid has no live record", function()
+        codriver.setup({})
+
+        assert.are.equal("navigator", codriver.role.get())
+      end)
+    end)
   end)
 
   describe("laziness", function()
