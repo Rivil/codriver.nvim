@@ -42,7 +42,7 @@ task_seq = 0
   covers = ["c-1"]
   depends_on = ["t-1"]
   test_contract = ["state.publish/state.read round-trips bash_allow (including nil) to/from the JSON state file unchanged", "state.probe returns bash_allow when the on-disk record carries it", "a role-change republish (driver -> navigator flip) does not drop a previously-resolved bash_allow, verified in hook_publish_check.lua the same way test_command survival is already verified there", "after setup({ bash_allow = {...} }), the codriver module exposes that resolved bash_allow for health.lua to read"]
-  status = "pending"
+  status = "done"
 
 [[task]]
   id = "t-6"
@@ -53,7 +53,7 @@ task_seq = 0
   covers = ["c-1"]
   depends_on = ["t-1", "t-2"]
   test_contract = ["decision.decide allows a bash_allow-added command when session.bash_allow carries it", "decision.decide denies the same command when session.bash_allow is absent, unchanged from current default-deny behaviour"]
-  status = "pending"
+  status = "done"
 
 [[task]]
   id = "t-4"
@@ -64,4 +64,4 @@ task_seq = 0
   covers = ["c-5"]
   depends_on = ["t-3", "t-2"]
   test_contract = ["checkhealth codriver reports a heads line listing hardcoded defaults (rg, git, ls, ...) when no bash_allow is configured", "checkhealth codriver's heads line includes a head added via bash_allow.heads in setup()", "checkhealth codriver's git-subcommand line includes a subcommand added via bash_allow.git_subcommands"]
-  status = "pending"
+  status = "done"

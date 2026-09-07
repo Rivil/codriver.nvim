@@ -35,6 +35,40 @@
         }
       ]
     },
+    "t-3": {
+      "files": [
+        "lua/codriver/init.lua",
+        "lua/codriver/hook/state.lua",
+        "tests/nvim/hook_state_check.lua",
+        "tests/nvim/hook_publish_check.lua"
+      ],
+      "commit": "31fc270",
+      "completed_at": "2026-09-07T16:55:53.671974Z",
+      "landmarks": [
+        {
+          "feature": "public config surface",
+          "symbol": "M.config",
+          "loc": "lua/codriver/init.lua:222",
+          "what": "setup() threads resolved bash_allow through state.publish/read/probe and exposes it on the codriver module itself (M.config) for health.lua to read"
+        }
+      ]
+    },
+    "t-4": {
+      "files": [
+        "lua/codriver/health.lua",
+        "tests/nvim/health_check.lua"
+      ],
+      "commit": "9c1e5f4",
+      "completed_at": "2026-09-07T16:58:17.966628Z",
+      "landmarks": [
+        {
+          "feature": "public config surface",
+          "symbol": "check_bash_allowlist",
+          "loc": "lua/codriver/health.lua:104",
+          "what": ":checkhealth codriver renders two lines (heads, git subcommands) from bash.effective_allowlist(codriver.config.bash_allow)"
+        }
+      ]
+    },
     "t-5": {
       "files": [
         "README.md"
@@ -47,6 +81,22 @@
           "symbol": "Options section",
           "loc": "README.md:59",
           "what": "README documents auto_start/claudecode/test_command/bash_allow as one coherent Options reference, including bash_allow's additive-only shape and test_command's exact-match exemption"
+        }
+      ]
+    },
+    "t-6": {
+      "files": [
+        "lua/codriver/hook/decision.lua",
+        "tests/codriver/hook_decision_spec.lua"
+      ],
+      "commit": "20d7db9",
+      "completed_at": "2026-09-07T16:56:55.955401Z",
+      "landmarks": [
+        {
+          "feature": "public config surface",
+          "symbol": "M.decide",
+          "loc": "lua/codriver/hook/decision.lua:62",
+          "what": "decide() passes session.bash_allow as the third argument to bash.allows() at the Bash call site"
         }
       ]
     }
