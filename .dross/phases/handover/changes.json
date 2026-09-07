@@ -2,5 +2,85 @@
   "phase": "handover",
   "base": "milestone/v0.1",
   "base_commit": "230c6b14c658d83fb7fad4243d8f5d4311e9e246",
-  "tasks": {}
+  "tasks": {
+    "t-1": {
+      "files": [
+        "lua/codriver/init.lua",
+        "tests/codriver/init_spec.lua"
+      ],
+      "commit": "2cc8632",
+      "completed_at": "2026-09-07T10:26:19.220678Z",
+      "landmarks": [
+        {
+          "feature": "handover commands",
+          "symbol": "handover_command",
+          "loc": "lua/codriver/init.lua:122",
+          "what": ":CodriverHandover/:CodriverTakeback flip the live role and notify"
+        }
+      ]
+    },
+    "t-2": {
+      "files": [
+        "lua/codriver/hook/decision.lua",
+        "tests/codriver/hook_decision_spec.lua",
+        "tests/nvim/enforcement_write_check.lua"
+      ],
+      "commit": "8df3f49",
+      "completed_at": "2026-09-07T10:27:24.797304Z",
+      "landmarks": [
+        {
+          "feature": "handover commands",
+          "symbol": "NAVIGATOR_REASON",
+          "loc": "lua/codriver/hook/decision.lua:5",
+          "what": "refusal reason names :CodriverHandover instead of staying silent"
+        }
+      ]
+    },
+    "t-3": {
+      "files": [
+        "lua/codriver/init.lua",
+        "tests/codriver/init_spec.lua"
+      ],
+      "commit": "71f376f",
+      "completed_at": "2026-09-07T10:29:05.473246Z",
+      "landmarks": [
+        {
+          "feature": "handover commands",
+          "symbol": "M.setup",
+          "loc": "lua/codriver/init.lua:209",
+          "what": "setup() restores live role from this pid's state file before republishing, surviving hot-reload"
+        }
+      ]
+    },
+    "t-4": {
+      "files": [
+        "tests/nvim/multi_instance_check.lua"
+      ],
+      "commit": "57a923f",
+      "completed_at": "2026-09-07T10:30:49.056539Z",
+      "landmarks": [
+        {
+          "feature": "handover commands",
+          "symbol": "multi_instance_check",
+          "loc": "tests/nvim/multi_instance_check.lua:1",
+          "what": "headless proof that per-pid state files isolate concurrent Neovim instances' roles"
+        }
+      ]
+    },
+    "t-5": {
+      "files": [
+        "tests/nvim/handover_write_check.lua"
+      ],
+      "commit": "c4d39ce",
+      "completed_at": "2026-09-07T10:32:18.137589Z",
+      "landmarks": [
+        {
+          "feature": "handover commands",
+          "symbol": "handover_write_check",
+          "loc": "tests/nvim/handover_write_check.lua:1",
+          "what": "end-to-end proof that handover unblocks and takeback re-blocks byte-identically without a session restart"
+        }
+      ]
+    }
+  }
 }
