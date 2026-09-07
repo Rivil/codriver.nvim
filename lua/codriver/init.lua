@@ -17,7 +17,7 @@ local M = {}
 M.version = {
   major = 0,
   minor = 1,
-  patch = 3,
+  patch = 4,
 }
 
 ---@return string
