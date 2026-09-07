@@ -18,6 +18,9 @@ Shares lua/codriver/init.lua's M.setup() with t-3: put these registrations
 near the other vim.api.nvim_create_user_command / OWNED-command wiring,
 leaving the top of setup() (role restoration, publish_role) to t-3, so the
 two edits land in disjoint regions of the function.
+
+New tests go in a new top-level describe("handover commands", ...) block
+appended to tests/codriver/init_spec.lua, disjoint from t-3's describe block.
 """
 covers        = ["c-1", "c-6"]
 test_contract = [
@@ -69,6 +72,9 @@ Shares lua/codriver/init.lua's M.setup() with t-1: this edit is scoped to the
 top of setup() (before publish_role), while t-1's command registrations land
 near the other command wiring further down — disjoint regions of the same
 function.
+
+New tests go in a new top-level describe("reload", ...) block appended to
+tests/codriver/init_spec.lua, disjoint from t-1's describe block.
 """
 covers        = ["c-4"]
 test_contract = [
