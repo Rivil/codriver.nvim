@@ -35,8 +35,8 @@
 
 [[decisions]]
   key = "multi_instance_tiebreak"
-  choice = "Last-writer-wins: whichever Neovim instance most recently published a role change to the shared state file is authoritative for the hook's decision."
-  why = "Matches the existing role_channel mechanism (state file updated on every change) with no new coordination primitive needed. A stricter per-instance scheme would be a bigger change to a decision role-enforcement already locked."
+  choice = "Each live Claude session's role is decided solely by whichever Neovim instance opened it: role-enforcement's state file is scoped per-instance (keyed by that instance's pid) and injected into that instance's own Claude terminal env. Two instances never write to a shared file, so there is no race to break a tie on."
+  why = "Verified against the actual role-enforcement architecture (lua/codriver/hook/state.lua, lua/codriver/config.lua) while planning handover: the state file was never shared to begin with, so 'last-writer-wins on a shared file' described a resource that doesn't exist. Per-instance isolation is not a new mechanism — it is what role-enforcement already built — so this reflects reality rather than approving a design change."
   locked = true
 
 [[decisions]]

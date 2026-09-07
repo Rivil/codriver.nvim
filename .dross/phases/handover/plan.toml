@@ -9,8 +9,15 @@ files         = ["lua/codriver/init.lua", "tests/codriver/init_spec.lua"]
 description   = """
 Register two new user commands in M.setup(): :CodriverHandover calls
 role.set("driver"), :CodriverTakeback calls role.set("navigator"). Each
-notifies the user immediately that the role changed. Registration must survive
-a second setup() call the same way the existing role listener does.
+notifies the user immediately that the role changed. nvim_create_user_command
+is naturally idempotent on re-registration, so no first_setup guard is needed
+here (unlike the role listener, which does need one to avoid stacking
+duplicate listeners).
+
+Shares lua/codriver/init.lua's M.setup() with t-3: put these registrations
+near the other vim.api.nvim_create_user_command / OWNED-command wiring,
+leaving the top of setup() (role restoration, publish_role) to t-3, so the
+two edits land in disjoint regions of the function.
 """
 covers        = ["c-1", "c-6"]
 test_contract = [
@@ -34,9 +41,12 @@ description   = """
 NAVIGATOR_REASON in decision.lua now names ':CodriverHandover' verbatim
 instead of staying silent about it. Flip enforcement_write_check.lua's
 existing "names no handover command that does not exist yet" assertion to
-assert the reason now does contain it.
+assert the reason now does contain it. hook_decision_spec.lua's matching test
+at line 101 is titled "...and never names a handover command" — update both
+its title and body, not just the assertion, or the title reads
+self-contradictory once the command exists.
 """
-covers        = ["c-1"]
+covers        = []
 test_contract = [
   "if NAVIGATOR_REASON stops naming ':CodriverHandover' verbatim, hook_decision_spec's reason-content assertion fails",
   "if enforcement_write_check.lua's assertion isn't flipped from absence to presence, the check keeps testing the old absence and passes vacuously even after the command exists",
@@ -54,6 +64,11 @@ state file. If it is present and live with a role different from the
 in-memory default, restore role.set() to that recorded value first, so a
 setup() re-run or hot-reload that reset the Lua module does not silently
 revert an active driver session to navigator.
+
+Shares lua/codriver/init.lua's M.setup() with t-1: this edit is scoped to the
+top of setup() (before publish_role), while t-1's command registrations land
+near the other command wiring further down — disjoint regions of the same
+function.
 """
 covers        = ["c-4"]
 test_contract = [
@@ -68,11 +83,13 @@ wave          = 1
 title         = "Lock in multi-instance role isolation"
 files         = ["tests/nvim/multi_instance_check.lua"]
 description   = """
-Headless check only, no production code change (per-pid state files plus
-per-instance env injection already give a well-defined tie-break with no
-shared mutable resource to race). Publish two live per-pid state records
-with different roles and prove a hook process pointed at one is never swayed
-by the other's concurrent role.
+Headless check only, no production code change. Per multi_instance_tiebreak
+(reworded during plan review to match the actual role-enforcement
+architecture): each live session's role is decided solely by whichever
+Neovim instance opened it, via a per-pid state file with no shared resource
+between instances. Publish two live per-pid state records with different
+roles and prove a hook process pointed at one is never swayed by the
+other's concurrent role.
 """
 covers        = ["c-5"]
 test_contract = [
