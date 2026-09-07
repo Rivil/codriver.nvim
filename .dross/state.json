@@ -3,13 +3,9 @@
   "current_milestone": "v0.1",
   "current_phase": "role-enforcement",
   "current_phase_status": "planned",
-  "last_activity": "2026-08-31T17:59:23.057914Z",
-  "last_action": "paused — t-6 done, wave 1 complete, next is t-5 (wave 2)",
+  "last_activity": "2026-09-07T07:53:16.929967Z",
+  "last_action": "executed t-8 (setup: publish role, listen, clean up on exit)",
   "history": [
-    {
-      "at": "2026-07-30T07:50:35.234165Z",
-      "action": "dross init"
-    },
     {
       "at": "2026-07-30T09:27:40.356884Z",
       "action": "resumed — back at /dross-init step 3: confirm upstream toolchain, lock stack"
@@ -201,6 +197,14 @@
     {
       "at": "2026-08-31T17:59:23.057914Z",
       "action": "paused — t-6 done, wave 1 complete, next is t-5 (wave 2)"
+    },
+    {
+      "at": "2026-09-07T07:41:08.570991Z",
+      "action": "executed t-5 (Decision core: classify, resolve role, refuse)"
+    },
+    {
+      "at": "2026-09-07T07:53:16.929967Z",
+      "action": "executed t-8 (setup: publish role, listen, clean up on exit)"
     }
   ]
 }

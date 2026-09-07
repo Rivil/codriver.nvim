@@ -66,6 +66,22 @@
         }
       ]
     },
+    "t-5": {
+      "files": [
+        "lua/codriver/hook/decision.lua",
+        "tests/codriver/hook_decision_spec.lua"
+      ],
+      "commit": "4632e9b",
+      "completed_at": "2026-09-07T07:41:08.552567Z",
+      "landmarks": [
+        {
+          "feature": "role decision core",
+          "symbol": "M.decide",
+          "loc": "lua/codriver/hook/decision.lua:38",
+          "what": "classifies a tool call against role/allowlist and returns a permission+reason"
+        }
+      ]
+    },
     "t-6": {
       "files": [
         "lua/codriver/config.lua",
@@ -79,6 +95,23 @@
           "symbol": "M.resolve",
           "loc": "lua/codriver/config.lua:123",
           "what": "Second resolve() param force-injects CODRIVER_STATE_FILE/CODRIVER_NVIM_ADDRESS into claudecode.env; adds validated top-level test_command option"
+        }
+      ]
+    },
+    "t-8": {
+      "files": [
+        "lua/codriver/init.lua",
+        "tests/nvim/hook_publish_check.lua",
+        "tests/codriver/init_spec.lua"
+      ],
+      "commit": "0ca9928",
+      "completed_at": "2026-09-07T07:53:16.915007Z",
+      "landmarks": [
+        {
+          "feature": "live role publishing",
+          "symbol": "M.setup",
+          "loc": "lua/codriver/init.lua:171",
+          "what": "setup() ensures an RPC address, publishes role+test_command to the session state file, republishes on role change, and clears it on VimLeavePre"
         }
       ]
     }
