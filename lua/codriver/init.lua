@@ -30,7 +30,17 @@ M.role = require("codriver.role")
 local commands = require("codriver.commands")
 local config = require("codriver.config")
 local session = require("codriver.session")
+local state = require("codriver.hook.state")
 local status = require("codriver.status")
+
+---Guards the role listener against a second `setup()` call registering a
+---second copy of it. The shutdown autocmd needs no such guard — the vendored
+---setup recreates its augroup with `clear = true` on every call, which would
+---wipe out an autocmd attached only once, so that one is (harmlessly)
+---re-attached every time instead. Everything else in `setup()` — resolving
+---options, capturing and re-registering commands — is already safe to repeat,
+---per the existing "survives being set up twice" test.
+local enforcement_hooked = false
 
 ---Reached at call time so that merely requiring codriver does not spin up the
 ---protocol layer — and so a spec can put a fake in `package.loaded`.
@@ -169,7 +179,37 @@ end
 ---@param opts table|nil
 ---@return table module
 function M.setup(opts)
-  local resolved = config.resolve(opts)
+  local first_setup = not enforcement_hooked
+  enforcement_hooked = true
+
+  -- Established before config.resolve() is called, so the channel it injects
+  -- into the vendored env carries real values rather than nil (c-6). A headless
+  -- `nvim --clean -l` has an empty v:servername, which is exactly the case that
+  -- must not fall through to a missing address — every hook-process refusal
+  -- would have nowhere to notify.
+  local address = vim.v.servername
+  if address == nil or address == "" then
+    address = vim.fn.serverstart()
+  end
+
+  local resolved = config.resolve(opts, { state_file = state.path(), nvim_address = address })
+
+  ---Publish the role, keeping the resolved test_command that was here before —
+  ---the on_change republish must not drop the field it is not changing, or
+  ---c-5's allowlisted test command silently stops working after the first
+  ---handover.
+  ---@param role string
+  local function publish_role(role)
+    state.publish({ role = role, test_command = resolved.codriver.test_command })
+  end
+
+  -- Before the vendored setup runs, so the state file is already a readable
+  -- navigator record by the time Claude could reach it (c-6).
+  publish_role(M.role.get())
+
+  if first_setup then
+    M.role.on_change(publish_role)
+  end
 
   -- The vendored setup wants to register fifteen `:ClaudeCode*` commands. They
   -- are intercepted rather than deleted afterwards, because deleting them would
@@ -182,6 +222,19 @@ function M.setup(opts)
   end)
 
   commands.register(captured, vim.api, decorate)
+
+  -- Not guarded by first_setup: the vendored setup above just (re-)created the
+  -- shutdown augroup with `clear = true`, which wipes any autocmd a previous
+  -- call attached to it. Re-attaching every time is correct rather than
+  -- redundant — it has to come after the vendored setup either way, since
+  -- attaching to a group by name before it exists raises.
+  vim.api.nvim_create_autocmd("VimLeavePre", {
+    group = "CodriverShutdown",
+    callback = function()
+      state.clear()
+    end,
+    desc = "Clear codriver's session role record when Neovim exits",
+  })
 
   -- Last, and only on request. Everything the session might notify about now
   -- has a `:Codriver*` command behind it.
