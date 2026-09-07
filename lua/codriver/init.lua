@@ -17,7 +17,7 @@ local M = {}
 M.version = {
   major = 0,
   minor = 1,
-  patch = 2,
+  patch = 3,
 }
 
 ---@return string
@@ -116,6 +116,18 @@ end
 ---Answer "is this thing on?" in one line.
 local function status_command()
   notify(status.describe(session.snapshot()))
+end
+
+---Hand the keyboard to Claude.
+local function handover_command()
+  M.role.set("driver")
+  notify("codriver: Claude is driving")
+end
+
+---Take the keyboard back.
+local function takeback_command()
+  M.role.set("navigator")
+  notify("codriver: you're driving")
 end
 
 ---Vendored commands codriver answers itself rather than re-exporting.
@@ -222,6 +234,11 @@ function M.setup(opts)
   end)
 
   commands.register(captured, vim.api, decorate)
+
+  -- Pure codriver commands, not sourced from the vendored capture above: no
+  -- OWNED entry and no PREFLIGHT wrapping applies to them.
+  vim.api.nvim_create_user_command("CodriverHandover", handover_command, { desc = "Hand the keyboard to Claude" })
+  vim.api.nvim_create_user_command("CodriverTakeback", takeback_command, { desc = "Take the keyboard back from Claude" })
 
   -- Not guarded by first_setup: the vendored setup above just (re-)created the
   -- shutdown augroup with `clear = true`, which wipes any autocmd a previous

@@ -557,6 +557,57 @@ describe("codriver", function()
         assert.is_nil(vendor.state.server, "a status query must have no side effects")
       end)
     end)
+
+    describe("handover commands", function()
+      before_each(function()
+        codriver.role._reset()
+      end)
+
+      it("hands the keyboard to Claude", function()
+        codriver.setup({})
+
+        handler_for(_G.vim.api, "CodriverHandover")({})
+
+        assert.are.equal("driver", codriver.role.get())
+      end)
+
+      it("takes the keyboard back", function()
+        codriver.setup({})
+        handler_for(_G.vim.api, "CodriverHandover")({})
+
+        handler_for(_G.vim.api, "CodriverTakeback")({})
+
+        assert.are.equal("navigator", codriver.role.get())
+      end)
+
+      it("notifies on handover", function()
+        codriver.setup({})
+
+        handler_for(_G.vim.api, "CodriverHandover")({})
+
+        assert.is_truthy(last_notification():find("driving", 1, true))
+      end)
+
+      it("notifies on takeback", function()
+        codriver.setup({})
+        handler_for(_G.vim.api, "CodriverHandover")({})
+
+        handler_for(_G.vim.api, "CodriverTakeback")({})
+
+        assert.is_truthy(last_notification():find("driving", 1, true))
+      end)
+
+      it("survives being set up twice", function()
+        codriver.setup({})
+
+        assert.has_no.errors(function()
+          codriver.setup({})
+        end)
+
+        handler_for(_G.vim.api, "CodriverHandover")({})
+        assert.are.equal("driver", codriver.role.get())
+      end)
+    end)
   end)
 
   describe("laziness", function()
