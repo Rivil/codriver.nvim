@@ -1,0 +1,63 @@
+[phase]
+id = "role-visibility"
+
+[[task]]
+id            = "t-1"
+wave          = 1
+title         = "Statusline render module"
+files         = ["lua/codriver/statusline.lua", "tests/codriver/statusline_spec.lua"]
+description   = """
+Pure formatting module (no vim.* calls), mirroring codriver.status's split of
+pure formatting from impure wiring. Owns the navigator/driver label text, the
+CodriverNavigator/CodriverDriver highlight attribute tables, and a pluggable
+component() function for lualine/heirline users per the indicator_surface
+decision.
+"""
+covers        = ["c-3"]
+test_contract = [
+  "CodriverNavigator and CodriverDriver highlight attribute tables are not identical (not color-only)",
+  "the navigator and driver label strings share no common stem/word",
+  "component() returns a {text, highlight} pair for both roles, shaped for a lualine component function",
+]
+status        = "pending"
+
+[[task]]
+id            = "t-2"
+wave          = 2
+depends_on    = ["t-1"]
+title         = "Built-in winbar: render + wire to role.on_change"
+files         = ["lua/codriver/winbar.lua", "lua/codriver/init.lua", "tests/nvim/winbar_check.lua"]
+description   = """
+Impure module registering the CodriverNavigator/CodriverDriver highlight
+groups via nvim_set_hl and rendering the winbar indicator from
+codriver.statusline's text/highlight. Subscribes to role.on_change so the
+indicator updates on a role change without polling. Wired into
+codriver.init's setup().
+"""
+covers        = ["c-1", "c-2"]
+test_contract = [
+  "after a session starts, a headless check finds the role's label text in the current window's winbar",
+  "role.set() (or :CodriverHandover) updates the winbar text with no explicit redraw command issued by the check, proving the update is pushed from role.on_change rather than lazily re-evaluated",
+  "nvim_get_hl returns non-empty definitions for both CodriverNavigator and CodriverDriver after setup",
+]
+status        = "pending"
+
+[[task]]
+id            = "t-3"
+wave          = 3
+depends_on    = ["t-2"]
+title         = "Session-lifecycle show/hide for the winbar"
+files         = ["lua/codriver/init.lua", "tests/nvim/winbar_lifecycle_check.lua"]
+description   = """
+Hooks codriver.winbar's show/hide into the session lifecycle: shown when a
+session starts (start_command / session.start()), cleared on session.stop()
+and on the existing VimLeavePre shutdown autocmd, so the indicator never
+outlives the session it describes.
+"""
+covers        = ["c-4"]
+test_contract = [
+  "before any session starts, a headless check finds no CodriverNavigator/CodriverDriver text in the winbar",
+  "after session.stop() (and after the VimLeavePre autocmd fires), a headless check finds no role text left in the winbar",
+  "a start -> stop -> start cycle leaves no leftover text from the prior session in the new session's winbar",
+]
+status        = "pending"
