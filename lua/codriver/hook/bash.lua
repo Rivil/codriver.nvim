@@ -66,12 +66,12 @@ local function hasSubstitution(command)
   return false
 end
 
-local function segmentAllowed(segment)
+local function segmentAllowed(segment, heads, git_subcommands)
   local head = headToken(segment)
-  if type(head) == "string" and ALLOWED_HEADS[head] then
+  if type(head) == "string" and heads[head] then
     if head == "git" then
       local second = segmentToken(segment)
-      if type(second) == "string" and GIT_ALLOWED_SUBCOMMANDS[second] then
+      if type(second) == "string" and git_subcommands[second] then
         return true
       end
     else
@@ -82,7 +82,35 @@ local function segmentAllowed(segment)
   return false
 end
 
-function M.allows(command, test_command)
+---Copy `defaults` into a new set and add every string in `additions`. Never
+---mutates `defaults` — the hardcoded floor stays intact across calls.
+---@param defaults table<string, true>
+---@param additions string[]|nil
+---@return table<string, true>
+local function merge_set(defaults, additions)
+  local merged = {}
+  for key in pairs(defaults) do
+    merged[key] = true
+  end
+  for _, item in ipairs(additions or {}) do
+    merged[item] = true
+  end
+  return merged
+end
+
+---The hardcoded heads/git-subcommand defaults merged with a session's
+---`bash_allow` additions — additive only, never replacing the defaults.
+---@param bash_allow { heads: string[]|nil, git_subcommands: string[]|nil }|nil
+---@return { heads: table<string, true>, git_subcommands: table<string, true> }
+function M.effective_allowlist(bash_allow)
+  bash_allow = bash_allow or {}
+  return {
+    heads = merge_set(ALLOWED_HEADS, bash_allow.heads),
+    git_subcommands = merge_set(GIT_ALLOWED_SUBCOMMANDS, bash_allow.git_subcommands),
+  }
+end
+
+function M.allows(command, test_command, bash_allow)
   if type(test_command) == "string" then
     if trimHelper(command) == trimHelper(test_command) then
       return true
@@ -98,8 +126,9 @@ function M.allows(command, test_command)
   if #segs == 0 then
     return false
   end
+  local allowlist = M.effective_allowlist(bash_allow)
   for _, seg in ipairs(segs) do
-    if not segmentAllowed(seg) then
+    if not segmentAllowed(seg, allowlist.heads, allowlist.git_subcommands) then
       return false
     end
   end
