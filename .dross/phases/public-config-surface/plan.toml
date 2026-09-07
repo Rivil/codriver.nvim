@@ -19,6 +19,7 @@ test_contract = [
   "bash_allow.heads set to a non-table raises an error naming 'bash_allow.heads'",
   "a non-string entry inside bash_allow.heads raises an error naming the offending field",
   "a non-string entry inside bash_allow.git_subcommands raises an error naming the offending field",
+  "an empty-string entry inside bash_allow.heads or bash_allow.git_subcommands raises an error naming the offending field (validation_depth requires non-empty strings, not just string-typed ones)",
   "omitting bash_allow leaves resolved.codriver.bash_allow nil",
 ]
 status        = "pending"
@@ -65,27 +66,46 @@ status        = "pending"
 [[task]]
 id         = "t-3"
 wave       = 2
-depends_on = ["t-1", "t-2"]
-title      = "Thread bash_allow through init/state/decision"
+depends_on = ["t-1"]
+title      = "Thread bash_allow through state persistence"
 files      = [
   "lua/codriver/init.lua",
   "lua/codriver/hook/state.lua",
-  "lua/codriver/hook/decision.lua",
-  "tests/codriver/hook_decision_spec.lua",
   "tests/nvim/hook_state_check.lua",
+  "tests/nvim/hook_publish_check.lua",
 ]
 description   = """
 Thread resolved.codriver.bash_allow from setup() into publish_role's
-state.publish record, round-trip it through state.lua's JSON encode/decode,
-and pass session.bash_allow into bash.allows() at the decision.lua call site.
-Store the resolved codriver config on the module (for t-4 to read) in the same
-init.lua edit.
+state.publish record; round-trip it through state.lua's JSON encode/decode and
+through M.probe's returned fields. Store the resolved codriver config
+(including bash_allow) on the codriver module itself so t-4's health check can
+read it without going through the state file.
 """
 covers        = ["c-1"]
 test_contract = [
-  "decision.decide allows a bash_allow-added command when session.bash_allow carries it, denies it when absent",
   "state.publish/state.read round-trips bash_allow (including nil) to/from the JSON state file unchanged",
-  "a role-change republish does not drop a previously-resolved bash_allow, mirroring existing test_command preservation",
+  "state.probe returns bash_allow when the on-disk record carries it",
+  "a role-change republish (driver -> navigator flip) does not drop a previously-resolved bash_allow, verified in hook_publish_check.lua the same way test_command survival is already verified there",
+  "after setup({ bash_allow = {...} }), the codriver module exposes that resolved bash_allow for health.lua to read",
+]
+status        = "pending"
+
+[[task]]
+id         = "t-6"
+wave       = 2
+depends_on = ["t-1", "t-2"]
+title      = "Wire session.bash_allow into decision.lua"
+files      = ["lua/codriver/hook/decision.lua", "tests/codriver/hook_decision_spec.lua"]
+description   = """
+Pass session.bash_allow as the third argument to bash.allows() at decision.lua's
+Bash call site. Pure decision-core change, testable directly against
+hand-built session tables — no dependency on how the session record reaches
+this file on disk.
+"""
+covers        = ["c-1"]
+test_contract = [
+  "decision.decide allows a bash_allow-added command when session.bash_allow carries it",
+  "decision.decide denies the same command when session.bash_allow is absent, unchanged from current default-deny behaviour",
 ]
 status        = "pending"
 
@@ -94,11 +114,11 @@ id         = "t-4"
 wave       = 3
 depends_on = ["t-3", "t-2"]
 title      = "checkhealth reports effective Bash allowlist"
-files      = ["lua/codriver/init.lua", "lua/codriver/health.lua", "tests/nvim/health_check.lua"]
+files      = ["lua/codriver/health.lua", "tests/nvim/health_check.lua"]
 description   = """
-Read the resolved bash_allow (exposed by t-3) and call bash.effective_allowlist()
-to render two checkhealth lines: hardcoded+added heads, and hardcoded+added git
-subcommands.
+Read the resolved bash_allow (exposed on the codriver module by t-3) and call
+bash.effective_allowlist() to render two checkhealth lines: hardcoded+added
+heads, and hardcoded+added git subcommands.
 """
 covers        = ["c-5"]
 test_contract = [
