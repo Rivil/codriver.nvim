@@ -16,6 +16,7 @@ function M.publish(record)
       pid = vim.uv.os_getpid(),
       role = record.role,
       test_command = record.test_command,
+      bash_allow = record.bash_allow,
     }),
   }, tmp)
 
@@ -34,6 +35,9 @@ function M.read(path)
 
   if decoded.test_command == vim.NIL then
     decoded.test_command = nil
+  end
+  if decoded.bash_allow == vim.NIL then
+    decoded.bash_allow = nil
   end
   return decoded
 end
@@ -54,7 +58,7 @@ function M.probe(env)
     return { live = true }
   end
 
-  return { live = true, role = record.role, test_command = record.test_command }
+  return { live = true, role = record.role, test_command = record.test_command, bash_allow = record.bash_allow }
 end
 
 function M.clear()

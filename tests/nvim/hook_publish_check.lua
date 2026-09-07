@@ -19,6 +19,7 @@ local session = require("codriver.session")
 local state = require("codriver.hook.state")
 
 local TEST_COMMAND = "mise run test"
+local BASH_ALLOW = { heads = { "foo" }, git_subcommands = { "stash" } }
 
 -- ---------------------------------------------------- forced empty servername ---
 
@@ -57,8 +58,10 @@ local provider = {
   end,
 }
 
-require("codriver").setup({
+local codriver = require("codriver")
+codriver.setup({
   test_command = TEST_COMMAND,
+  bash_allow = BASH_ALLOW,
   claudecode = { terminal = { provider = provider } },
 })
 
@@ -73,6 +76,19 @@ local immediately = state.read(state.path())
 harness.expect(immediately ~= nil, "no state record exists immediately after setup() returned")
 harness.expect_eq(immediately.role, "navigator", "setup() must publish the role before returning, not on first use")
 harness.expect_eq(immediately.test_command, TEST_COMMAND, "setup() must publish the resolved test_command")
+harness.expect_eq(
+  immediately.bash_allow and immediately.bash_allow.heads and immediately.bash_allow.heads[1],
+  "foo",
+  "setup() must publish the resolved bash_allow"
+)
+
+-- setup() must also expose the resolved config on the module itself, not only
+-- through the state file — health.lua reads it directly.
+harness.expect_eq(
+  codriver.config and codriver.config.bash_allow and codriver.config.bash_allow.heads and codriver.config.bash_allow.heads[1],
+  "foo",
+  "setup() must expose the resolved bash_allow on the codriver module for health.lua to read"
+)
 
 -- 4 + 5. Drive a real terminal-opening command to observe the environment the
 -- CLI would inherit: the address setup() resolved when v:servername read
@@ -117,6 +133,11 @@ harness.expect_eq(
   after_flip.test_command,
   TEST_COMMAND,
   "the on_change republish dropped test_command — a field it was not asked to change"
+)
+harness.expect_eq(
+  after_flip.bash_allow and after_flip.bash_allow.heads and after_flip.bash_allow.heads[1],
+  "foo",
+  "the on_change republish dropped bash_allow — a field it was not asked to change"
 )
 
 role.set("navigator")
@@ -193,6 +214,7 @@ exit_leaves_no_state("vim.cmd(\"cquit 1\")", "cquit")
 
 harness.ok(
   "setup() publishes a readable navigator record with a connectable address before the vendored setup runs, "
-    .. "role flips republish live without dropping test_command, a second setup() does not double-listen, and "
-    .. "the record does not outlive Neovim on :qa or :cquit"
+    .. "exposes the resolved bash_allow on the module itself, role flips republish live without dropping "
+    .. "test_command or bash_allow, a second setup() does not double-listen, and the record does not outlive "
+    .. "Neovim on :qa or :cquit"
 )
