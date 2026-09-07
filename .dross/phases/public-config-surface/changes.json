@@ -2,5 +2,53 @@
   "phase": "public-config-surface",
   "base": "milestone/v0.1",
   "base_commit": "5166c715fa586d1f1a5b24e5a7f12eaed8b943c1",
-  "tasks": {}
+  "tasks": {
+    "t-1": {
+      "files": [
+        "lua/codriver/config.lua",
+        "tests/codriver/config_spec.lua"
+      ],
+      "commit": "8d59d68",
+      "completed_at": "2026-09-07T15:47:41.75068Z",
+      "landmarks": [
+        {
+          "feature": "public config surface",
+          "symbol": "M.resolve",
+          "loc": "lua/codriver/config.lua:190",
+          "what": "setup() accepts and deep-validates a bash_allow table (heads/git_subcommands, non-empty strings) and passes it through to resolved.codriver.bash_allow"
+        }
+      ]
+    },
+    "t-2": {
+      "files": [
+        "lua/codriver/hook/bash.lua",
+        "tests/codriver/hook_bash_spec.lua"
+      ],
+      "commit": "86b93fa",
+      "completed_at": "2026-09-07T16:15:49.611162Z",
+      "landmarks": [
+        {
+          "feature": "public config surface",
+          "symbol": "M.effective_allowlist",
+          "loc": "lua/codriver/hook/bash.lua:57",
+          "what": "M.allows accepts a bash_allow table and merges its heads/git_subcommands additively onto the hardcoded allowlist; M.effective_allowlist exposes the merged sets for reporting"
+        }
+      ]
+    },
+    "t-5": {
+      "files": [
+        "README.md"
+      ],
+      "commit": "b0b141d",
+      "completed_at": "2026-09-07T16:47:06.208441Z",
+      "landmarks": [
+        {
+          "feature": "public config surface",
+          "symbol": "Options section",
+          "loc": "README.md:59",
+          "what": "README documents auto_start/claudecode/test_command/bash_allow as one coherent Options reference, including bash_allow's additive-only shape and test_command's exact-match exemption"
+        }
+      ]
+    }
+  }
 }
