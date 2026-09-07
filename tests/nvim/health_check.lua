@@ -105,4 +105,35 @@ harness.expect_contains(unlocked, lock_path, "the missing-lockfile report does n
 harness.expect_contains(line_with(unlocked, "Lockfile missing"), "ERROR", "a missing lockfile is not an error")
 harness.expect_contains(unlocked, ("Listening on port %d"):format(port), "the server is still up and should say so")
 
-harness.ok("checkhealth codriver reports listening, lockfile and connected as three separate states")
+-- ---------------------------------------------------------- bash allowlist ---
+-- c-5: the report names the effective read-only Bash allowlist — hardcoded
+-- defaults with no bash_allow configured, and this session's own additions
+-- once one is.
+
+local heads_line = line_with(cold, "Bash allowlist heads")
+harness.expect(heads_line, "no Bash allowlist heads line in the cold report:\n%s", cold)
+for _, head in ipairs({ "rg", "git", "ls", "cat", "head", "wc" }) do
+  harness.expect_contains(heads_line, head, "heads line does not list the hardcoded default " .. head)
+end
+
+require("codriver").setup({ bash_allow = { heads = { "gh" }, git_subcommands = { "stash" } } })
+local with_allow = report()
+
+local heads_line_with_allow = line_with(with_allow, "Bash allowlist heads")
+harness.expect_contains(
+  heads_line_with_allow,
+  "gh",
+  "the heads line does not include a head added via bash_allow.heads in setup()"
+)
+
+local subcommands_line_with_allow = line_with(with_allow, "Bash allowlist git subcommands")
+harness.expect_contains(
+  subcommands_line_with_allow,
+  "stash",
+  "the git-subcommand line does not include a subcommand added via bash_allow.git_subcommands"
+)
+
+harness.ok(
+  "checkhealth codriver reports listening, lockfile and connected as three separate states, and the effective "
+    .. "Bash allowlist including any bash_allow additions"
+)
