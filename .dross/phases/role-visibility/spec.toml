@@ -1,0 +1,43 @@
+[phase]
+  id = "role-visibility"
+  title = "role-visibility"
+  milestone = "v0.1"
+
+[[criteria]]
+  id = "c-1"
+  text = "A persistent indicator shows the current role (navigator/driver) at all times, visible without running a command."
+
+[[criteria]]
+  id = "c-2"
+  text = "The indicator updates immediately when the role changes, driven by role.on_change (not polling)."
+
+[[criteria]]
+  id = "c-3"
+  text = "Navigator and driver are visually distinct at a glance — not just readable on close inspection."
+
+[[criteria]]
+  id = "c-4"
+  text = "The indicator appears when a session starts and disappears cleanly when it ends — it never lingers showing a stale role after the session is gone."
+
+[[decisions]]
+  key = "indicator_surface"
+  choice = "Built-in winbar rendering by default, plus a pluggable component function (require('codriver.statusline').component()) for lualine/heirline users"
+  why = "Works out of the box with zero user config, matching codriver's zero-required-deps posture, while not fighting users who already run a statusline plugin and want it embedded there instead."
+  locked = true
+
+[[decisions]]
+  key = "visual_language"
+  choice = "Distinct label text plus a named highlight group per state (CodriverNavigator / CodriverDriver), not color alone"
+  why = "Color-only fails colorblind users and forces memorizing which color means what; distinct text reads unambiguously, and named highlight groups let colorscheme authors restyle without patching codriver."
+  locked = true
+
+[[decisions]]
+  key = "no_session_lifecycle"
+  choice = "The indicator only exists while a session is active — appears on session start, disappears on session end/exit"
+  why = "Avoids a permanent winbar element cluttering every Neovim buffer for users who rarely start codriver; keeps the indicator meaningful only when there's a role to show."
+  locked = true
+
+[[deferred]]
+  text = "Expose the read-only Bash allowlist as a documented user-facing config option."
+  why = "Config-surface work, not role visibility — doesn't fit this phase's domain."
+  target = "public-config-surface"

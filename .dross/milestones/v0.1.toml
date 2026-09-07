@@ -1,4 +1,4 @@
-phases = ["session-bringup", "role-enforcement", "handover", "role-visibility"]
+phases = ["session-bringup", "role-enforcement", "handover", "role-visibility", "public-config-surface"]
 
 [milestone]
   version = "v0.1"
