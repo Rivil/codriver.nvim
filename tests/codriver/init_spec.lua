@@ -594,7 +594,7 @@ describe("codriver", function()
 
         handler_for(_G.vim.api, "CodriverTakeback")({})
 
-        assert.is_truthy(last_notification():find("driving", 1, true))
+        assert.is_truthy(last_notification():find("you're driving", 1, true))
       end)
 
       it("survives being set up twice", function()
