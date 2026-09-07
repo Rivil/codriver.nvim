@@ -31,8 +31,10 @@ description   = """
 Impure module registering the CodriverNavigator/CodriverDriver highlight
 groups via nvim_set_hl and rendering the winbar indicator from
 codriver.statusline's text/highlight. Subscribes to role.on_change so the
-indicator updates on a role change without polling. Wired into
-codriver.init's setup().
+indicator updates on a role change without polling. Exposes show()/hide()
+as the public toggle t-3 calls from the session lifecycle — winbar.lua owns
+this state, not codriver.init directly, matching the codebase's pure/impure
+split. Wired into codriver.init's setup().
 """
 covers        = ["c-1", "c-2"]
 test_contract = [
@@ -47,12 +49,13 @@ id            = "t-3"
 wave          = 3
 depends_on    = ["t-2"]
 title         = "Session-lifecycle show/hide for the winbar"
-files         = ["lua/codriver/init.lua", "tests/nvim/winbar_lifecycle_check.lua"]
+files         = ["lua/codriver/winbar.lua", "lua/codriver/init.lua", "tests/nvim/winbar_lifecycle_check.lua"]
 description   = """
-Hooks codriver.winbar's show/hide into the session lifecycle: shown when a
-session starts (start_command / session.start()), cleared on session.stop()
-and on the existing VimLeavePre shutdown autocmd, so the indicator never
-outlives the session it describes.
+Calls codriver.winbar's show()/hide() (added here if t-2 did not already
+expose them) from the session lifecycle: shown when a session starts
+(start_command / session.start()), cleared on session.stop() and on the
+existing VimLeavePre shutdown autocmd, so the indicator never outlives the
+session it describes.
 """
 covers        = ["c-4"]
 test_contract = [
