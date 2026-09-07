@@ -3,7 +3,7 @@
   "pr": 3,
   "base": "milestone/v0.1",
   "base_commit": "230c6b14c658d83fb7fad4243d8f5d4311e9e246",
-  "status": "shipped",
+  "status": "complete",
   "tasks": {
     "t-1": {
       "files": [
