@@ -1,0 +1,109 @@
+[phase]
+id = "public-config-surface"
+
+[[task]]
+id            = "t-1"
+wave          = 1
+title         = "Add bash_allow option to config.lua"
+files         = ["lua/codriver/config.lua", "tests/codriver/config_spec.lua"]
+description   = """
+Add `bash_allow` to CODRIVER_KEYS and M.resolve(): deep-validate that bash_allow
+(and its heads/git_subcommands) are tables and every entry is a non-empty
+string, erroring at setup() time and naming the bad field. Pass the validated
+value through unchanged on resolved.codriver.bash_allow.
+"""
+covers        = ["c-3", "c-1"]
+test_contract = [
+  "bash_allow = { heads = {'foo'}, git_subcommands = {'stash'} } resolves into resolved.codriver.bash_allow unchanged",
+  "bash_allow set to a non-table (e.g. a string) raises a setup()-time error naming 'bash_allow'",
+  "bash_allow.heads set to a non-table raises an error naming 'bash_allow.heads'",
+  "a non-string entry inside bash_allow.heads raises an error naming the offending field",
+  "a non-string entry inside bash_allow.git_subcommands raises an error naming the offending field",
+  "omitting bash_allow leaves resolved.codriver.bash_allow nil",
+]
+status        = "pending"
+
+[[task]]
+id            = "t-2"
+wave          = 1
+title         = "Additive merge + effective-allowlist helper in bash.lua"
+files         = ["lua/codriver/hook/bash.lua", "tests/codriver/hook_bash_spec.lua"]
+description   = """
+Extend M.allows to accept an optional bash_allow table and merge its
+heads/git_subcommands additively onto ALLOWED_HEADS/GIT_ALLOWED_SUBCOMMANDS for
+that call — never replacing the hardcoded defaults. Add M.effective_allowlist(bash_allow)
+returning the merged {heads, git_subcommands} sets for reporting.
+"""
+covers        = ["c-1"]
+test_contract = [
+  "M.allows(cmd, test_command, bash_allow) allows a command whose head is only present in bash_allow.heads",
+  "M.allows allows 'git <subcommand>' when the subcommand is only present in bash_allow.git_subcommands",
+  "a bash_allow value that omits a hardcoded default still allows that default (additive, never replacing)",
+  "M.effective_allowlist(bash_allow) returns hardcoded defaults merged with bash_allow additions, defaults-only when bash_allow is nil",
+]
+status        = "pending"
+
+[[task]]
+id            = "t-5"
+wave          = 1
+title         = "README: document bash_allow, test_command, Options"
+files         = ["README.md"]
+description   = """
+Document bash_allow (shape, additive-only behaviour) and test_command
+(exact-match exemption from the Bash allowlist) in the Options section, and
+restructure that section so auto_start, claudecode, test_command, and
+bash_allow read as one coherent reference.
+"""
+covers        = ["c-1", "c-2", "c-4"]
+test_contract = [
+  "grep -q 'bash_allow' README.md succeeds and the Options code example shows bash_allow = { heads = {...}, git_subcommands = {...} }",
+  "grep -q 'test_command' README.md succeeds and the surrounding text states test_command is exact-match exempted from the Bash allowlist",
+  "the Options section lists all four keys (auto_start, claudecode, test_command, bash_allow) in one example block",
+]
+status        = "pending"
+
+[[task]]
+id         = "t-3"
+wave       = 2
+depends_on = ["t-1", "t-2"]
+title      = "Thread bash_allow through init/state/decision"
+files      = [
+  "lua/codriver/init.lua",
+  "lua/codriver/hook/state.lua",
+  "lua/codriver/hook/decision.lua",
+  "tests/codriver/hook_decision_spec.lua",
+  "tests/nvim/hook_state_check.lua",
+]
+description   = """
+Thread resolved.codriver.bash_allow from setup() into publish_role's
+state.publish record, round-trip it through state.lua's JSON encode/decode,
+and pass session.bash_allow into bash.allows() at the decision.lua call site.
+Store the resolved codriver config on the module (for t-4 to read) in the same
+init.lua edit.
+"""
+covers        = ["c-1"]
+test_contract = [
+  "decision.decide allows a bash_allow-added command when session.bash_allow carries it, denies it when absent",
+  "state.publish/state.read round-trips bash_allow (including nil) to/from the JSON state file unchanged",
+  "a role-change republish does not drop a previously-resolved bash_allow, mirroring existing test_command preservation",
+]
+status        = "pending"
+
+[[task]]
+id         = "t-4"
+wave       = 3
+depends_on = ["t-3", "t-2"]
+title      = "checkhealth reports effective Bash allowlist"
+files      = ["lua/codriver/init.lua", "lua/codriver/health.lua", "tests/nvim/health_check.lua"]
+description   = """
+Read the resolved bash_allow (exposed by t-3) and call bash.effective_allowlist()
+to render two checkhealth lines: hardcoded+added heads, and hardcoded+added git
+subcommands.
+"""
+covers        = ["c-5"]
+test_contract = [
+  "checkhealth codriver reports a heads line listing hardcoded defaults (rg, git, ls, ...) when no bash_allow is configured",
+  "checkhealth codriver's heads line includes a head added via bash_allow.heads in setup()",
+  "checkhealth codriver's git-subcommand line includes a subcommand added via bash_allow.git_subcommands",
+]
+status        = "pending"
