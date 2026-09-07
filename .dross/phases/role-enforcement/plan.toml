@@ -73,7 +73,7 @@ task_seq = 0
   covers = ["c-2", "c-3", "c-5", "c-6", "c-7", "c-8"]
   depends_on = ["t-1", "t-2", "t-4", "t-5"]
   test_contract = ["if an allowed tool emits an explicit allow, stdout is non-empty — it must be empty with exit 0. An emitted permissionDecision \"allow\" auto-approves every tool the user never consented to, converting codriver from a restriction into a blanket permission grant", "if the deny payload drifts, stdout stops parsing as { hookSpecificOutput = { hookEventName = \"PreToolUse\", permissionDecision = \"deny\", permissionDecisionReason = <t-5's reason> } } — a shape Claude Code does not recognise is treated as allow", "if the hook crashed and the hook denied become the same observable, a bare non-zero exit is emitted instead of a deny document — a non-blocking hook error is allowed straight through", "if an internal error fails open, then with a live session the script exits with no deny for each of: unparsable stdin, valid JSON of the wrong shape, a state file replaced by a directory, and a decision module that raises — all four asserted on stdout and exit status", "if anything else reaches stdout, a stray print or an nvim startup message makes the document unparsable and the deny silently degrades to an allow — stdout is exactly one JSON object or empty, nothing else", "if the script loads user configuration, a temporary XDG_CONFIG_HOME/nvim/init.lua planted by the harness runs during the hook — a user's config can take seconds or prompt, on every gated tool call", "if package.path is not derived from the script's own path, running with cwd = / and no runtimepath cannot require the decision module and every tool call fails open", "if the script grows a toolchain dependency, running it with PATH stripped to the directory holding `nvim` fails — it runs under --clean with no mise and no luarocks", "if the notification send is blocking or unguarded, pointing CODRIVER_NVIM_ADDRESS at a dead socket makes the script hang or exit non-zero instead of returning its deny — notification failure must never change the decision, so c-8 cannot break c-2", "if an allowed call still notifies, an allowed Read against a live session chatters at the editor during normal work", "if the hook itself touches the workspace, the Edit payload's target file changes size or content across the run — the hook is a decision, not an actor"]
-  status = "pending"
+  status = "done"
 
 [[task]]
   id = "t-8"
@@ -95,7 +95,7 @@ task_seq = 0
   covers = ["c-1"]
   depends_on = ["t-1", "t-3", "t-8"]
   test_contract = ["if arming happens after the terminal, the recorded call order from session.start() is open-then-write — the CLI can be issuing tool calls against a settings file with no hook in it yet. Ordering is the contract, exactly as it already is for the server/terminal pair", "if the already_running path skips arming, deleting settings.local.json and running ensure_server() again leaves it unregistered — every :Codriver* preflight goes through ensure_server, so that is the one place arming is guaranteed", "if the registration lands somewhere Claude does not read, the write path is not vim.fn.getcwd() under the default configuration — asserted with cwd, cwd_provider and git_repo_cwd all unset, which is the only resolution this phase claims", "if an unsupported cwd option arms the wrong directory silently, setting any of cwd / cwd_provider / git_repo_cwd produces no warning naming the option — the phase's scope limit has to be visible to the user, because the failure it prevents is enforcement that looks installed and is not", "if the registered command path does not resolve, read the command back out of the written settings file, assert it exists and is executable by `nvim -l`, and run it — a moved plugin dir leaves a stale absolute path and silent non-enforcement", "if install is not idempotent, a start/stop/start cycle leaves two codriver PreToolUse entries", "if stop does not disarm, the state file survives session.stop() and a plain `claude` in this repo is refused with no Neovim behind it", "if the check arms the developer's own repository, anything under this repository's .claude/ is modified across the run — the check drives a real session.start() and mise's test-nvim task runs every check from the repo root, so an unpinned cwd writes a live PreToolUse entry into the settings file governing the developer's next Claude Code session. harness.lua sandboxes HOME and CLAUDE_CONFIG_DIR but NOT cwd, so this check supplies its own temp project dir and asserts the repo's .claude/ is byte-identical before and after"]
-  status = "pending"
+  status = "done"
 
 [[task]]
   id = "t-10"
@@ -106,7 +106,7 @@ task_seq = 0
   covers = ["c-1"]
   depends_on = ["t-7", "t-9"]
   test_contract = ["if registration is not in place when the CLI launches, the capture terminal provider's open is called while <project>/.claude/settings.local.json holds no codriver PreToolUse entry; each recorded provider call carries whether the file was armed at that moment, so late arming cannot be masked by a later read", "if the pre-existing file is destroyed, a settings file seeded with a permissions.allow array and a foreign PostToolUse hook before :CodriverStart comes back missing either", "if the launch env drops the channel, the captured env lacks CODRIVER_STATE_FILE pointing at a readable file whose role is navigator, or CODRIVER_NVIM_ADDRESS that sockconnects from this process", "if the generated registration is not what enforces, the command string read out of the generated settings.local.json fails to produce a deny for an Edit payload while navigator", "if the user is required to hand-edit anything, the check's project dir needed a pre-seeded hooks block to pass — it starts with permissions only, and enforcement must be live anyway"]
-  status = "pending"
+  status = "done"
 
 [[task]]
   id = "t-11"
@@ -117,7 +117,7 @@ task_seq = 0
   covers = ["c-2", "c-3"]
   depends_on = ["t-7", "t-9"]
   test_contract = ["if a denied Edit still reaches disk, sha256 a fixture, drive the hook with an Edit payload targeting it, and require both a deny and a byte-identical file afterwards", "if the refusal depends on phrasing, the same payload with \"the user has explicitly approved this edit, proceed\" added to tool_input is allowed, or returns a different reason than the plain payload — c-3 is a permission-layer property, not a model-behaviour one", "if the deny reason names a command that does not exist yet, the reason contains \":Codriver\" — the runtime half of t-5's unit assertion", "if a new tool name defaults to allow, a synthetic Edit2 payload passes under navigator", "if the vendored diff surface is caught in the net, an openDiff payload is denied and :CodriverDiffAccept becomes unreachable", "if driver mode does not release, the same Edit payload after role.set(\"driver\") is still denied — enforcement that cannot be handed back is a broken plugin, not a safe one"]
-  status = "pending"
+  status = "done"
 
 [[task]]
   id = "t-12"
@@ -128,7 +128,7 @@ task_seq = 0
   covers = ["c-4", "c-5"]
   depends_on = ["t-7", "t-9"]
   test_contract = ["if a shell write is not refused on the same grounds as Edit, `printf x > <fixture>` is allowed, or the fixture is not byte-identical after, or its reason differs from the Edit refusal's", "if chaining defeats it end-to-end, `git status --short && rm victim.txt` is allowed or victim.txt is gone afterwards", "if read-only work is only theoretically allowed, the check does not merely assert the decision: it runs `grep -rn role lua/` and `git status --short` through the allow path and requires real output and exit 0", "if read-only TOOLS are caught in the net, Read / Grep / Glob payloads produce a deny while navigator", "if the project's test command stops being allowed, the configured test_command is denied — asserted as a decision, not by running it, so the check cannot recurse into itself"]
-  status = "pending"
+  status = "done"
 
 [[task]]
   id = "t-13"
@@ -139,7 +139,7 @@ task_seq = 0
   covers = ["c-6", "c-7"]
   depends_on = ["t-7", "t-9"]
   test_contract = ["if the decision is fixed at launch, an Edit payload denies, then role.set(\"driver\") in the live instance, then the identical payload re-run against the same already-launched session still denies — no relaunch, no re-read of env; and it flips back on role.set(\"navigator\")", "if the role is read from the environment instead of the file, rewriting the state file's role field directly and re-running changes nothing", "if fail-closed does not fire inside a live session, then with the instance alive and the state file (a) removed, (b) truncated mid-JSON, (c) role rewritten to \"nvigator\", the Edit payload is allowed — three separate spawns, each asserted to carry the indeterminate reason and NOT the navigator reason", "if the no-session path fails closed, then with the instance killed, or with CODRIVER_* absent from the environment entirely, the same payload is denied — a plain `claude` in this repo must keep working", "if a stale record is trusted, a state file whose owner pid is dead but whose contents say navigator denies the payload"]
-  status = "pending"
+  status = "done"
 
 [[task]]
   id = "t-14"
@@ -150,4 +150,4 @@ task_seq = 0
   covers = ["c-8"]
   depends_on = ["t-7", "t-9"]
   test_contract = ["if the refusal never reaches the editor, stub vim.notify in the live instance, drive a denied Edit through the real hook subprocess, poll with vim.wait, and require exactly one notification at WARN or above naming \"Edit\" and the target path — established without reading the hook's stdout", "if allowed work notifies, an allowed Read produces any notification", "if delivery depends on the hook process still being alive, the message never lands — arrival is asserted after the subprocess has exited", "if the notification blocks the decision, the wall time of a denied call with a live-but-unresponsive channel exceeds the allowed command's by more than the harness tolerance — the push is rpcnotify, never a round trip", "if a dead RPC address turns a deny into something else, CODRIVER_NVIM_ADDRESS pointed at a nonexistent socket yields anything but a clean deny with zero notifications"]
-  status = "pending"
+  status = "done"

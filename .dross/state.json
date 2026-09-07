@@ -2,50 +2,10 @@
   "version": "0.1.2.0",
   "current_milestone": "v0.1",
   "current_phase": "role-enforcement",
-  "current_phase_status": "planned",
-  "last_activity": "2026-09-07T07:53:16.929967Z",
-  "last_action": "executed t-8 (setup: publish role, listen, clean up on exit)",
+  "current_phase_status": "complete",
+  "last_activity": "2026-09-07T08:36:33.178172Z",
+  "last_action": "phase role-enforcement executed (14/14 done)",
   "history": [
-    {
-      "at": "2026-07-30T09:27:40.356884Z",
-      "action": "resumed — back at /dross-init step 3: confirm upstream toolchain, lock stack"
-    },
-    {
-      "at": "2026-07-30T10:48:22.225273Z",
-      "action": "init complete — codriver.nvim scaffolded, vendored claudecode.nvim @ 2390c6e, all checks green"
-    },
-    {
-      "at": "2026-07-30T11:05:36.258338Z",
-      "action": "set current_milestone=v0.1"
-    },
-    {
-      "at": "2026-07-30T11:05:36.265325Z",
-      "action": "scoped milestone v0.1: 4 criteria, 4 phases"
-    },
-    {
-      "at": "2026-07-30T11:44:01.679056Z",
-      "action": "created session-bringup"
-    },
-    {
-      "at": "2026-07-30T12:08:05.543486Z",
-      "action": "set current_phase=session-bringup"
-    },
-    {
-      "at": "2026-07-30T12:08:05.550742Z",
-      "action": "spec locked: session-bringup"
-    },
-    {
-      "at": "2026-07-30T12:34:49.471573Z",
-      "action": "set current_phase_status=planned"
-    },
-    {
-      "at": "2026-07-30T12:34:49.479464Z",
-      "action": "plan locked: session-bringup (12 tasks across 4 waves)"
-    },
-    {
-      "at": "2026-07-30T12:40:00.083434Z",
-      "action": "plan reviewed: session-bringup (0 blocking, 9 flags)"
-    },
     {
       "at": "2026-07-30T13:02:03.411792Z",
       "action": "plan amended after 2 review rounds: session-bringup (14 tasks across 4 waves)"
@@ -205,6 +165,46 @@
     {
       "at": "2026-09-07T07:53:16.929967Z",
       "action": "executed t-8 (setup: publish role, listen, clean up on exit)"
+    },
+    {
+      "at": "2026-09-07T07:56:09.429654Z",
+      "action": "set version=0.1.2.0"
+    },
+    {
+      "at": "2026-09-07T08:10:48.711676Z",
+      "action": "executed t-7 (Hook entrypoint: stdin, crash containment, notify)"
+    },
+    {
+      "at": "2026-09-07T08:23:20.111213Z",
+      "action": "executed t-9 (Arm on session start, disarm on stop)"
+    },
+    {
+      "at": "2026-09-07T08:25:16.442144Z",
+      "action": "executed t-10 (Headless launch-time enforcement check)"
+    },
+    {
+      "at": "2026-09-07T08:26:45.609876Z",
+      "action": "executed t-11 (Headless write refusal and byte-identity check)"
+    },
+    {
+      "at": "2026-09-07T08:28:41.488415Z",
+      "action": "executed t-12 (Headless bash refusal and read-only survival)"
+    },
+    {
+      "at": "2026-09-07T08:30:34.797801Z",
+      "action": "executed t-13 (Headless liveness and fail-closed check)"
+    },
+    {
+      "at": "2026-09-07T08:36:21.054257Z",
+      "action": "executed t-14 (Headless refusal-notification round-trip check)"
+    },
+    {
+      "at": "2026-09-07T08:36:33.172213Z",
+      "action": "set current_phase_status=complete"
+    },
+    {
+      "at": "2026-09-07T08:36:33.178172Z",
+      "action": "phase role-enforcement executed (14/14 done)"
     }
   ]
 }

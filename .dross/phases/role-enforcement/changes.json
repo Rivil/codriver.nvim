@@ -17,6 +17,81 @@
         }
       ]
     },
+    "t-10": {
+      "files": [
+        "tests/nvim/enforcement_launch_check.lua"
+      ],
+      "commit": "5118f7a",
+      "completed_at": "2026-09-07T08:25:16.427806Z",
+      "landmarks": [
+        {
+          "feature": "launch-time enforcement proof",
+          "symbol": "enforcement_launch_check",
+          "loc": "tests/nvim/enforcement_launch_check.lua:1",
+          "what": "drives a real :CodriverStart and runs the generated (not hand-composed) hook command to prove it denies"
+        }
+      ]
+    },
+    "t-11": {
+      "files": [
+        "tests/nvim/enforcement_write_check.lua"
+      ],
+      "commit": "6b5f4a3",
+      "completed_at": "2026-09-07T08:26:45.59619Z",
+      "landmarks": [
+        {
+          "feature": "write refusal + byte-identity proof",
+          "symbol": "enforcement_write_check",
+          "loc": "tests/nvim/enforcement_write_check.lua:1",
+          "what": "real hook subprocess proves byte-identity, phrasing-independence, unknown-tool default-deny, diff-surface allow, and driver release"
+        }
+      ]
+    },
+    "t-12": {
+      "files": [
+        "tests/nvim/enforcement_bash_check.lua"
+      ],
+      "commit": "f424ea7",
+      "completed_at": "2026-09-07T08:28:41.473818Z",
+      "landmarks": [
+        {
+          "feature": "bash refusal + read-only survival proof",
+          "symbol": "enforcement_bash_check",
+          "loc": "tests/nvim/enforcement_bash_check.lua:1",
+          "what": "real hook subprocess proves shell writes deny on the same grounds as Edit while read-only bash commands actually run"
+        }
+      ]
+    },
+    "t-13": {
+      "files": [
+        "tests/nvim/enforcement_liveness_check.lua"
+      ],
+      "commit": "598943a",
+      "completed_at": "2026-09-07T08:30:34.783284Z",
+      "landmarks": [
+        {
+          "feature": "liveness + fail-closed proof",
+          "symbol": "enforcement_liveness_check",
+          "loc": "tests/nvim/enforcement_liveness_check.lua:1",
+          "what": "proves the decision reads live role state at call time and fails closed inside a live session while failing open with no session"
+        }
+      ]
+    },
+    "t-14": {
+      "files": [
+        "tests/nvim/enforcement_notify_check.lua"
+      ],
+      "commit": "4947138",
+      "completed_at": "2026-09-07T08:36:21.040924Z",
+      "landmarks": [
+        {
+          "feature": "refusal-notification round-trip proof",
+          "symbol": "enforcement_notify_check",
+          "loc": "tests/nvim/enforcement_notify_check.lua:1",
+          "what": "stubs vim.notify to prove refusal arrival, and works around a SystemObj:wait() RPC-accept limitation with a local async spawn helper"
+        }
+      ]
+    },
     "t-2": {
       "files": [
         "lua/codriver/hook/bash.lua",
@@ -98,6 +173,24 @@
         }
       ]
     },
+    "t-7": {
+      "files": [
+        "scripts/codriver-hook.lua",
+        "mise.toml",
+        "tests/nvim/harness.lua",
+        "tests/nvim/hook_entrypoint_check.lua"
+      ],
+      "commit": "207f047",
+      "completed_at": "2026-09-07T08:10:48.687788Z",
+      "landmarks": [
+        {
+          "feature": "PreToolUse hook entrypoint",
+          "symbol": "decide",
+          "loc": "scripts/codriver-hook.lua:90",
+          "what": "headless nvim script reads Claude Code's PreToolUse stdin, probes live role state, and fails closed (deny) rather than fails open on any internal error"
+        }
+      ]
+    },
     "t-8": {
       "files": [
         "lua/codriver/init.lua",
@@ -112,6 +205,24 @@
           "symbol": "M.setup",
           "loc": "lua/codriver/init.lua:171",
           "what": "setup() ensures an RPC address, publishes role+test_command to the session state file, republishes on role change, and clears it on VimLeavePre"
+        }
+      ]
+    },
+    "t-9": {
+      "files": [
+        "lua/codriver/session.lua",
+        "tests/codriver/session_spec.lua",
+        "tests/nvim/hook_install_check.lua",
+        "tests/codriver/init_spec.lua"
+      ],
+      "commit": "c1b6ba9",
+      "completed_at": "2026-09-07T08:23:20.095328Z",
+      "landmarks": [
+        {
+          "feature": "PreToolUse hook arming",
+          "symbol": "arm",
+          "loc": "lua/codriver/session.lua:75",
+          "what": "ensure_server() registers the hook against getcwd() on every preflight and stop() clears the state file to disarm"
         }
       ]
     }
