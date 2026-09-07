@@ -82,6 +82,10 @@ local function start_command()
     return
   end
 
+  -- The indicator exists only while a session does (c-4, no_session_lifecycle):
+  -- shown here, on the one path that actually brings a session up.
+  winbar.show()
+
   -- Reported through the same formatter as `:CodriverStatus`, so "started" and
   -- "already running" answer the question the user actually asked — which port,
   -- and is Claude on it — in one shape rather than two.
@@ -110,6 +114,10 @@ local function stop_command()
     notify("codriver: could not stop the session — " .. result.error, vim.log.levels.ERROR)
     return
   end
+
+  -- Cleared only on a genuine stop — not above, where the server never came
+  -- down and the indicator is still describing a real session.
+  winbar.hide()
 
   notify(result.port and ("codriver: session on port %d stopped"):format(result.port) or "codriver: session stopped")
 end
@@ -251,10 +259,6 @@ function M.setup(opts)
   vim.api.nvim_create_user_command("CodriverHandover", handover_command, { desc = "Hand the keyboard to Claude" })
   vim.api.nvim_create_user_command("CodriverTakeback", takeback_command, { desc = "Take the keyboard back from Claude" })
 
-  -- Session-scoped visibility (show only while a session is active) is wired
-  -- in by a later task; for now this shows the indicator once per setup().
-  winbar.show()
-
   -- Not guarded by first_setup: the vendored setup above just (re-)created the
   -- shutdown augroup with `clear = true`, which wipes any autocmd a previous
   -- call attached to it. Re-attaching every time is correct rather than
@@ -264,6 +268,7 @@ function M.setup(opts)
     group = "CodriverShutdown",
     callback = function()
       state.clear()
+      winbar.hide()
     end,
     desc = "Clear codriver's session role record when Neovim exits",
   })
