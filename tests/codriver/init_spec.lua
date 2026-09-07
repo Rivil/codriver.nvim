@@ -257,11 +257,22 @@ describe("codriver", function()
         stdpath = function()
           return "/tmp/codriver-init-spec/state"
         end,
-        fnamemodify = function(path, mods)
-          if mods == ":h" then
-            return path:match("^(.*)/[^/]*$") or "."
-          end
+        -- t-9's addition: ensure_server() now arms codriver's PreToolUse hook
+        -- against the cwd on every preflight, so this too has to answer rather
+        -- than error — these tests care about the terminal/server ordering,
+        -- not about where the hook gets registered.
+        getcwd = function()
+          return "/tmp/codriver-init-spec/project"
+        end,
+        resolve = function(path)
           return path
+        end,
+        fnamemodify = function(path, mods)
+          local result = path
+          for _ in mods:gmatch("h") do
+            result = result:match("^(.*)/[^/]+$") or "."
+          end
+          return result
         end,
         mkdir = function()
           return 1
@@ -269,10 +280,20 @@ describe("codriver", function()
         writefile = function()
           return 0
         end,
+        -- session.stop() (t-9) clears the state file via hook.state.clear().
+        delete = function()
+          return 0
+        end,
         serverstart = function()
           return "/tmp/codriver-init-spec.pipe"
         end,
       }
+      -- claude_settings.install() (also t-9's addition, via arm()) splits its
+      -- encoded document before handing it to the writefile stub above, which
+      -- ignores its argument entirely — so this only has to not error.
+      _G.vim.split = function(s)
+        return { s }
+      end
       _G.vim.uv = {
         os_getpid = function()
           return 4242
@@ -301,6 +322,7 @@ describe("codriver", function()
       _G.vim.uv = nil
       _G.vim.json = nil
       _G.vim.v = nil
+      _G.vim.split = nil
       _G.reset_vim_stub()
     end)
 

@@ -21,12 +21,78 @@
 
 local M = {}
 
+---Reached at call time, never at module load, same as `vendor()` below: an
+---eager top-level require would bind these before a spec's `before_each` can
+---swap `package.loaded` with a fake, so busted would always be exercising the
+---real module regardless of what a test tries to install in its place.
+---@return table
+local function claude_settings()
+  return require("codriver.hook.claude_settings")
+end
+
+---Named `hook_state`, not `state`: `ensure_server()` and `stop()` below each
+---already alias the vendored session table to a local `state` of their own.
+---@return table
+local function hook_state()
+  return require("codriver.hook.state")
+end
+
 ---Reached at call time, never at module load: requiring the vendored layer
 ---eagerly would spin up the protocol modules just because something asked
 ---about status, and it would put them beyond the reach of a fake.
 ---@return table
 local function vendor()
   return require("codriver.vendor.claudecode")
+end
+
+---Absolute path to codriver's own plugin root — three levels up from this
+---file (lua/codriver/session.lua). Derived from this module's own source
+---rather than runtimepath scanning, so it resolves correctly regardless of
+---how a plugin manager installs or symlinks codriver.
+---@return string
+local function plugin_root()
+  local source = debug.getinfo(1, "S").source:sub(2)
+  return vim.fn.fnamemodify(vim.fn.resolve(source), ":p:h:h:h")
+end
+
+---The command registered as codriver's PreToolUse hook — the same one
+---scripts/codriver-hook.lua is: `nvim --clean -l`, so it runs with no user
+---config and no runtimepath.
+---@return string
+local function hook_command()
+  return ("nvim --clean -l %s/scripts/codriver-hook.lua"):format(plugin_root())
+end
+
+---Fires at most once per session: a non-default terminal cwd is out of this
+---phase's scope, and enforcement armed at `vim.fn.getcwd()` regardless would
+---otherwise look installed while quietly watching the wrong directory.
+local warned_cwd_scope = false
+
+---Register codriver's PreToolUse hook against the current working directory.
+---Called on every `ensure_server()`, including when a session is already
+---running — that is the one call every `:Codriver*` preflight goes through,
+---so it is the one place arming can be guaranteed.
+local function arm()
+  local config = (vendor().state or {}).config or {}
+  local term_cfg = config.terminal or {}
+
+  if not warned_cwd_scope and (term_cfg.cwd or term_cfg.cwd_provider or term_cfg.git_repo_cwd) then
+    warned_cwd_scope = true
+    vim.notify(
+      "codriver: a non-default terminal cwd (cwd / cwd_provider / git_repo_cwd) is configured — enforcement is "
+        .. "armed against vim.fn.getcwd() only, which may not be where the CLI actually launches",
+      vim.log.levels.WARN
+    )
+  end
+
+  claude_settings().install(vim.fn.getcwd() .. "/.claude/settings.local.json", hook_command())
+end
+
+---Test-only: forget whether the cwd-scope warning already fired. "Once" means
+---once per real session; busted needs a way back to a clean slate between
+---specs, the same reason codriver.role carries its own `_reset()`.
+function M._reset()
+  warned_cwd_scope = false
 end
 
 ---@return table|nil
@@ -50,6 +116,8 @@ end
 function M.ensure_server()
   local claudecode = vendor()
   local state = claudecode.state or {}
+
+  arm()
 
   if state.server then
     -- Not an error. Asking for a session you already have should tell you
@@ -124,6 +192,12 @@ function M.stop()
   if not ok then
     return { stopped = false, already_stopped = false, port = port, error = tostring(err) }
   end
+
+  -- The settings registration deliberately survives — settings_delivery's
+  -- accepted cost, inert without a state file. Clearing the state file itself
+  -- is what disarms: no_session_behaviour means a plain `claude` run in this
+  -- repo must not still be refused now that Neovim is not behind it.
+  hook_state().clear()
 
   -- Deliberately not checked against the lockfile. The vendored stop() warns
   -- and carries on when the lockfile has already gone, and so should this: a

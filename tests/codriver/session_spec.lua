@@ -6,8 +6,11 @@ local VENDOR = "codriver.vendor.claudecode"
 local TERMINAL = VENDOR .. ".terminal"
 local LOCKFILE = VENDOR .. ".lockfile"
 local SELECTION = VENDOR .. ".selection"
+local CLAUDE_SETTINGS = "codriver.hook.claude_settings"
+local HOOK_STATE = "codriver.hook.state"
 
 local LOCK_DIR = "/tmp/codriver-session-spec/ide"
+local CWD = "/tmp/codriver-session-spec/project"
 
 ---Shared ordering log. Server-before-terminal is the contract, not just the
 ---call counts, so both fakes record into one list.
@@ -98,28 +101,68 @@ local function fake_selection()
   return fake
 end
 
+---Records every registration ensure_server() asks for, in order, into the
+---shared `events` log — arming is a preflight, and open-then-write is exactly
+---as much a bug as write-after-open.
+local function fake_claude_settings()
+  local fake = { installs = {} }
+  fake.install = function(path, command)
+    table.insert(fake.installs, { path = path, command = command })
+    table.insert(events, "claude_settings.install")
+  end
+  return fake
+end
+
+local function fake_hook_state()
+  local fake = { cleared = 0 }
+  fake.clear = function()
+    fake.cleared = fake.cleared + 1
+  end
+  return fake
+end
+
 describe("codriver.session", function()
-  local vendor, terminal, selection, saved, readable
+  local vendor, terminal, selection, claude_settings, hook_state, saved, readable
 
   before_each(function()
+    session._reset()
     events = {}
     readable = {}
     vendor, terminal, selection = fake_vendor(), fake_terminal(), fake_selection()
+    claude_settings, hook_state = fake_claude_settings(), fake_hook_state()
 
     saved = {}
-    for _, name in ipairs({ VENDOR, TERMINAL, LOCKFILE, SELECTION }) do
+    for _, name in ipairs({ VENDOR, TERMINAL, LOCKFILE, SELECTION, CLAUDE_SETTINGS, HOOK_STATE }) do
       saved[name] = package.loaded[name]
     end
     package.loaded[VENDOR] = vendor
     package.loaded[TERMINAL] = terminal
     package.loaded[LOCKFILE] = { lock_dir = LOCK_DIR }
     package.loaded[SELECTION] = selection
+    package.loaded[CLAUDE_SETTINGS] = claude_settings
+    package.loaded[HOOK_STATE] = hook_state
 
     -- Spec-local, not a growth of tests/busted_setup.lua's shared stub:
-    -- snapshot() asks the filesystem one question and this answers it.
+    -- snapshot() asks the filesystem one question and this answers it;
+    -- arm() asks for the cwd and resolves its own module path to build the
+    -- registered command. fnamemodify only ever needs to strip one path
+    -- segment per "h" in the modifier string here, so that is all it does.
     _G.vim.fn = {
       filereadable = function(path)
         return readable[path] and 1 or 0
+      end,
+      getcwd = function()
+        return CWD
+      end,
+      resolve = function(path)
+        return path
+      end,
+      fnamemodify = function(path, mods)
+        local result = path
+        for _ in mods:gmatch("h") do
+          result = result:match("^(.*)/[^/]+$") or result
+        end
+        return result
       end,
     }
   end)
@@ -164,15 +207,74 @@ describe("codriver.session", function()
     end)
   end)
 
+  describe("arming", function()
+    it("registers the hook before the vendored server ever starts", function()
+      session.ensure_server()
+
+      assert.are.same({ "claude_settings.install", "vendor.start" }, events)
+    end)
+
+    it("registers against the current working directory", function()
+      session.ensure_server()
+
+      assert.are.equal(1, #claude_settings.installs)
+      assert.are.equal(CWD .. "/.claude/settings.local.json", claude_settings.installs[1].path)
+      assert.is_truthy(
+        claude_settings.installs[1].command:match("^nvim %-%-clean %-l .*/scripts/codriver%-hook%.lua$"),
+        "expected the registered command to run scripts/codriver-hook.lua under --clean, got "
+          .. tostring(claude_settings.installs[1].command)
+      )
+    end)
+
+    it("re-registers on every ensure_server(), including when already running", function()
+      -- The already_running branch returns early — arming has to happen before
+      -- that, or deleting settings.local.json and calling ensure_server() again
+      -- leaves the hook unregistered with nothing to say so.
+      session.ensure_server()
+      session.ensure_server()
+
+      assert.are.equal(2, #claude_settings.installs)
+    end)
+
+    for _, key in ipairs({ "cwd", "cwd_provider", "git_repo_cwd" }) do
+      it("warns when a non-default terminal " .. key .. " is configured", function()
+        vendor.state.config = { terminal = { [key] = "/somewhere/else" } }
+
+        session.ensure_server()
+
+        assert.are.equal(1, #_G.vim._notifications, "expected exactly one warning")
+        assert.are.equal(_G.vim.log.levels.WARN, _G.vim._notifications[1].level)
+        assert.is_truthy(_G.vim._notifications[1].msg:lower():find("cwd", 1, true))
+      end)
+    end
+
+    it("warns at most once per session, not once per ensure_server() call", function()
+      vendor.state.config = { terminal = { cwd = "/somewhere/else" } }
+
+      session.ensure_server()
+      session.ensure_server()
+
+      assert.are.equal(1, #_G.vim._notifications, "a warning is not a chatter loop")
+    end)
+
+    it("stays silent under the default configuration", function()
+      session.ensure_server()
+
+      assert.are.equal(0, #_G.vim._notifications)
+    end)
+  end)
+
   describe("start", function()
     it("brings the server up before opening the terminal", function()
       -- The vendored terminal builds the CLI's environment when it opens, and
       -- with no server listening there is no port to put in it. Terminal-first
-      -- launches a Claude that can never connect back.
+      -- launches a Claude that can never connect back — and arming has to be
+      -- earlier still, or the CLI could issue tool calls before the hook that
+      -- governs it exists.
       local result = session.start()
 
       assert.is_true(result.started)
-      assert.are.same({ "vendor.start", "terminal.open" }, events)
+      assert.are.same({ "claude_settings.install", "vendor.start", "terminal.open" }, events)
       assert.are.equal(1, terminal.opened)
     end)
 
@@ -183,7 +285,11 @@ describe("codriver.session", function()
       local again = session.start()
 
       assert.is_true(again.already_running)
-      assert.are.same({ "terminal.open" }, events, ":CodriverStart is also a request for somewhere to talk")
+      assert.are.same(
+        { "claude_settings.install", "terminal.open" },
+        events,
+        ":CodriverStart is also a request for somewhere to talk, and ensure_server() re-arms on the way there"
+      )
     end)
 
     it("opens no terminal when the server could not bind", function()
@@ -258,6 +364,24 @@ describe("codriver.session", function()
       assert.is_true(result.already_stopped)
       assert.is_false(result.stopped)
       assert.are.equal(0, vendor.calls.stop, "the vendored `false, Not running` path must not be entered")
+    end)
+
+    it("disarms by clearing the state file", function()
+      -- The settings registration deliberately survives (settings_delivery) —
+      -- it is the state file that has to go, or no_session_behaviour never
+      -- takes effect and a plain `claude` here stays refused with no Neovim
+      -- behind it.
+      session.start()
+
+      session.stop()
+
+      assert.are.equal(1, hook_state.cleared)
+    end)
+
+    it("does not disarm when there was nothing to stop", function()
+      session.stop()
+
+      assert.are.equal(0, hook_state.cleared)
     end)
 
     it("succeeds even when the lockfile has already gone", function()
