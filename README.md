@@ -74,8 +74,28 @@ require("codriver").setup({
     terminal = { provider = "auto" },
     -- track_selection = true,  -- Claude reading your selection depends on this
   },
+
+  -- Exempted from the read-only Bash allowlist by exact match only — never as
+  -- a prefix, and never by any of the shell-substring games that would let a
+  -- prefix match slip something else through. Lets navigator mode run your
+  -- own test suite without opening up the allowlist itself.
+  test_command = "mise run test",
+
+  -- Extends the read-only Bash allowlist beyond its hardcoded defaults
+  -- (command heads like `rg`/`git`/`ls`, and git subcommands like `status`).
+  -- Additive only — this can never shrink or replace the built-in floor, only
+  -- add to it. Every entry must be a non-empty string, checked at setup()
+  -- time: a malformed value errors immediately naming the bad field, rather
+  -- than failing silently inside the PreToolUse hook.
+  bash_allow = {
+    heads = { "jq" },
+    git_subcommands = { "stash" },
+  },
 })
 ```
+
+Run `:checkhealth codriver` to see the effective Bash allowlist — hardcoded
+defaults plus any `bash_allow` additions.
 
 ## Usage
 
