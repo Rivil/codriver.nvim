@@ -17,7 +17,7 @@ local M = {}
 M.version = {
   major = 0,
   minor = 1,
-  patch = 3,
+  patch = 4,
 }
 
 ---@return string
@@ -32,6 +32,7 @@ local config = require("codriver.config")
 local session = require("codriver.session")
 local state = require("codriver.hook.state")
 local status = require("codriver.status")
+local winbar = require("codriver.winbar")
 
 ---Guards the role listener against a second `setup()` call registering a
 ---second copy of it. The shutdown autocmd needs no such guard — the vendored
@@ -81,6 +82,10 @@ local function start_command()
     return
   end
 
+  -- The indicator exists only while a session does (c-4, no_session_lifecycle):
+  -- shown here, on the one path that actually brings a session up.
+  winbar.show()
+
   -- Reported through the same formatter as `:CodriverStatus`, so "started" and
   -- "already running" answer the question the user actually asked — which port,
   -- and is Claude on it — in one shape rather than two.
@@ -109,6 +114,10 @@ local function stop_command()
     notify("codriver: could not stop the session — " .. result.error, vim.log.levels.ERROR)
     return
   end
+
+  -- Cleared only on a genuine stop — not above, where the server never came
+  -- down and the indicator is still describing a real session.
+  winbar.hide()
 
   notify(result.port and ("codriver: session on port %d stopped"):format(result.port) or "codriver: session stopped")
 end
@@ -259,6 +268,7 @@ function M.setup(opts)
     group = "CodriverShutdown",
     callback = function()
       state.clear()
+      winbar.hide()
     end,
     desc = "Clear codriver's session role record when Neovim exits",
   })

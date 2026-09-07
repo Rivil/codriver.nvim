@@ -1,0 +1,61 @@
+{
+  "phase": "role-visibility",
+  "pr": 4,
+  "base": "milestone/v0.1",
+  "base_commit": "0a16cb1d85122e1dbd7bb74880d055d20801473b",
+  "status": "shipped",
+  "tasks": {
+    "t-1": {
+      "files": [
+        "lua/codriver/statusline.lua",
+        "tests/codriver/statusline_spec.lua"
+      ],
+      "commit": "f4cc965",
+      "completed_at": "2026-09-07T13:05:01.187028Z",
+      "landmarks": [
+        {
+          "feature": "role visibility",
+          "symbol": "M.component",
+          "loc": "lua/codriver/statusline.lua:23",
+          "what": "pure formatter mapping navigator/driver role to distinct label text and highlight group"
+        }
+      ]
+    },
+    "t-2": {
+      "files": [
+        "lua/codriver/winbar.lua",
+        "lua/codriver/init.lua",
+        "tests/nvim/winbar_check.lua",
+        "tests/codriver/init_spec.lua"
+      ],
+      "commit": "fd189a2",
+      "completed_at": "2026-09-07T13:09:24.914259Z",
+      "landmarks": [
+        {
+          "feature": "role visibility",
+          "symbol": "M.show",
+          "loc": "lua/codriver/winbar.lua:33",
+          "what": "impure winbar renderer registering highlight groups and repainting on role.on_change, wired into codriver.init setup()"
+        }
+      ]
+    },
+    "t-3": {
+      "files": [
+        "lua/codriver/winbar.lua",
+        "lua/codriver/init.lua",
+        "tests/nvim/winbar_lifecycle_check.lua",
+        "tests/nvim/winbar_check.lua"
+      ],
+      "commit": "53ee87d",
+      "completed_at": "2026-09-07T13:14:00.372766Z",
+      "landmarks": [
+        {
+          "feature": "role visibility",
+          "symbol": "start_command",
+          "loc": "lua/codriver/init.lua:77",
+          "what": "winbar shown on session start and hidden on stop/VimLeavePre, so the indicator never outlives its session"
+        }
+      ]
+    }
+  }
+}

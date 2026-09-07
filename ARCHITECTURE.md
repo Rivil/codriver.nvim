@@ -109,6 +109,22 @@ Claude terminal.
 
 _introduced role-enforcement · 4632e9b_
 
+### Role visibility
+
+A persistent winbar indicator shows navigator/driver with distinct label text
+and highlight groups (not color alone), repaints on `role.on_change` with no
+polling, and exists only while a session is running — shown on start, cleared
+on stop and on `VimLeavePre`, with no leftover text bleeding into the next
+session.
+
+- statusline.M.component — lua/codriver/statusline.lua:35
+- winbar.M.show — lua/codriver/winbar.lua:39
+- start_command (session-scoped show/hide) — lua/codriver/init.lua:77
+- winbar_check — tests/nvim/winbar_check.lua:1
+- winbar_lifecycle_check — tests/nvim/winbar_lifecycle_check.lua:1
+
+_introduced role-visibility · 53ee87d_
+
 ### Session bring-up
 
 Starting a session launches the Claude CLI already wired to this Neovim

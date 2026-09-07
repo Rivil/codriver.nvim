@@ -1,0 +1,75 @@
+[verify]
+  phase = "role-visibility"
+  generated_at = 2026-09-07T13:19:16.981673Z
+  verdict = "pass"
+  finalized = true
+  finalized_at = 2026-09-07T13:20:16.499565Z
+
+[summary]
+  mutation_status = "skipped"
+  measured_on = "local"
+  mutation_score = 0.0
+  mutants_killed = 0
+  mutants_survived = 0
+  mutants_not_covered = 0
+  mutants_in_scope = 0
+  unclassified_in_scope = 0
+  criteria_total = 4
+  criteria_covered = 4
+  criteria_uncovered = 0
+
+[[criterion]]
+  id = "c-1"
+  status = "covered"
+  tests = ["tests/nvim/winbar_check.lua: harness.expect_contains(navigator_winbar, \"watching\", ...) after :CodriverStart"]
+  notes = "Headless check drives the real :CodriverStart command (not winbar.show() directly) and asserts the role label is present in vim.o.winbar."
+
+[[criterion]]
+  id = "c-2"
+  status = "covered"
+  tests = ["tests/nvim/winbar_check.lua: driver_winbar/back_to_navigator_winbar assertions around :CodriverHandover and role.set(), with no explicit redraw issued"]
+  notes = "Check explicitly avoids issuing a redraw command, so a lazily-revaluated (polled) winbar would read stale text and fail — this is the strongest evidence the update is pushed from role.on_change rather than polled."
+
+[[criterion]]
+  id = "c-3"
+  status = "covered"
+  tests = ["tests/codriver/statusline_spec.lua:11 (\"gives navigator and driver different attribute tables\")", "tests/codriver/statusline_spec.lua:21 (\"shares no stem between the navigator and driver label text\")"]
+  notes = "Asserts on structural inequality of the two highlight attribute tables (not just differing fg values) and on the label strings sharing no substring — directly encodes the not-color-alone requirement."
+
+[[criterion]]
+  id = "c-4"
+  status = "covered"
+  tests = ["tests/nvim/winbar_lifecycle_check.lua: cold_winbar/started_winbar/stopped_winbar/left_winbar/cycled_winbar assertions across start, stop, VimLeavePre, and a start->stop->start cycle"]
+  notes = "Covers all three lifecycle edges named by the criterion: no indicator before a session, cleared on :CodriverStop, cleared on VimLeavePre, and no leftover driver-label text bleeding into a fresh navigator session."
+
+[[finding]]
+  severity = "NOTE"
+  text = "mutation skipped: no mutation adapter for .lua — verdict is based on criterion coverage alone, per the unmeasurable/skipped mutation-status rule."
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/init.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/statusline.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/winbar.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/codriver/init_spec.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/codriver/statusline_spec.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/nvim/winbar_check.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/nvim/winbar_lifecycle_check.lua: no mutation adapter for .lua"

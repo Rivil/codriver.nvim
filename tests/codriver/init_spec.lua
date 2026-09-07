@@ -35,7 +35,7 @@ local events
 
 ---A stand-in for `vim.api`, recording what actually reached it.
 local function fake_api()
-  local api = { created = {}, augroups = {}, autocmds = {} }
+  local api = { created = {}, augroups = {}, autocmds = {}, highlights = {} }
 
   api.nvim_create_user_command = function(name, handler, opts)
     table.insert(api.created, { name = name, handler = handler, opts = opts })
@@ -48,6 +48,13 @@ local function fake_api()
 
   api.nvim_create_autocmd = function(event, opts)
     table.insert(api.autocmds, { event = event, opts = opts })
+  end
+
+  -- t-2's addition: codriver.winbar registers its highlight groups on every
+  -- setup(). These tests don't care how the groups are styled, only that
+  -- setup() completes, so this just records the call.
+  api.nvim_set_hl = function(ns, name, attrs)
+    api.highlights[name] = attrs
   end
 
   return api
@@ -308,6 +315,9 @@ describe("codriver", function()
         end,
       }
       _G.vim.v = { servername = "" }
+      -- t-2's addition: codriver.winbar paints into vim.o.winbar on every
+      -- setup(). A plain table stands in for the real global-local option.
+      _G.vim.o = { winbar = "" }
     end)
 
     after_each(function()
@@ -323,6 +333,7 @@ describe("codriver", function()
       _G.vim.json = nil
       _G.vim.v = nil
       _G.vim.split = nil
+      _G.vim.o = nil
       _G.reset_vim_stub()
     end)
 
