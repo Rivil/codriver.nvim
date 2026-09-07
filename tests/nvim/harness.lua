@@ -166,6 +166,23 @@ function M.run(cmd, opts)
   return vim.system(cmd, vim.tbl_extend("force", { text = true }, opts or {})):wait()
 end
 
+---Run the REGISTERED PreToolUse hook command against `payload`, JSON-encoded
+---onto its stdin exactly as Claude Code feeds a hook — the same command
+---codriver's own claude_settings.install() writes into .claude/settings.local.json
+---(`nvim --clean -l <repo>/scripts/codriver-hook.lua`). Every headless check
+---in t-10..t-14 drives the hook through this one spawner rather than growing
+---its own, so a change to the registered command only has to land here.
+---@param payload table
+---@param env table|nil merged over the inherited environment, see M.run
+---@return { code: integer, stdout: string, stderr: string }
+function M.run_hook(payload, env)
+  local result = M.run({ "nvim", "--clean", "-l", M.repo_root .. "/scripts/codriver-hook.lua" }, {
+    env = env,
+    stdin = vim.json.encode(payload),
+  })
+  return { code = result.code, stdout = result.stdout, stderr = result.stderr }
+end
+
 ---Lockfiles currently in the sandboxed lock directory.
 ---@return string[]
 function M.lock_files()
