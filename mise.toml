@@ -85,12 +85,15 @@ depends = ["setup"]
 run = '''
 echo "Checking Lua files for syntax errors..."
 # Vendored code is parsed too — a broken require-rewrite must fail loudly here.
+# scripts/ is included too: the PreToolUse hook script runs under
+# `nvim --clean -l`, outside this check's own runtimepath, so a syntax error
+# there would otherwise disable enforcement with a green pipeline.
 # Pipe into xargs so a failed loadfile propagates a non-zero exit on BSD find
 # (macOS) too — `find -exec ... \;` swallows the child's status there.
-find lua -name "*.lua" -type f -print0 | xargs -0 -I{} luajit -e "assert(loadfile('{}'))"
+find lua scripts -name "*.lua" -type f -print0 | xargs -0 -I{} luajit -e "assert(loadfile('{}'))"
 echo "Running luacheck..."
 # lua/codriver/vendor is excluded in .luacheckrc — it is upstream's to lint.
-./.luarocks/bin/luacheck lua/ tests/ --no-unused-args --no-max-line-length
+./.luarocks/bin/luacheck lua/ tests/ scripts/ --no-unused-args --no-max-line-length
 '''
 
 [tasks.test]

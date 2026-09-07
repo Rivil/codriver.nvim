@@ -1,0 +1,187 @@
+[verify]
+  phase = "role-enforcement"
+  generated_at = 2026-09-07T08:41:33.715227Z
+  verdict = "pass"
+  finalized = true
+  finalized_at = 2026-09-07T08:43:38.360549Z
+
+[summary]
+  mutation_status = "skipped"
+  measured_on = "local"
+  mutation_score = 0.0
+  mutants_killed = 0
+  mutants_survived = 0
+  mutants_not_covered = 0
+  mutants_in_scope = 0
+  unclassified_in_scope = 0
+  criteria_total = 8
+  criteria_covered = 8
+  criteria_uncovered = 0
+
+[[criterion]]
+  id = "c-1"
+  status = "covered"
+  tests = ["tests/codriver/session_spec.lua:\"registers the hook before the vendored server ever starts\"", "tests/codriver/session_spec.lua:\"brings the server up before opening the terminal\"", "tests/nvim/enforcement_launch_check.lua (armed_at_open, recorded before each terminal open)"]
+  notes = "Ordering is asserted three ways: mocked call order in session_spec, and a real settings-file re-read at the exact moment the (fake) terminal opens in the headless check, which then runs the generated hook end-to-end and requires a deny."
+
+[[criterion]]
+  id = "c-2"
+  status = "covered"
+  tests = ["tests/nvim/hook_entrypoint_check.lua (case 8: fixture byte-identical after denied Edit via real hook subprocess)", "tests/nvim/enforcement_write_check.lua (block 1: sha256 fixture before/after denied Edit)"]
+  notes = "hook_decision_spec.lua covers classification only (no disk I/O); the byte-identity guarantee is proven only by the two subprocess-level checks, which is where it needs to hold."
+
+[[criterion]]
+  id = "c-3"
+  status = "covered"
+  tests = ["tests/codriver/hook_decision_spec.lua:\"ignores phrasing and authorization claims in the payload\"", "tests/nvim/enforcement_write_check.lua (block 2: identical deny + identical reason with an 'explicitly approved' instruction added)"]
+  notes = "Crux test exists at both the pure decide() layer and the real hook-subprocess layer: same payload, once plain and once carrying an explicit authorization claim, produces an identical deny and identical reason at both layers."
+
+[[criterion]]
+  id = "c-4"
+  status = "covered"
+  tests = ["tests/nvim/enforcement_bash_check.lua (block 1: printf > fixture denied with the same reason string as an Edit denial, fixture sha256 unchanged)", "tests/nvim/enforcement_bash_check.lua (block 2: `git status --short && rm victim.txt` denied, victim.txt survives)", "tests/codriver/hook_bash_spec.lua (redirection/chaining/substitution/interpreter/git-subcommand bypass vectors)"]
+  notes = "The reason-string-identity assertion between a Bash write denial and an Edit denial is the direct test of 'same grounds'; matcher-level spec covers the bypass vectors a deny-list could miss."
+
+[[criterion]]
+  id = "c-5"
+  status = "covered"
+  tests = ["tests/nvim/enforcement_bash_check.lua (block 3: `rg -n role lua/` and `git status --short` run for real via harness.run, real exit 0 and non-empty stdout)", "tests/nvim/enforcement_bash_check.lua (block 4: Read/Grep/Glob decisions allow)", "tests/codriver/hook_bash_spec.lua:\"matches the configured test command whole, never as a prefix\""]
+  notes = "Read-only survival is proven by actually executing the commands, not just asserting the decision. The test_command allowance is asserted as a decision only (deliberately, to avoid recursion), which is the documented and accepted scope."
+
+[[criterion]]
+  id = "c-6"
+  status = "covered"
+  tests = ["tests/nvim/enforcement_liveness_check.lua (role.set(\"driver\") after launch flips an identical re-run from deny to allow, no relaunch)", "tests/nvim/enforcement_liveness_check.lua (state file rewritten directly on disk is picked up on the next call)", "tests/nvim/hook_state_check.lua (probe() three-state contract: dead-pid / live-corrupt / live-with-role)"]
+  notes = "The flip-without-relaunch test is the direct proof the decision is not fixed at launch; the direct-file-rewrite variant rules out any in-process caching."
+
+[[criterion]]
+  id = "c-7"
+  status = "covered"
+  tests = ["tests/nvim/enforcement_liveness_check.lua (assert_indeterminate: deleted / truncated / invalid-role record with owner alive all deny with the indeterminate reason)", "tests/nvim/enforcement_liveness_check.lua (dead-pid record and absent CODRIVER_* env both allow)", "tests/nvim/hook_state_check.lua (probe() distinguishes no-session from live-but-unreadable-role)"]
+  notes = "The contrast pair (live+unreadable denies vs. no-session allows) is what makes this more than 'always deny' — both sides are asserted in the same file."
+
+[[criterion]]
+  id = "c-8"
+  status = "covered"
+  tests = ["tests/nvim/enforcement_notify_check.lua (block 1: vim.notify stubbed in the live nvim instance, real hook subprocess spawned, arrival observed via RPC — not hook stdout)", "tests/nvim/enforcement_notify_check.lua (block 2: allowed Read produces zero notifications; block 4: notify never delays the deny; block 5: dead RPC address still yields a clean deny)", "tests/codriver/hook_notify_spec.lua (untrusted-payload escaping, WARN level, fire-and-forget return shape, retry-storm coalescing)"]
+  notes = "The integration check explicitly establishes arrival via an observed live vim.notify call over RPC, satisfying 'without reading the Claude terminal' rather than just parsing hook stdout."
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/config.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/hook/bash.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/hook/claude_settings.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/hook/decision.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/hook/notify.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/hook/state.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/init.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/session.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped mise.toml: no mutation adapter for .toml"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped scripts/codriver-hook.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/codriver/config_spec.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/codriver/hook_bash_spec.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/codriver/hook_claude_settings_spec.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/codriver/hook_decision_spec.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/codriver/hook_notify_spec.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/codriver/init_spec.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/codriver/session_spec.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/nvim/enforcement_bash_check.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/nvim/enforcement_launch_check.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/nvim/enforcement_liveness_check.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/nvim/enforcement_notify_check.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/nvim/enforcement_write_check.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/nvim/harness.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/nvim/hook_entrypoint_check.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/nvim/hook_install_check.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/nvim/hook_publish_check.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/nvim/hook_settings_check.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/nvim/hook_state_check.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "mutation scope is degraded (source: changes-only) — changes.json records no base branch, so no git diff could be taken; git contributed no files; scope is changes.json only and misses anything unrecorded"
+
+[[finding]]
+  severity = "NOTE"
+  text = "mutation skipped: no mutation adapter exists for .lua — verdict is based on criterion coverage alone. All 8 criteria mapped to real, non-redundant tests across unit specs (pure functions) and headless nvim checks (real subprocess spawns of the hook entrypoint, real file bytes, real RPC-observed notifications); no criterion rests on a decision-only assertion where a runtime check was feasible, except c-5's test_command allowance, which is deliberately decision-only to avoid the check recursing into the suite it is testing."

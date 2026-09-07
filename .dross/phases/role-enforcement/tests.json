@@ -1,0 +1,157 @@
+{
+  "phase": "role-enforcement",
+  "generated_at": "2026-09-07T08:41:33.715227Z",
+  "languages": null,
+  "skipped": [
+    {
+      "file": "lua/codriver/config.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "lua/codriver/hook/bash.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "lua/codriver/hook/claude_settings.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "lua/codriver/hook/decision.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "lua/codriver/hook/notify.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "lua/codriver/hook/state.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "lua/codriver/init.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "lua/codriver/session.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "mise.toml",
+      "reason": "no mutation adapter for .toml"
+    },
+    {
+      "file": "scripts/codriver-hook.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/codriver/config_spec.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/codriver/hook_bash_spec.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/codriver/hook_claude_settings_spec.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/codriver/hook_decision_spec.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/codriver/hook_notify_spec.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/codriver/init_spec.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/codriver/session_spec.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/nvim/enforcement_bash_check.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/nvim/enforcement_launch_check.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/nvim/enforcement_liveness_check.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/nvim/enforcement_notify_check.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/nvim/enforcement_write_check.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/nvim/harness.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/nvim/hook_entrypoint_check.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/nvim/hook_install_check.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/nvim/hook_publish_check.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/nvim/hook_settings_check.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/nvim/hook_state_check.lua",
+      "reason": "no mutation adapter for .lua"
+    }
+  ],
+  "scope": {
+    "files": [
+      "lua/codriver/config.lua",
+      "lua/codriver/hook/bash.lua",
+      "lua/codriver/hook/claude_settings.lua",
+      "lua/codriver/hook/decision.lua",
+      "lua/codriver/hook/notify.lua",
+      "lua/codriver/hook/state.lua",
+      "lua/codriver/init.lua",
+      "lua/codriver/session.lua",
+      "mise.toml",
+      "scripts/codriver-hook.lua",
+      "tests/codriver/config_spec.lua",
+      "tests/codriver/hook_bash_spec.lua",
+      "tests/codriver/hook_claude_settings_spec.lua",
+      "tests/codriver/hook_decision_spec.lua",
+      "tests/codriver/hook_notify_spec.lua",
+      "tests/codriver/init_spec.lua",
+      "tests/codriver/session_spec.lua",
+      "tests/nvim/enforcement_bash_check.lua",
+      "tests/nvim/enforcement_launch_check.lua",
+      "tests/nvim/enforcement_liveness_check.lua",
+      "tests/nvim/enforcement_notify_check.lua",
+      "tests/nvim/enforcement_write_check.lua",
+      "tests/nvim/harness.lua",
+      "tests/nvim/hook_entrypoint_check.lua",
+      "tests/nvim/hook_install_check.lua",
+      "tests/nvim/hook_publish_check.lua",
+      "tests/nvim/hook_settings_check.lua",
+      "tests/nvim/hook_state_check.lua"
+    ],
+    "source": "changes-only",
+    "degraded": [
+      "changes.json records no base branch, so no git diff could be taken",
+      "git contributed no files; scope is changes.json only and misses anything unrecorded"
+    ]
+  },
+  "measured_on": "local"
+}

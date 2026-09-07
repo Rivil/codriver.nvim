@@ -35,7 +35,7 @@ local events
 
 ---A stand-in for `vim.api`, recording what actually reached it.
 local function fake_api()
-  local api = { created = {}, augroups = {} }
+  local api = { created = {}, augroups = {}, autocmds = {} }
 
   api.nvim_create_user_command = function(name, handler, opts)
     table.insert(api.created, { name = name, handler = handler, opts = opts })
@@ -44,6 +44,10 @@ local function fake_api()
   api.nvim_create_augroup = function(name, opts)
     table.insert(api.augroups, { name = name, opts = opts })
     return #api.augroups
+  end
+
+  api.nvim_create_autocmd = function(event, opts)
+    table.insert(api.autocmds, { event = event, opts = opts })
   end
 
   return api
@@ -246,7 +250,64 @@ describe("codriver", function()
         filereadable = function(path)
           return readable[path] and 1 or 0
         end,
+        -- The rest are t-8's addition: codriver.hook.state and the RPC-address
+        -- guard now run on every setup(), so this fake has to answer for them
+        -- too — busted has no real filesystem or server behind these, and none
+        -- of these tests care about their content, only that setup() completes.
+        stdpath = function()
+          return "/tmp/codriver-init-spec/state"
+        end,
+        -- t-9's addition: ensure_server() now arms codriver's PreToolUse hook
+        -- against the cwd on every preflight, so this too has to answer rather
+        -- than error — these tests care about the terminal/server ordering,
+        -- not about where the hook gets registered.
+        getcwd = function()
+          return "/tmp/codriver-init-spec/project"
+        end,
+        resolve = function(path)
+          return path
+        end,
+        fnamemodify = function(path, mods)
+          local result = path
+          for _ in mods:gmatch("h") do
+            result = result:match("^(.*)/[^/]+$") or "."
+          end
+          return result
+        end,
+        mkdir = function()
+          return 1
+        end,
+        writefile = function()
+          return 0
+        end,
+        -- session.stop() (t-9) clears the state file via hook.state.clear().
+        delete = function()
+          return 0
+        end,
+        serverstart = function()
+          return "/tmp/codriver-init-spec.pipe"
+        end,
       }
+      -- claude_settings.install() (also t-9's addition, via arm()) splits its
+      -- encoded document before handing it to the writefile stub above, which
+      -- ignores its argument entirely — so this only has to not error.
+      _G.vim.split = function(s)
+        return { s }
+      end
+      _G.vim.uv = {
+        os_getpid = function()
+          return 4242
+        end,
+        fs_rename = function()
+          return true
+        end,
+      }
+      _G.vim.json = {
+        encode = function()
+          return "{}"
+        end,
+      }
+      _G.vim.v = { servername = "" }
     end)
 
     after_each(function()
@@ -258,6 +319,10 @@ describe("codriver", function()
       end
       _G.vim.api = nil
       _G.vim.fn = nil
+      _G.vim.uv = nil
+      _G.vim.json = nil
+      _G.vim.v = nil
+      _G.vim.split = nil
       _G.reset_vim_stub()
     end)
 

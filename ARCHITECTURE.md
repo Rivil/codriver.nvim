@@ -52,20 +52,46 @@ _introduced session-bringup · a6d57dd_
 ### Option resolution
 
 `setup(opts)` splits codriver's top-level options from nested claudecode ones,
-rejects unknown top-level keys, and forces the vendored auto_start off.
+rejects unknown top-level keys, forces the vendored auto_start off, and
+force-injects the live-session channel (`CODRIVER_STATE_FILE`,
+`CODRIVER_NVIM_ADDRESS`) into `claudecode.env` alongside a validated
+top-level `test_command` option.
 
-- config.resolve — lua/codriver/config.lua:122
+- config.resolve — lua/codriver/config.lua:123
 
-_introduced session-bringup · 9b71d26_
+_introduced session-bringup · extended role-enforcement · ae2812c_
 
 ### Plugin setup
 
 `require("codriver").setup()` resolves options, runs the vendored setup inside
-the capture shim, and starts a session only when `auto_start` is opted in.
+the capture shim, starts a session only when `auto_start` is opted in, ensures
+an RPC address, and publishes/republishes the live role + test_command to the
+session state file, clearing it on `VimLeavePre`.
 
 - M.setup — lua/codriver/init.lua:171
 
-_introduced session-bringup · d8e2355_
+_introduced session-bringup · extended role-enforcement · 0ca9928_
+
+### Role enforcement
+
+While Claude holds the navigator role, its own file-writing tools and Bash are
+refused before they run — the target file stays byte-identical, the decision
+reads live role state at call time rather than a value fixed at launch, and a
+Neovim notification names the blocked operation without the user reading the
+Claude terminal.
+
+- decision.M.decide — lua/codriver/hook/decision.lua:38
+- bash.M.allows — lua/codriver/hook/bash.lua:85
+- state.M.probe — lua/codriver/hook/state.lua:41
+- notify.M.refused — lua/codriver/hook/notify.lua:21
+- claude_settings.M.install — lua/codriver/hook/claude_settings.lua:198
+- codriver-hook decide (entrypoint) — scripts/codriver-hook.lua:90
+- enforcement_write_check — tests/nvim/enforcement_write_check.lua:1
+- enforcement_bash_check — tests/nvim/enforcement_bash_check.lua:1
+- enforcement_liveness_check — tests/nvim/enforcement_liveness_check.lua:1
+- enforcement_notify_check — tests/nvim/enforcement_notify_check.lua:1
+
+_introduced role-enforcement · 4632e9b_
 
 ### Session bring-up
 
@@ -81,12 +107,16 @@ _introduced session-bringup · 25388d7_
 ### Session lifecycle
 
 Start brings the server up before the terminal, a second start reports the live
-session, and stop clears both the lockfile and the selection autocmds.
+session, stop clears both the lockfile and the selection autocmds, and every
+preflight re-arms the PreToolUse hook against `getcwd()` while stop clears the
+state file to disarm it.
 
 - session.ensure_server — lua/codriver/session.lua:50
+- session.arm — lua/codriver/session.lua:75
 - session_lifecycle_check — tests/nvim/session_lifecycle_check.lua:90
+- enforcement_launch_check — tests/nvim/enforcement_launch_check.lua:1
 
-_introduced session-bringup · 74beea0_
+_introduced session-bringup · extended role-enforcement · c1b6ba9_
 
 ### Session status
 
