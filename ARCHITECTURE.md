@@ -40,6 +40,22 @@ codriver owns exactly one namespace.
 
 _introduced session-bringup · 7cfaf6e_
 
+### Handover commands
+
+`:CodriverHandover`/`:CodriverTakeback` flip the live role and notify Neovim,
+unblocking or re-blocking a file edit within the same never-restarted session.
+The refusal reason names the command to run, a hot-reload or repeated
+`setup()` preserves whichever role was live before it, and two concurrently
+live Neovim instances never share state to race on.
+
+- handover_command — lua/codriver/init.lua:122
+- NAVIGATOR_REASON — lua/codriver/hook/decision.lua:5
+- M.setup (restores role across reload) — lua/codriver/init.lua:193
+- multi_instance_check — tests/nvim/multi_instance_check.lua:1
+- handover_write_check — tests/nvim/handover_write_check.lua:1
+
+_introduced handover · 2cc8632_
+
 ### Headless check suite
 
 Every `tests/nvim/*_check.lua` runs in its own headless nvim against the real
