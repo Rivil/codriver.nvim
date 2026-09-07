@@ -65,6 +65,22 @@
           "what": "coalesced WARN notification naming the blocked tool and path, hardened against untrusted RPC payloads"
         }
       ]
+    },
+    "t-6": {
+      "files": [
+        "lua/codriver/config.lua",
+        "tests/codriver/config_spec.lua"
+      ],
+      "commit": "ae2812c",
+      "completed_at": "2026-08-31T17:16:42.202057Z",
+      "landmarks": [
+        {
+          "feature": "launch channel + test_command config",
+          "symbol": "M.resolve",
+          "loc": "lua/codriver/config.lua:123",
+          "what": "Second resolve() param force-injects CODRIVER_STATE_FILE/CODRIVER_NVIM_ADDRESS into claudecode.env; adds validated top-level test_command option"
+        }
+      ]
     }
   }
 }
