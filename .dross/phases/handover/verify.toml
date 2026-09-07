@@ -1,9 +1,9 @@
 [verify]
   phase = "handover"
-  generated_at = 2026-09-07T10:33:54.234214Z
-  verdict = "partial"
+  generated_at = 2026-09-07T10:43:23.33581Z
+  verdict = "pass"
   finalized = true
-  finalized_at = 2026-09-07T10:35:35.918623Z
+  finalized_at = 2026-09-07T10:43:56.18469Z
 
 [summary]
   mutation_status = "skipped"
@@ -15,8 +15,8 @@
   mutants_in_scope = 0
   unclassified_in_scope = 0
   criteria_total = 6
-  criteria_covered = 5
-  criteria_uncovered = 1
+  criteria_covered = 6
+  criteria_uncovered = 0
 
 [[criterion]]
   id = "c-1"
@@ -50,13 +50,9 @@
 
 [[criterion]]
   id = "c-6"
-  status = "weak"
+  status = "covered"
   tests = ["tests/codriver/init_spec.lua:it('notifies on handover')", "tests/codriver/init_spec.lua:it('notifies on takeback')"]
-  notes = "handover_command's notify (\"codriver: Claude is driving\") and takeback_command's notify (\"codriver: you're driving\") both contain the substring \"driving\", and _G.vim._notifications only resets in after_each (tests/busted_setup.lua), not between the two handler calls inside 'notifies on takeback'. That test calls CodriverHandover then CodriverTakeback and asserts only that the *last* notification contains \"driving\" — if takeback_command's notify() call were deleted entirely, last_notification() would still return the leftover handover message (\"Claude is driving\"), which still matches, so the test would not catch a takeback that fires no confirmation at all. 'notifies on handover' is solid in isolation (only one notification exists by that point)."
-
-[[finding]]
-  severity = "FLAG"
-  text = "c-6: 'notifies on takeback' asserts last_notification():find('driving') — a substring both handover's and takeback's messages share — so it would not fail if takeback_command's notify() call were removed, since the preceding handover notification in the same test still matches. Tighten to assert on takeback's distinguishing text (e.g. \"you're driving\") or the exact message."
+  notes = "Amended 2026-09-07 (was 'weak'): 'notifies on takeback' now asserts last_notification():find(\"you're driving\") — takeback_command's distinguishing text, not the \"driving\" substring shared with handover's message. If takeback_command's notify() call were deleted, last_notification() would return the leftover \"codriver: Claude is driving\" from the preceding handover call, which does not contain \"you're driving\", so the test now fails as intended. 'notifies on handover' remains solid in isolation (only one notification exists by that point)."
 
 [[finding]]
   severity = "NOTE"

@@ -1,6 +1,6 @@
 {
   "phase": "handover",
-  "generated_at": "2026-09-07T10:33:54.234214Z",
+  "generated_at": "2026-09-07T10:43:23.33581Z",
   "languages": null,
   "skipped": [
     {
@@ -38,6 +38,8 @@
       ".dross/phases/handover/changes.json",
       ".dross/phases/handover/plan.toml",
       ".dross/phases/handover/spec.toml",
+      ".dross/phases/handover/tests.json",
+      ".dross/phases/handover/verify.toml",
       ".dross/project.toml",
       "lua/codriver/hook/decision.lua",
       "lua/codriver/init.lua",
@@ -70,6 +72,18 @@
         {
           "start": 1,
           "end": 58
+        }
+      ],
+      ".dross/phases/handover/tests.json": [
+        {
+          "start": 1,
+          "end": 152
+        }
+      ],
+      ".dross/phases/handover/verify.toml": [
+        {
+          "start": 1,
+          "end": 87
         }
       ],
       ".dross/project.toml": [
