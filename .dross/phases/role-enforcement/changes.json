@@ -2,7 +2,7 @@
   "phase": "role-enforcement",
   "pr": 2,
   "base": "milestone/v0.1",
-  "status": "shipped",
+  "status": "complete",
   "tasks": {
     "t-1": {
       "files": [
