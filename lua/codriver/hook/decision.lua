@@ -38,7 +38,7 @@ local NVIM_MCP_ALLOW = {
 ---Pure decision core for the PreToolUse hook: no vim.* here, this is
 ---busted-testable and must stay that way.
 ---@param payload { tool: string, tool_input: table? }
----@param session { live: boolean, role: string?, test_command: string? }?
+---@param session { live: boolean, role: string?, test_command: string?, bash_allow: table? }?
 ---@return { permission: "allow"|"deny", reason: string? }
 function M.decide(payload, session)
   payload = type(payload) == "table" and payload or {}
@@ -59,7 +59,7 @@ function M.decide(payload, session)
 
   if tool == "Bash" then
     local tool_input = payload.tool_input or {}
-    if bash.allows(tool_input.command, session.test_command) then
+    if bash.allows(tool_input.command, session.test_command, session.bash_allow) then
       return { permission = "allow" }
     end
     return { permission = "deny", reason = NAVIGATOR_REASON }

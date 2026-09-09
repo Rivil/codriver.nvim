@@ -17,7 +17,7 @@ local M = {}
 M.version = {
   major = 0,
   minor = 1,
-  patch = 4,
+  patch = 5,
 }
 
 ---@return string
@@ -215,6 +215,11 @@ function M.setup(opts)
 
   local resolved = config.resolve(opts, { state_file = state.path(), nvim_address = address })
 
+  -- Exposed on the module itself (not only the state file) so health.lua can
+  -- read the resolved bash_allow directly — the state file is a channel to the
+  -- hook subprocess, not the only place setup()'s output should live.
+  M.config = resolved.codriver
+
   -- A `setup()` re-run or plugin hot-reload resets this Lua module's
   -- in-memory role back to the "navigator" default even when a driver session
   -- is still live on disk. Restore from this pid's own record first, before
@@ -225,13 +230,17 @@ function M.setup(opts)
     M.role.set(existing.role)
   end
 
-  ---Publish the role, keeping the resolved test_command that was here before —
-  ---the on_change republish must not drop the field it is not changing, or
-  ---c-5's allowlisted test command silently stops working after the first
-  ---handover.
+  ---Publish the role, keeping the resolved test_command and bash_allow that
+  ---were here before — the on_change republish must not drop a field it is not
+  ---changing, or c-5's allowlisted test command (or a bash_allow addition)
+  ---silently stops working after the first handover.
   ---@param role string
   local function publish_role(role)
-    state.publish({ role = role, test_command = resolved.codriver.test_command })
+    state.publish({
+      role = role,
+      test_command = resolved.codriver.test_command,
+      bash_allow = resolved.codriver.bash_allow,
+    })
   end
 
   -- Before the vendored setup runs, so the state file is already a readable

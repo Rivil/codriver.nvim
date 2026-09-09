@@ -189,5 +189,52 @@ describe("codriver.hook.bash", function()
         "a nil test command disables only its own allowance, not the rest of the allowlist"
       )
     end)
+
+    describe("bash_allow additions", function()
+      it("allows a command whose head is only present in bash_allow.heads", function()
+        local bash_allow = { heads = { "jq" } }
+
+        assert.is_falsy(bash.allows("jq .", TEST_COMMAND), "jq is not a hardcoded default")
+        assert.is_truthy(bash.allows("jq .", TEST_COMMAND, bash_allow), "bash_allow.heads must extend the allowlist")
+      end)
+
+      it("allows 'git <subcommand>' when the subcommand is only present in bash_allow.git_subcommands", function()
+        local bash_allow = { git_subcommands = { "stash" } }
+
+        assert.is_falsy(bash.allows("git stash", TEST_COMMAND), "stash is not a hardcoded default")
+        assert.is_truthy(
+          bash.allows("git stash", TEST_COMMAND, bash_allow),
+          "bash_allow.git_subcommands must extend the allowlist"
+        )
+      end)
+
+      it("still allows a hardcoded default when bash_allow omits it (additive, never replacing)", function()
+        local bash_allow = { heads = { "jq" } }
+
+        assert.is_truthy(
+          bash.allows("git status", TEST_COMMAND, bash_allow),
+          "bash_allow must add to the defaults, never replace them"
+        )
+      end)
+    end)
+  end)
+
+  describe("effective_allowlist", function()
+    it("returns defaults only when bash_allow is nil", function()
+      local allowlist = bash.effective_allowlist(nil)
+
+      assert.is_true(allowlist.heads.rg)
+      assert.is_true(allowlist.git_subcommands.status)
+      assert.is_nil(allowlist.heads.jq)
+    end)
+
+    it("merges hardcoded defaults with bash_allow additions", function()
+      local allowlist = bash.effective_allowlist({ heads = { "jq" }, git_subcommands = { "stash" } })
+
+      assert.is_true(allowlist.heads.rg, "hardcoded defaults survive the merge")
+      assert.is_true(allowlist.heads.jq, "the addition is present")
+      assert.is_true(allowlist.git_subcommands.status, "hardcoded defaults survive the merge")
+      assert.is_true(allowlist.git_subcommands.stash, "the addition is present")
+    end)
   end)
 end)

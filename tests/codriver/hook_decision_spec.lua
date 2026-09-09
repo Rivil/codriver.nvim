@@ -162,6 +162,23 @@ describe("codriver.hook.decision", function()
       assert.are.equal("deny", decide("Bash", { command = "mise run test" }, configured_other).permission)
     end)
 
+    it("threads session.bash_allow through to the bash matcher", function()
+      -- t-6 is the only place session.bash_allow and the bash matcher are
+      -- joined together — proving decide() passes it as the third argument.
+      local with_allow = {
+        live = true,
+        role = "navigator",
+        bash_allow = { heads = { "gh" }, git_subcommands = { "stash" } },
+      }
+
+      assert.are.equal("allow", decide("Bash", { command = "gh pr view" }, with_allow).permission)
+      assert.are.equal("allow", decide("Bash", { command = "git stash" }, with_allow).permission)
+      assert.are.equal(
+        "deny",
+        decide("Bash", { command = "gh pr view" }, { live = true, role = "navigator" }).permission
+      )
+    end)
+
     it("allows everything when no codriver session is live", function()
       -- no_session_behaviour: a bare `claude` run with no Neovim behind it
       -- must not be crippled by a hook that has nothing to enforce.

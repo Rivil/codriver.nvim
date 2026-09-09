@@ -255,4 +255,59 @@ describe("codriver.config", function()
       assert.is_nil(resolved.claudecode.test_command)
     end)
   end)
+
+  describe("the bash_allow option", function()
+    it("resolves heads and git_subcommands through unchanged", function()
+      local bash_allow = { heads = { "foo" }, git_subcommands = { "stash" } }
+      local resolved = config.resolve({ bash_allow = bash_allow })
+
+      assert.are.same(bash_allow, resolved.codriver.bash_allow)
+    end)
+
+    it("rejects a non-table bash_allow, naming it", function()
+      local ok, err = pcall(config.resolve, { bash_allow = "nope" })
+
+      assert.is_false(ok)
+      assert.is_truthy(tostring(err):find("bash_allow", 1, true))
+    end)
+
+    it("rejects a non-table bash_allow.heads, naming it", function()
+      local ok, err = pcall(config.resolve, { bash_allow = { heads = "nope" } })
+
+      assert.is_false(ok)
+      assert.is_truthy(tostring(err):find("bash_allow.heads", 1, true))
+    end)
+
+    it("rejects a non-string entry inside bash_allow.heads, naming the offending field", function()
+      local ok, err = pcall(config.resolve, { bash_allow = { heads = { 42 } } })
+
+      assert.is_false(ok)
+      assert.is_truthy(tostring(err):find("bash_allow.heads", 1, true))
+    end)
+
+    it("rejects a non-string entry inside bash_allow.git_subcommands, naming the offending field", function()
+      local ok, err = pcall(config.resolve, { bash_allow = { git_subcommands = { true } } })
+
+      assert.is_false(ok)
+      assert.is_truthy(tostring(err):find("bash_allow.git_subcommands", 1, true))
+    end)
+
+    it("rejects an empty-string entry inside bash_allow.heads", function()
+      local ok, err = pcall(config.resolve, { bash_allow = { heads = { "" } } })
+
+      assert.is_false(ok)
+      assert.is_truthy(tostring(err):find("bash_allow.heads", 1, true))
+    end)
+
+    it("rejects an empty-string entry inside bash_allow.git_subcommands", function()
+      local ok, err = pcall(config.resolve, { bash_allow = { git_subcommands = { "" } } })
+
+      assert.is_false(ok)
+      assert.is_truthy(tostring(err):find("bash_allow.git_subcommands", 1, true))
+    end)
+
+    it("defaults to nil", function()
+      assert.is_nil(config.resolve({}).codriver.bash_allow)
+    end)
+  end)
 end)

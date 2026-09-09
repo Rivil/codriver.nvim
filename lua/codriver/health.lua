@@ -20,6 +20,8 @@
 
 local M = {}
 
+local bash = require("codriver.hook.bash")
+
 local health = vim.health
 local start = health.start
 local ok = health.ok
@@ -89,6 +91,28 @@ local function check_terminal_provider(config)
   ok(("Terminal provider: %s"):format(provider))
 end
 
+---Sorted keys of a set table, so the rendered line is stable across runs.
+---@param set table<string, true>
+---@return string[]
+local function sorted_keys(set)
+  local keys = {}
+  for key in pairs(set) do
+    table.insert(keys, key)
+  end
+  table.sort(keys)
+  return keys
+end
+
+---The effective read-only Bash allowlist: hardcoded defaults plus any
+---bash_allow additions (c-5). Read from the codriver module rather than the
+---state file — this runs inside the editor process that already has it.
+---@param bash_allow { heads: string[]|nil, git_subcommands: string[]|nil }|nil
+local function check_bash_allowlist(bash_allow)
+  local allowlist = bash.effective_allowlist(bash_allow)
+  info("Bash allowlist heads: " .. table.concat(sorted_keys(allowlist.heads), ", "))
+  info("Bash allowlist git subcommands: " .. table.concat(sorted_keys(allowlist.git_subcommands), ", "))
+end
+
 ---The three things that can independently be false about a session.
 ---@param snapshot CodriverStatusSnapshot|table
 local function check_session(snapshot)
@@ -156,6 +180,7 @@ function M.check()
   local config = vendor.state.config or {}
   check_cli(config)
   check_terminal_provider(config)
+  check_bash_allowlist(codriver.config and codriver.config.bash_allow)
 
   check_session(require("codriver.session").snapshot())
 end

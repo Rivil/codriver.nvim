@@ -218,6 +218,20 @@ harness.expect_eq(
 )
 local SCHEMA = written.schema
 
+-- 7b. bash_allow round-trips through the same JSON state file, unchanged.
+state.publish({ role = "navigator", bash_allow = { heads = { "foo" }, git_subcommands = { "stash" } } })
+local written_allow = vim.json.decode(table.concat(vim.fn.readfile(path), "\n"))
+harness.expect_eq(
+  written_allow.bash_allow and written_allow.bash_allow.heads and written_allow.bash_allow.heads[1],
+  "foo",
+  "the published record must carry bash_allow.heads unchanged"
+)
+harness.expect_eq(
+  written_allow.bash_allow and written_allow.bash_allow.git_subcommands and written_allow.bash_allow.git_subcommands[1],
+  "stash",
+  "the published record must carry bash_allow.git_subcommands unchanged"
+)
+
 -- 4. read() keeps its failure modes apart. The caller allows on missing and
 -- denies on corrupt, so one value for both makes c-7 and no_session_behaviour
 -- indistinguishable.
@@ -247,6 +261,11 @@ harness.expect_eq(
   nil,
   "a record published with no test_command must read back as nil — an empty string would match t-2's "
     .. "empty-command refusal rather than disabling the allowance"
+)
+harness.expect_eq(
+  without.bash_allow,
+  nil,
+  "a record published with no bash_allow must read back as nil, not as vim.NIL"
 )
 harness.expect_eq(without.role, "driver", "publish() must not drop the fields it was given")
 
@@ -290,7 +309,11 @@ harness.expect_eq(
     .. "get out of the way of a plain `claude` run"
 )
 
-state.publish({ role = "navigator", test_command = "mise run test" })
+state.publish({
+  role = "navigator",
+  test_command = "mise run test",
+  bash_allow = { heads = { "foo" } },
+})
 local live = state.probe({ CODRIVER_STATE_FILE = state.path() })
 harness.expect_eq(live.live, true, "a readable record whose owner is alive must report live")
 harness.expect_eq(live.role, "navigator", "probe() must surface the published role")
@@ -298,6 +321,11 @@ harness.expect_eq(
   live.test_command,
   "mise run test",
   "probe() must surface the test_command — t-5 has no other route to join it to the matcher"
+)
+harness.expect_eq(
+  live.bash_allow and live.bash_allow.heads and live.bash_allow.heads[1],
+  "foo",
+  "probe() must surface bash_allow when the on-disk record carries it"
 )
 
 -- clear() removes the record. The owning process is still up, so this is
@@ -317,5 +345,6 @@ harness.expect_eq(cleared.role, nil, "a deleted record must report role = nil")
 
 harness.ok(
   "the state path is sandbox-resolved and outside the tree, publish is temp-plus-rename carrying schema/pid/"
-    .. "test_command, read keeps missing and corrupt apart, and probe answers in three states keyed on kill(pid, 0)"
+    .. "test_command/bash_allow, read keeps missing and corrupt apart, and probe answers in three states keyed on "
+    .. "kill(pid, 0)"
 )

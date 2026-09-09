@@ -27,6 +27,7 @@ local CODRIVER_KEYS = {
   auto_start = true,
   claudecode = true,
   test_command = true,
+  bash_allow = true,
 }
 
 ---@class CodriverOptions
@@ -103,6 +104,26 @@ local function warn(message)
   vim.notify("codriver.config: " .. message, vim.log.levels.WARN)
 end
 
+---Validate that `value` is a table of non-empty strings, naming `field_name` in
+---any error. Called one frame below `M.resolve`, so errors raise at level 3 to
+---still point at `setup()`'s own call site, matching the level-2 checks that
+---live directly in `M.resolve`.
+---@param value any
+---@param field_name string
+local function validate_string_list(value, field_name)
+  if type(value) ~= "table" then
+    error(("codriver.config: %s must be a table, got %s"):format(field_name, vim.inspect(value)), 3)
+  end
+  for i, entry in ipairs(value) do
+    if type(entry) ~= "string" or entry == "" then
+      error(
+        ("codriver.config: %s[%d] must be a non-empty string, got %s"):format(field_name, i, vim.inspect(entry)),
+        3
+      )
+    end
+  end
+end
+
 ---Sorted list of the option names codriver accepts at the top level.
 ---@return string
 local function codriver_key_list()
@@ -163,6 +184,19 @@ function M.resolve(opts, channel)
   if opts.claudecode ~= nil and type(opts.claudecode) ~= "table" then
     error(("codriver.config: claudecode must be a table, got %s"):format(vim.inspect(opts.claudecode)), 2)
   end
+  local bash_allow = nil
+  if opts.bash_allow ~= nil then
+    if type(opts.bash_allow) ~= "table" then
+      error(("codriver.config: bash_allow must be a table, got %s"):format(vim.inspect(opts.bash_allow)), 2)
+    end
+    if opts.bash_allow.heads ~= nil then
+      validate_string_list(opts.bash_allow.heads, "bash_allow.heads")
+    end
+    if opts.bash_allow.git_subcommands ~= nil then
+      validate_string_list(opts.bash_allow.git_subcommands, "bash_allow.git_subcommands")
+    end
+    bash_allow = deep_copy(opts.bash_allow)
+  end
 
   local claudecode = deep_merge(M.claudecode_defaults, opts.claudecode)
   claudecode.env = claudecode.env or {}
@@ -206,7 +240,7 @@ function M.resolve(opts, channel)
   end
 
   return {
-    codriver = { auto_start = auto_start, test_command = test_command },
+    codriver = { auto_start = auto_start, test_command = test_command, bash_allow = bash_allow },
     claudecode = claudecode,
   }
 end

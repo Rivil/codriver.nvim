@@ -71,22 +71,30 @@ _introduced session-bringup · a6d57dd_
 rejects unknown top-level keys, forces the vendored auto_start off, and
 force-injects the live-session channel (`CODRIVER_STATE_FILE`,
 `CODRIVER_NVIM_ADDRESS`) into `claudecode.env` alongside a validated
-top-level `test_command` option.
+top-level `test_command` string and a `bash_allow` table (heads/git_subcommands,
+non-empty strings) that extends the read-only Bash allowlist additively. All
+four keys are documented in the README's Options section as one example block,
+checked by a spec that reads the file directly rather than trusting the prose.
 
-- config.resolve — lua/codriver/config.lua:123
+- config.resolve — lua/codriver/config.lua:144
+- readme_spec (Options section doc check) — tests/codriver/readme_spec.lua:16
 
-_introduced session-bringup · extended role-enforcement · ae2812c_
+_introduced session-bringup · extended role-enforcement · extended public-config-surface · 8d59d68_
 
 ### Plugin setup
 
 `require("codriver").setup()` resolves options, runs the vendored setup inside
 the capture shim, starts a session only when `auto_start` is opted in, ensures
-an RPC address, and publishes/republishes the live role + test_command to the
-session state file, clearing it on `VimLeavePre`.
+an RPC address, and publishes/republishes the live role plus `test_command`
+and `bash_allow` to the session state file — surviving a role-flip republish
+and exposing the resolved config on the module itself for `health.lua` to read
+without touching disk — clearing state on `VimLeavePre`.
 
-- M.setup — lua/codriver/init.lua:171
+- M.setup — lua/codriver/init.lua:202
+- hook_state_check — tests/nvim/hook_state_check.lua:1
+- hook_publish_check — tests/nvim/hook_publish_check.lua:1
 
-_introduced session-bringup · extended role-enforcement · 0ca9928_
+_introduced session-bringup · extended role-enforcement · extended public-config-surface · 31fc270_
 
 ### Role enforcement
 
@@ -94,20 +102,26 @@ While Claude holds the navigator role, its own file-writing tools and Bash are
 refused before they run — the target file stays byte-identical, the decision
 reads live role state at call time rather than a value fixed at launch, and a
 Neovim notification names the blocked operation without the user reading the
-Claude terminal.
+Claude terminal. The read-only Bash allowlist can be extended per-session via
+`bash_allow` (additive only, never replacing the hardcoded floor), and
+`:checkhealth codriver` reports the effective allowlist so an addition is
+visible without reading config.
 
-- decision.M.decide — lua/codriver/hook/decision.lua:38
-- bash.M.allows — lua/codriver/hook/bash.lua:85
-- state.M.probe — lua/codriver/hook/state.lua:41
+- decision.M.decide — lua/codriver/hook/decision.lua:43
+- bash.M.allows — lua/codriver/hook/bash.lua:113
+- bash.M.effective_allowlist — lua/codriver/hook/bash.lua:105
+- state.M.probe — lua/codriver/hook/state.lua:45
 - notify.M.refused — lua/codriver/hook/notify.lua:21
 - claude_settings.M.install — lua/codriver/hook/claude_settings.lua:198
 - codriver-hook decide (entrypoint) — scripts/codriver-hook.lua:90
+- check_bash_allowlist — lua/codriver/health.lua:110
 - enforcement_write_check — tests/nvim/enforcement_write_check.lua:1
 - enforcement_bash_check — tests/nvim/enforcement_bash_check.lua:1
 - enforcement_liveness_check — tests/nvim/enforcement_liveness_check.lua:1
 - enforcement_notify_check — tests/nvim/enforcement_notify_check.lua:1
+- health_check — tests/nvim/health_check.lua:1
 
-_introduced role-enforcement · 4632e9b_
+_introduced role-enforcement · extended public-config-surface · 20d7db9_
 
 ### Role visibility
 
