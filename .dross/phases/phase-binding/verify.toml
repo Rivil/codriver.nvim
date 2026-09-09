@@ -1,0 +1,97 @@
+[verify]
+  phase = "phase-binding"
+  generated_at = 2026-09-09T13:31:15.161928Z
+  verdict = "partial"
+  finalized = true
+  finalized_at = 2026-09-09T13:33:51.712874Z
+
+[summary]
+  mutation_status = "skipped"
+  measured_on = "local"
+  mutation_score = 0.0
+  mutants_killed = 0
+  mutants_survived = 0
+  mutants_not_covered = 0
+  mutants_in_scope = 0
+  unclassified_in_scope = 0
+  criteria_total = 5
+  criteria_covered = 5
+  criteria_uncovered = 0
+
+[[criterion]]
+  id = "c-1"
+  status = "covered"
+  tests = ["tests/nvim/dross_untracked_notify_check.lua"]
+  notes = "start_command (lua/codriver/init.lua:92-94) WARNs once via dross.read().available when no phase is active. Real-nvim check drives :CodriverStart against a scratch cwd with no .dross/ (exactly one WARN mentioning \"untracked\", start does not raise) and with an active phase in state.json (zero untracked notifications)."
+
+[[criterion]]
+  id = "c-2"
+  status = "covered"
+  tests = ["tests/codriver/tasks_spec.lua:it('lists id, title, status and owner for each task')", "tests/nvim/tasks_check.lua"]
+  notes = ":CodriverTasks (lua/codriver/tasks.lua M.render/M.open) formats id/status/title/owner per task with no shell-out to dross. tasks_spec.lua proves the formatting against fakes; tasks_check.lua opens a real buffer and asserts the rendered lines contain id, title and status."
+
+[[criterion]]
+  id = "c-3"
+  status = "covered"
+  tests = ["tests/codriver/ownership_spec.lua", "tests/codriver/tasks_spec.lua:it('lists id, title, status and owner for each task')", "tests/nvim/tasks_check.lua"]
+  notes = "ownership.lua's claim/owner semantics (per-phase keying, human default) are unit-tested directly; tasks.lua's render() calls ownership.owner() per task and both the fake-backed spec and the real-buffer nvim check assert the owner column (claude vs human) appears in the rendered line."
+
+[[criterion]]
+  id = "c-4"
+  status = "covered"
+  tests = ["tests/codriver/tasks_spec.lua:it('re-reads dross.read() on every call')"]
+  notes = "Direct test: a fake dross.read() that changes its answer between calls is asserted to produce two different renders (call count == 2, first/second not equal), confirming no caching from session start."
+
+[[criterion]]
+  id = "c-5"
+  status = "covered"
+  tests = ["tests/codriver/dross_spec.lua", "tests/nvim/tasks_check.lua", "tests/nvim/dross_untracked_notify_check.lua"]
+  notes = "dross.read() returns a structured {available=false[, reason=\"corrupt\"]} instead of raising for missing state.json, no current_phase, and malformed plan.toml (dross_spec.lua, all pcall-wrapped where relevant). tasks_check.lua confirms open() notifies rather than opening a window or erroring on a corrupt plan.toml. dross_untracked_notify_check.lua confirms setup()+:CodriverStart do not raise with no .dross/ present at all."
+
+[[finding]]
+  severity = "FLAG"
+  text = ":CodriverClaim's own command handler (claim_command, lua/codriver/init.lua:155-174) has no test coverage of its own — no spec or nvim check ever invokes the command or the handler directly. Only the pure ownership.claim/owner/is_known helpers it calls are unit-tested. t-2's third test_contract line (\"CodriverClaim on a task id absent from dross.read()'s current task list still records the claim but triggers a WARN notify\") describes command-level behavior that remains unexercised, as does the \"no active dross phase — nothing to claim\" branch."
+
+[[finding]]
+  severity = "NOTE"
+  text = "mutation testing skipped for the whole phase: no adapter for .lua (Stryker covers TS/JS/Svelte only). Verdict is based on criterion coverage alone, per the unmeasurable/skipped verdict rule."
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped .gitignore: no mutation adapter for .gitignore"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/dross.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/init.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/ownership.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/tasks.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/codriver/dross_spec.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/codriver/ownership_spec.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/codriver/tasks_spec.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/nvim/dross_untracked_notify_check.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/nvim/tasks_check.lua: no mutation adapter for .lua"
