@@ -1,0 +1,90 @@
+[phase]
+id = "phase-binding"
+
+[[task]]
+id            = "t-1"
+wave          = 1
+title         = "dross reader: state.json + plan.toml task extractor"
+files         = ["lua/codriver/dross.lua", "tests/codriver/dross_spec.lua"]
+description   = """
+Reads .dross/state.json (current_phase, current_phase_status) and
+.dross/phases/<id>/plan.toml directly off disk, relative to vim.fn.getcwd().
+No TOML library exists in this repo, so plan.toml parsing is a narrow
+field-extractor scoped to exactly what the task surface needs: pulls
+id/title/status out of each [[task]] block, ignoring every other field
+(files, description, covers, test_contract, depends_on, wave). Missing
+.dross/, missing state.json, or malformed plan.toml all return a structured
+"unavailable" result rather than raising.
+"""
+covers        = ["c-1", "c-2", "c-5"]
+test_contract = [
+  "if .dross/state.json is missing or unreadable, read() returns {available=false} instead of erroring",
+  "if plan.toml exists but is malformed, read() returns {available=false, reason=\"corrupt\"} instead of erroring",
+  "given a valid state.json + plan.toml fixture, read() returns the current phase id and a list of tasks with id/title/status extracted from each [[task]] block",
+]
+status        = "pending"
+
+[[task]]
+id            = "t-2"
+wave          = 2
+depends_on    = ["t-1"]
+title         = "Local ownership mapping + :CodriverClaim"
+files         = ["lua/codriver/ownership.lua", "lua/codriver/init.lua", "tests/codriver/ownership_spec.lua"]
+description   = """
+Codriver-local task-ownership store at .dross/.codriver-ownership.json
+(gitignored), keyed by (phase_id, task_id) so a task id claimed in one phase
+never bleeds into another phase reusing the same id. :CodriverClaim <task-id>
+sets owner=claude for the current phase's task id; unclaimed defaults to
+"human". Validates the id against dross.read()'s current task list and
+vim.notify WARNs (but still records the claim) when the id isn't found.
+"""
+covers        = ["c-3"]
+test_contract = [
+  "M.claim(phase_id, task_id) followed by M.owner(phase_id, task_id) returns \"claude\"; an id never claimed returns \"human\"",
+  "claiming t-1 in phase A does not affect M.owner(\"phase-B\", \"t-1\")",
+  ":CodriverClaim on a task id absent from dross.read()'s current task list still records the claim but triggers a WARN notify",
+]
+status        = "pending"
+
+[[task]]
+id            = "t-3"
+wave          = 2
+depends_on    = ["t-1"]
+title         = "Session-start untracked-phase notification"
+files         = ["lua/codriver/init.lua", "tests/nvim/dross_untracked_notify_check.lua"]
+description   = """
+Wired into init.lua's start_command (the :CodriverStart / auto_start path,
+per c-1's "starting a session" wording): calls dross.read() and, when no
+phase is active (missing .dross/, no current_phase, or an unavailable read),
+fires a single one-line WARN vim.notify indicating the session is running
+untracked. Must not raise even when dross.read() reports unavailable (c-5).
+"""
+covers        = ["c-1", "c-5"]
+test_contract = [
+  "starting a session with no .dross directory present fires exactly one WARN-level vim.notify mentioning the session is untracked, and start_command does not error",
+  "starting a session with an active phase in state.json does not emit the untracked warning",
+]
+status        = "pending"
+
+[[task]]
+id            = "t-4"
+wave          = 3
+depends_on    = ["t-2"]
+title         = ":CodriverTasks scratch-buffer command"
+files         = ["lua/codriver/tasks.lua", "lua/codriver/init.lua", "tests/codriver/tasks_spec.lua", "tests/nvim/tasks_check.lua"]
+description   = """
+:CodriverTasks opens a read-only scratch buffer/float listing each active
+task's id, title, status, and owner (via ownership.lua), closing on any
+keypress. Calls dross.read() fresh on every invocation rather than caching
+from session start (c-4). When dross.read() reports unavailable — no active
+phase, or a corrupt plan.toml — notifies instead of opening a buffer or
+erroring (c-5).
+"""
+covers        = ["c-2", "c-3", "c-4", "c-5"]
+test_contract = [
+  "render() re-reads dross.read() on every call — two calls straddling an on-disk plan.toml edit return different output",
+  ":CodriverTasks with an active phase opens a scratch buffer with one line per task showing id, title, status, and owner",
+  "pressing any key in the opened buffer closes it",
+  "with no active phase or a corrupt plan.toml, :CodriverTasks notifies instead of opening a buffer or erroring",
+]
+status        = "pending"
