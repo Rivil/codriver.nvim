@@ -76,3 +76,7 @@ luacov.stats.out
 
 # dross machine-local state — a stale copy on another branch must never win
 .dross/state.json
+
+# codriver-local task-ownership mapping — who is driving each task, on this
+# machine right now, not something to commit or share
+.dross/.codriver-ownership.json

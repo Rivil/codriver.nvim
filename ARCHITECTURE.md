@@ -40,6 +40,18 @@ codriver owns exactly one namespace.
 
 _introduced session-bringup · 7cfaf6e_
 
+### Dross phase reader
+
+Reads the active dross phase and its task list (id/title/status) directly off
+`.dross/state.json` and the phase's `plan.toml`, with no runtime dependency on
+the `dross` binary — every missing or corrupt file degrades to a structured
+unavailable result instead of raising.
+
+- dross.M.read — lua/codriver/dross.lua:76
+- dross_spec — tests/codriver/dross_spec.lua:1
+
+_introduced phase-binding · cd03f89_
+
 ### Handover commands
 
 `:CodriverHandover`/`:CodriverTakeback` flip the live role and notify Neovim,
@@ -175,6 +187,48 @@ from `:CodriverStatus`, three independently-failing lines from
 - status_check — tests/nvim/status_check.lua:74
 
 _introduced session-bringup · 4ec7d3c_
+
+### Task list surface
+
+`:CodriverTasks` opens a read-only float listing each active task's id,
+title, status, and owner, re-reading the dross phase and ownership mapping
+fresh on every call rather than caching from session start, and closes on any
+keypress; notifies instead of opening when no phase is active or its
+`plan.toml` is corrupt.
+
+- tasks.M.open — lua/codriver/tasks.lua:84
+- tasks.M.render — lua/codriver/tasks.lua:24
+- tasks_spec — tests/codriver/tasks_spec.lua:1
+- tasks_check — tests/nvim/tasks_check.lua:1
+
+_introduced phase-binding · 7b605f3_
+
+### Task ownership
+
+A codriver-local `(phase_id, task_id) -> owner` mapping, set explicitly by
+`:CodriverClaim <task-id>` (owner defaults to human, never inferred), keyed
+per-phase so a claimed task id never bleeds into another phase reusing the
+same id; claiming an id absent from the current task list still records the
+claim but WARNs.
+
+- ownership.M.claim — lua/codriver/ownership.lua:50
+- claim_command — lua/codriver/init.lua:155
+- ownership_spec — tests/codriver/ownership_spec.lua:1
+- codriver_claim_check — tests/nvim/codriver_claim_check.lua:1
+
+_introduced phase-binding · ea63d18_
+
+### Untracked session notice
+
+`:CodriverStart` fires a single one-line WARN `vim.notify` when the dross
+phase reader reports no active phase, before the winbar/status line opens —
+and never turns a clean session start into an error even when the read
+itself is unavailable.
+
+- start_command — lua/codriver/init.lua:79
+- dross_untracked_notify_check — tests/nvim/dross_untracked_notify_check.lua:1
+
+_introduced phase-binding · 84d2af6_
 
 ### Vendoring
 
