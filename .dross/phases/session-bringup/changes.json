@@ -1,6 +1,8 @@
 {
   "phase": "session-bringup",
   "pr": 1,
+  "base": "milestone/v0.1",
+  "base_commit": "ab119f9b5d43253bde72185660e13bff7b174872",
   "tasks": {
     "t-1": {
       "files": [
