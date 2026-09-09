@@ -3,7 +3,7 @@ phases = ["session-bringup", "role-enforcement", "handover", "role-visibility", 
 [milestone]
   version = "v0.1"
   title = "A pairing session where Claude advises in Neovim and provably cannot write until you hand over"
-  status = "active"
+  status = "complete"
   started = "2026-07-30"
 
 [scope]
