@@ -1,0 +1,6 @@
+{
+  "phase": "phase-binding",
+  "base": "milestone/v0.2",
+  "base_commit": "5deb851c0d341053177cf09c035d8998e6d80a2c",
+  "tasks": {}
+}
