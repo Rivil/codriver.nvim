@@ -1,48 +1,53 @@
 [phase]
-id        = "public-config-surface"
-title     = "public-config-surface"
-milestone = "v0.1"
+  id = "public-config-surface"
+  title = "public-config-surface"
+  milestone = "v0.1"
 
 [[criteria]]
-id   = "c-1"
-text = "setup() accepts a bash_allow option that extends the read-only Bash allowlist (command heads + git subcommands) beyond the hardcoded defaults, additive only, and is documented in the README."
+  id = "c-1"
+  text = "setup() accepts a bash_allow option that extends the read-only Bash allowlist (command heads + git subcommands) beyond the hardcoded defaults, additive only, and is documented in the README."
 
 [[criteria]]
-id   = "c-2"
-text = "The existing test_command option's behaviour (exact-match exemption from the Bash allowlist) is documented in the README."
+  id = "c-2"
+  text = "The existing test_command option's behaviour (exact-match exemption from the Bash allowlist) is documented in the README."
 
 [[criteria]]
-id   = "c-3"
-text = "A malformed bash_allow value (wrong container type, or a non-string entry inside heads/git_subcommands) raises a setup()-time error naming the bad field, rather than a silent no-op or a later failure inside the PreToolUse hook."
+  id = "c-3"
+  text = "A malformed bash_allow value (wrong container type, or a non-string entry inside heads/git_subcommands) raises a setup()-time error naming the bad field, rather than a silent no-op or a later failure inside the PreToolUse hook."
 
 [[criteria]]
-id   = "c-4"
-text = "The README's Options section documents the full current config surface (auto_start, claudecode, test_command, bash_allow) as one coherent reference."
+  id = "c-4"
+  text = "The README's Options section documents the full current config surface (auto_start, claudecode, test_command, bash_allow) as one coherent reference."
 
 [[criteria]]
-id   = "c-5"
-text = ":checkhealth codriver reports the effective Bash allowlist (built-in defaults plus any user additions)."
+  id = "c-5"
+  text = ":checkhealth codriver reports the effective Bash allowlist (built-in defaults plus any user additions)."
 
 [[decisions]]
-key    = "allowlist_shape"
-choice = "User-supplied bash_allow is additive only — merged onto the hardcoded defaults, never replaces them"
-why    = "Keeps the safety floor intact; a typo'd override can't accidentally shrink the read-only allowlist."
-locked = true
+  key = "allowlist_shape"
+  choice = "User-supplied bash_allow is additive only — merged onto the hardcoded defaults, never replaces them"
+  why = "Keeps the safety floor intact; a typo'd override can't accidentally shrink the read-only allowlist."
+  locked = true
 
 [[decisions]]
-key    = "allowlist_key"
-choice = "Flat top-level key: bash_allow = { heads = {...}, git_subcommands = {...} }"
-why    = "Consistent with existing top-level auto_start/test_command; no need yet for a broader enforcement namespace."
-locked = true
+  key = "allowlist_key"
+  choice = "Flat top-level key: bash_allow = { heads = {...}, git_subcommands = {...} }"
+  why = "Consistent with existing top-level auto_start/test_command; no need yet for a broader enforcement namespace."
+  locked = true
 
 [[decisions]]
-key    = "validation_depth"
-choice = "Deep-validate: bash_allow and its heads/git_subcommands must be tables, and every entry must be a non-empty string, checked at setup() time"
-why    = "Matches config.lua's existing hard-error-on-bad-input pattern; catches a typo immediately instead of a silent no-op inside the PreToolUse hook."
-locked = true
+  key = "validation_depth"
+  choice = "Deep-validate: bash_allow and its heads/git_subcommands must be tables, and every entry must be a non-empty string, checked at setup() time"
+  why = "Matches config.lua's existing hard-error-on-bad-input pattern; catches a typo immediately instead of a silent no-op inside the PreToolUse hook."
+  locked = true
 
 [[decisions]]
-key    = "unsafe_additions"
-choice = "No restriction on which heads/subcommands can be added via bash_allow — trust the user"
-why    = "Matches codriver's existing posture (e.g. claudecode.track_selection = false only warns); it is the user's own config and risk."
-locked = true
+  key = "unsafe_additions"
+  choice = "No restriction on which heads/subcommands can be added via bash_allow — trust the user"
+  why = "Matches codriver's existing posture (e.g. claudecode.track_selection = false only warns); it is the user's own config and risk."
+  locked = true
+
+[[deferred]]
+  id = "774d01abb453dad9"
+  text = "dross state set version corrupts .dross/project.toml — strips [[competition]] note fields and several comments (dev_command note, build_command/migrate_command, per-competition notes), the same schema round-trip bug project rule r-01 names only for dross project set"
+  why = "Observed again in this session's /dross-execute pre-flight version bump (0.1.4.0 -> 0.1.5.0): the file had to be hand-restored from HEAD before committing. r-01 should widen to cover dross state set version too, or the dross CLI's project.toml round-trip should preserve fields outside its schema instead of dropping them."
