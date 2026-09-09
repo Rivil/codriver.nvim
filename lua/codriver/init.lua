@@ -84,6 +84,14 @@ local function start_command()
     return
   end
 
+  -- Separate from the status line below: this is about whether the *session*
+  -- is tracked by a dross phase at all, not whether it started cleanly.
+  -- dross.read() never raises (c-5), so this can never turn a good start into
+  -- an error.
+  if not dross.read().available then
+    notify("codriver: no active dross phase — this session is running untracked", vim.log.levels.WARN)
+  end
+
   -- The indicator exists only while a session does (c-4, no_session_lifecycle):
   -- shown here, on the one path that actually brings a session up.
   winbar.show()
