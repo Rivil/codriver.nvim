@@ -34,6 +34,7 @@ local ownership = require("codriver.ownership")
 local session = require("codriver.session")
 local state = require("codriver.hook.state")
 local status = require("codriver.status")
+local tasks = require("codriver.tasks")
 local winbar = require("codriver.winbar")
 
 ---Guards the role listener against a second `setup()` call registering a
@@ -309,6 +310,7 @@ function M.setup(opts)
     claim_command,
     { nargs = 1, desc = "Claim a dross task as Claude's, for the current phase" }
   )
+  vim.api.nvim_create_user_command("CodriverTasks", tasks.open, { desc = "List the current dross phase's tasks" })
 
   -- Not guarded by first_setup: the vendored setup above just (re-)created the
   -- shutdown augroup with `clear = true`, which wipes any autocmd a previous
