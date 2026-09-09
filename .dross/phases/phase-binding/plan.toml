@@ -17,7 +17,7 @@ task_seq = 0
   id = "t-2"
   wave = 2
   title = "Local ownership mapping + :CodriverClaim"
-  files = ["lua/codriver/ownership.lua", "lua/codriver/init.lua", "tests/codriver/ownership_spec.lua"]
+  files = ["lua/codriver/ownership.lua", "lua/codriver/init.lua", "tests/codriver/ownership_spec.lua", "tests/nvim/codriver_claim_check.lua"]
   description = "Codriver-local task-ownership store at .dross/.codriver-ownership.json\n(gitignored), keyed by (phase_id, task_id) so a task id claimed in one phase\nnever bleeds into another phase reusing the same id. :CodriverClaim <task-id>\nsets owner=claude for the current phase's task id; unclaimed defaults to\n\"human\". Validates the id against dross.read()'s current task list and\nvim.notify WARNs (but still records the claim) when the id isn't found.\n"
   covers = ["c-3"]
   depends_on = ["t-1"]
