@@ -1,7 +1,9 @@
 {
   "phase": "phase-binding",
+  "pr": 7,
   "base": "milestone/v0.2",
   "base_commit": "5deb851c0d341053177cf09c035d8998e6d80a2c",
+  "status": "shipped",
   "tasks": {
     "t-1": {
       "files": [
