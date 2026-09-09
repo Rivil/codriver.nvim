@@ -27,10 +27,10 @@ task_seq = 0
   id = "t-5"
   wave = 1
   title = "README: document bash_allow, test_command, Options"
-  files = ["README.md"]
+  files = ["README.md", "tests/codriver/readme_spec.lua"]
   description = "Document bash_allow (shape, additive-only behaviour) and test_command\n(exact-match exemption from the Bash allowlist) in the Options section, and\nrestructure that section so auto_start, claudecode, test_command, and\nbash_allow read as one coherent reference.\n"
   covers = ["c-1", "c-2", "c-4"]
-  test_contract = ["grep -q 'bash_allow' README.md succeeds and the Options code example shows bash_allow = { heads = {...}, git_subcommands = {...} }", "grep -q 'test_command' README.md succeeds and the surrounding text states test_command is exact-match exempted from the Bash allowlist", "the Options section lists all four keys (auto_start, claudecode, test_command, bash_allow) in one example block"]
+  test_contract = ["grep -q 'bash_allow' README.md succeeds and the Options code example shows bash_allow = { heads = {...}, git_subcommands = {...} }", "grep -q 'test_command' README.md succeeds and the surrounding text states test_command is exact-match exempted from the Bash allowlist", "the Options section lists all four keys (auto_start, claudecode, test_command, bash_allow) in one example block", "README.md contains 'bash_allow' with the Options code example showing bash_allow = { heads = {...}, git_subcommands = {...} }, asserted by a busted spec that reads the file", "README.md contains 'test_command' with surrounding text stating the exact-match exemption from the Bash allowlist, asserted by the same spec", "the Options section lists all four keys (auto_start, claudecode, test_command, bash_allow) in that order within one example block, asserted by the same spec"]
   status = "done"
 
 [[task]]

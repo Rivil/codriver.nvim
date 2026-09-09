@@ -71,16 +71,17 @@
     },
     "t-5": {
       "files": [
-        "README.md"
+        "README.md",
+        "tests/codriver/readme_spec.lua"
       ],
-      "commit": "b0b141d",
-      "completed_at": "2026-09-07T16:47:06.208441Z",
+      "commit": "4ed5fa7",
+      "completed_at": "2026-09-09T07:50:27.41991Z",
       "landmarks": [
         {
           "feature": "public config surface",
-          "symbol": "Options section",
-          "loc": "README.md:59",
-          "what": "README documents auto_start/claudecode/test_command/bash_allow as one coherent Options reference, including bash_allow's additive-only shape and test_command's exact-match exemption"
+          "symbol": "describe('README Options section')",
+          "loc": "tests/codriver/readme_spec.lua:16",
+          "what": "busted spec reads README.md and asserts bash_allow/test_command documentation and Options-block key ordering, closing the c-2/c-4 verify gap"
         }
       ]
     },
