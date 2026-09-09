@@ -1,0 +1,107 @@
+{
+  "phase": "public-config-surface",
+  "pr": 5,
+  "base": "milestone/v0.1",
+  "base_commit": "5166c715fa586d1f1a5b24e5a7f12eaed8b943c1",
+  "status": "complete",
+  "tasks": {
+    "t-1": {
+      "files": [
+        "lua/codriver/config.lua",
+        "tests/codriver/config_spec.lua"
+      ],
+      "commit": "8d59d68",
+      "completed_at": "2026-09-07T15:47:41.75068Z",
+      "landmarks": [
+        {
+          "feature": "public config surface",
+          "symbol": "M.resolve",
+          "loc": "lua/codriver/config.lua:190",
+          "what": "setup() accepts and deep-validates a bash_allow table (heads/git_subcommands, non-empty strings) and passes it through to resolved.codriver.bash_allow"
+        }
+      ]
+    },
+    "t-2": {
+      "files": [
+        "lua/codriver/hook/bash.lua",
+        "tests/codriver/hook_bash_spec.lua"
+      ],
+      "commit": "86b93fa",
+      "completed_at": "2026-09-07T16:15:49.611162Z",
+      "landmarks": [
+        {
+          "feature": "public config surface",
+          "symbol": "M.effective_allowlist",
+          "loc": "lua/codriver/hook/bash.lua:57",
+          "what": "M.allows accepts a bash_allow table and merges its heads/git_subcommands additively onto the hardcoded allowlist; M.effective_allowlist exposes the merged sets for reporting"
+        }
+      ]
+    },
+    "t-3": {
+      "files": [
+        "lua/codriver/init.lua",
+        "lua/codriver/hook/state.lua",
+        "tests/nvim/hook_state_check.lua",
+        "tests/nvim/hook_publish_check.lua"
+      ],
+      "commit": "31fc270",
+      "completed_at": "2026-09-07T16:55:53.671974Z",
+      "landmarks": [
+        {
+          "feature": "public config surface",
+          "symbol": "M.config",
+          "loc": "lua/codriver/init.lua:222",
+          "what": "setup() threads resolved bash_allow through state.publish/read/probe and exposes it on the codriver module itself (M.config) for health.lua to read"
+        }
+      ]
+    },
+    "t-4": {
+      "files": [
+        "lua/codriver/health.lua",
+        "tests/nvim/health_check.lua"
+      ],
+      "commit": "9c1e5f4",
+      "completed_at": "2026-09-07T16:58:17.966628Z",
+      "landmarks": [
+        {
+          "feature": "public config surface",
+          "symbol": "check_bash_allowlist",
+          "loc": "lua/codriver/health.lua:104",
+          "what": ":checkhealth codriver renders two lines (heads, git subcommands) from bash.effective_allowlist(codriver.config.bash_allow)"
+        }
+      ]
+    },
+    "t-5": {
+      "files": [
+        "README.md",
+        "tests/codriver/readme_spec.lua"
+      ],
+      "commit": "4ed5fa7",
+      "completed_at": "2026-09-09T07:50:27.41991Z",
+      "landmarks": [
+        {
+          "feature": "public config surface",
+          "symbol": "describe('README Options section')",
+          "loc": "tests/codriver/readme_spec.lua:16",
+          "what": "busted spec reads README.md and asserts bash_allow/test_command documentation and Options-block key ordering, closing the c-2/c-4 verify gap"
+        }
+      ]
+    },
+    "t-6": {
+      "files": [
+        "lua/codriver/hook/decision.lua",
+        "tests/codriver/hook_decision_spec.lua"
+      ],
+      "commit": "20d7db9",
+      "completed_at": "2026-09-07T16:56:55.955401Z",
+      "landmarks": [
+        {
+          "feature": "public config surface",
+          "symbol": "M.decide",
+          "loc": "lua/codriver/hook/decision.lua:62",
+          "what": "decide() passes session.bash_allow as the third argument to bash.allows() at the Bash call site"
+        }
+      ]
+    }
+  }
+}

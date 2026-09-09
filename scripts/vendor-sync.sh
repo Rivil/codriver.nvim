@@ -114,6 +114,39 @@ while IFS= read -r mod; do
 done <"$mods_file"
 [ "$residual" -eq 0 ] || die "rewrite incomplete — refusing to leave a broken vendor tree"
 
+# --- stop the vendored health check hijacking :checkhealth ------------------
+# Neovim resolves `:checkhealth <name>` by globbing `lua/**/<name>/health.lua`,
+# by *directory* name — so a file at lua/codriver/vendor/claudecode/health.lua
+# makes installing codriver inject a section into a real claudecode.nvim's
+# health report, and into bare `:checkhealth`. Renaming it is the fix.
+#
+# Deliberately after the rewrite: renaming first would drop `claudecode.health`
+# out of the derived module set, so an upstream require of it added in a later
+# release would slip through unrewritten and resolve to the *real*
+# claudecode.nvim at runtime. This way it is rewritten first, and then the check
+# below fails loudly.
+VENDORED_HEALTH="$VENDOR_DIR/health.lua"
+RENAMED_HEALTH="$VENDOR_DIR/health_vendored.lua"
+
+if [ -f "$VENDORED_HEALTH" ]; then
+  mv "$VENDORED_HEALTH" "$RENAMED_HEALTH"
+  echo "vendor-sync: renamed health.lua -> health_vendored.lua (keeps :checkhealth claudecode upstream's)"
+fi
+
+[ ! -e "$VENDORED_HEALTH" ] || die "$VENDORED_HEALTH still exists — the checkhealth de-hijack did not happen"
+[ -f "$RENAMED_HEALTH" ] || die "no $RENAMED_HEALTH — upstream may have moved or dropped health.lua; revisit this step"
+
+if grep -rn --include='*.lua' -F \
+  -e "\"$VENDOR_PREFIX.claudecode.health\"" \
+  -e '"claudecode.health"' \
+  "$VENDOR_DIR" >/dev/null; then
+  grep -rn --include='*.lua' -F \
+    -e "\"$VENDOR_PREFIX.claudecode.health\"" \
+    -e '"claudecode.health"' \
+    "$VENDOR_DIR" >&2
+  die "something requires the health module, which this step has just renamed out from under it"
+fi
+
 # Sanity: the vendored tree must not require anything outside itself that we
 # have not accounted for, and must still parse.
 if command -v luajit >/dev/null 2>&1; then
@@ -139,7 +172,11 @@ cat >"$PIN_FILE" <<EOF
 - files: $COUNT Lua files
 - synced_by: \`scripts/vendor-sync.sh\`
 
-## The one modification
+## The two modifications
+
+Both are applied by the sync script, never by hand.
+
+### 1. Module paths are re-rooted
 
 Every Lua module path naming \`claudecode\` is re-rooted under
 \`$VENDOR_PREFIX.\` — \`require("claudecode.server.tcp")\` becomes
@@ -150,6 +187,17 @@ collide on runtimepath.
 Display strings, augroup names and buffer-variable names (\`claudecode.nvim\`,
 \`claudecode_diffs\`, \`claudecode-neovim\`) are **not** rewritten — they are not
 module paths.
+
+### 2. \`health.lua\` is renamed to \`health_vendored.lua\`
+
+Neovim resolves \`:checkhealth <name>\` by globbing \`lua/**/<name>/health.lua\`,
+matching on the _directory_ name. The vendored tree lives in a directory called
+\`claudecode\`, so a file named \`health.lua\` inside it would put codriver's
+vendored copy into a real claudecode.nvim's \`:checkhealth claudecode\` report —
+and into bare \`:checkhealth\` — purely by being installed.
+
+Nothing in the tree requires the module, so the rename costs nothing. Codriver's
+own health check is \`:checkhealth codriver\` (\`lua/codriver/health.lua\`).
 
 Nothing else differs from upstream. Do not hand-edit anything under
 \`vendor/\`; change behaviour in wrapper modules instead, and re-sync with:

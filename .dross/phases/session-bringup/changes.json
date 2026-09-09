@@ -1,0 +1,236 @@
+{
+  "phase": "session-bringup",
+  "pr": 1,
+  "base": "milestone/v0.1",
+  "base_commit": "ab119f9b5d43253bde72185660e13bff7b174872",
+  "status": "complete",
+  "tasks": {
+    "t-1": {
+      "files": [
+        "tests/nvim/harness.lua",
+        "tests/nvim/harness_selfcheck_check.lua",
+        "tests/nvim/vendor_smoke_check.lua",
+        "mise.toml"
+      ],
+      "commit": "a6d57dd",
+      "completed_at": "2026-07-30T13:13:06.18676Z",
+      "landmarks": [
+        {
+          "feature": "headless check suite",
+          "symbol": "harness.setup",
+          "loc": "tests/nvim/harness.lua:236",
+          "what": "glob-discovered tests/nvim/*_check.lua each in its own headless nvim, with fatal assertions and a sandboxed CLAUDE_CONFIG_DIR so no check can unlink a live session's lockfile"
+        }
+      ]
+    },
+    "t-10": {
+      "files": [
+        "tests/nvim/mcp_context_check.lua"
+      ],
+      "commit": "1db2944",
+      "completed_at": "2026-07-30T15:32:08.822269Z",
+      "landmarks": [
+        {
+          "feature": "session bring-up",
+          "symbol": "call_tool",
+          "loc": "tests/nvim/mcp_context_check.lua:81",
+          "what": "headless check driving the real JSON-RPC tools/call dispatcher to prove Claude reads the unsaved buffer and live visual selection"
+        }
+      ]
+    },
+    "t-11": {
+      "files": [
+        "tests/nvim/status_check.lua"
+      ],
+      "commit": "0afebd8",
+      "completed_at": "2026-07-30T16:32:33.67333Z",
+      "landmarks": [
+        {
+          "feature": "session status surface",
+          "symbol": "status_check",
+          "loc": "tests/nvim/status_check.lua:74",
+          "what": "headless check driving :CodriverStatus and :checkhealth codriver, proving listening and attached read as two distinguishable states"
+        }
+      ]
+    },
+    "t-12": {
+      "files": [
+        "tests/nvim/coexistence_check.lua",
+        "tests/fixtures/claudecode.nvim/lua/claudecode/init.lua",
+        "tests/fixtures/claudecode.nvim/lua/claudecode/health.lua",
+        "tests/fixtures/claudecode.nvim/plugin/claudecode.lua"
+      ],
+      "commit": "f641166",
+      "completed_at": "2026-07-30T15:46:12.319972Z",
+      "landmarks": [
+        {
+          "feature": "coexistence with claudecode.nvim",
+          "symbol": "claude_commands",
+          "loc": "tests/nvim/coexistence_check.lua:54",
+          "what": "fixture plugin claiming the claudecode namespace, commands, shutdown augroup and health.lua, proving codriver shadows none of them"
+        }
+      ]
+    },
+    "t-13": {
+      "files": [
+        "tests/nvim/command_surface_check.lua"
+      ],
+      "commit": "3e298a9",
+      "completed_at": "2026-07-30T15:54:45.581852Z",
+      "landmarks": [
+        {
+          "feature": "codriver command surface",
+          "symbol": "as_registered",
+          "loc": "tests/nvim/command_surface_check.lua:97",
+          "what": "headless check that every vendored command is reachable under its :Codriver* name with range/nargs/bang/complete and its real handler intact"
+        }
+      ]
+    },
+    "t-14": {
+      "files": [
+        "scripts/vendor-sync.sh",
+        "VENDOR.md",
+        "lua/codriver/vendor/claudecode/health_vendored.lua"
+      ],
+      "commit": "1c8b0fc",
+      "completed_at": "2026-07-30T14:47:31.938499Z",
+      "landmarks": [
+        {
+          "feature": "vendoring",
+          "symbol": "vendor-sync health rename step",
+          "loc": "scripts/vendor-sync.sh:114",
+          "what": "scripted rename of the vendored health.lua so codriver stops injecting a section into a real claudecode.nvim's checkhealth report, asserted in-script and recorded in VENDOR.md"
+        }
+      ]
+    },
+    "t-2": {
+      "files": [
+        "lua/codriver/config.lua",
+        "tests/codriver/config_spec.lua"
+      ],
+      "commit": "9b71d26",
+      "completed_at": "2026-07-30T13:17:30.825646Z",
+      "landmarks": [
+        {
+          "feature": "option resolution",
+          "symbol": "config.resolve",
+          "loc": "lua/codriver/config.lua:122",
+          "what": "splits codriver's top-level options from nested claudecode ones, rejects unknown top-level keys, forces vendored auto_start off and keeps track_selection a warned opt-out"
+        }
+      ]
+    },
+    "t-3": {
+      "files": [
+        "lua/codriver/commands.lua",
+        "tests/codriver/commands_spec.lua"
+      ],
+      "commit": "7cfaf6e",
+      "completed_at": "2026-07-30T13:21:59.481232Z",
+      "landmarks": [
+        {
+          "feature": "command surface",
+          "symbol": "commands.capture",
+          "loc": "lua/codriver/commands.lua:75",
+          "what": "intercepts the vendored ClaudeCode* registrations and re-exports them as :Codriver*, renaming only the ClaudeCodeShutdown augroup so a real claudecode.nvim keeps its own exit handler"
+        }
+      ]
+    },
+    "t-4": {
+      "files": [
+        "lua/codriver/status.lua",
+        "tests/codriver/status_spec.lua"
+      ],
+      "commit": "4ec7d3c",
+      "completed_at": "2026-07-30T14:07:46.789456Z",
+      "landmarks": [
+        {
+          "feature": "session status",
+          "symbol": "status.describe",
+          "loc": "lua/codriver/status.lua:35",
+          "what": "renders listening and connected as two distinguishable one-line states, reading connected from the snapshot instead of inferring it from a TCP client count"
+        }
+      ]
+    },
+    "t-5": {
+      "files": [
+        "lua/codriver/session.lua",
+        "tests/codriver/session_spec.lua"
+      ],
+      "commit": "74beea0",
+      "completed_at": "2026-07-30T14:13:38.424132Z",
+      "landmarks": [
+        {
+          "feature": "session lifecycle",
+          "symbol": "session.ensure_server",
+          "loc": "lua/codriver/session.lua:50",
+          "what": "server-only pre-flight distinct from start's server-then-terminal order, idempotent stop, and a snapshot whose connected flag requires a completed WebSocket handshake rather than a client count"
+        }
+      ]
+    },
+    "t-6": {
+      "files": [
+        "lua/codriver/init.lua",
+        "tests/codriver/init_spec.lua",
+        "lua/codriver/commands.lua"
+      ],
+      "commit": "d8e2355",
+      "completed_at": "2026-07-30T15:09:37.149038Z",
+      "landmarks": [
+        {
+          "feature": "plugin setup",
+          "symbol": "M.setup",
+          "loc": "lua/codriver/init.lua:171",
+          "what": "resolves options, runs the vendored setup inside the capture shim, re-exports only :Codriver* with a server-only pre-flight on the terminal-opening commands, and starts the session iff codriver.auto_start"
+        }
+      ]
+    },
+    "t-7": {
+      "files": [
+        "lua/codriver/health.lua",
+        "tests/nvim/health_check.lua"
+      ],
+      "commit": "d94c503",
+      "completed_at": "2026-07-30T15:13:57.248899Z",
+      "landmarks": [
+        {
+          "feature": "status surface",
+          "symbol": "health.check",
+          "loc": "lua/codriver/health.lua:131",
+          "what": ":checkhealth codriver reports listening, lockfile and connected as three independently-failing lines built from session.snapshot() rather than the vendored is_claude_connected fallback"
+        }
+      ]
+    },
+    "t-8": {
+      "files": [
+        "tests/nvim/session_lifecycle_check.lua",
+        "tests/nvim/autostart_off_check.lua",
+        "tests/nvim/autostart_on_check.lua"
+      ],
+      "commit": "fe75764",
+      "completed_at": "2026-07-30T15:19:33.189458Z",
+      "landmarks": [
+        {
+          "feature": "session lifecycle",
+          "symbol": "session_lifecycle_check",
+          "loc": "tests/nvim/session_lifecycle_check.lua:90",
+          "what": "headless checks over the real server proving start names its port, a second start is not a failure, stop clears lockfile and selection autocmds, a failed bind leaves no lockfile, and auto-start is off by default but gives its lockfile back on exit when opted in"
+        }
+      ]
+    },
+    "t-9": {
+      "files": [
+        "tests/nvim/terminal_env_check.lua"
+      ],
+      "commit": "25388d7",
+      "completed_at": "2026-07-30T15:25:00.5359Z",
+      "landmarks": [
+        {
+          "feature": "session bring-up",
+          "symbol": "expect_launch_env",
+          "loc": "tests/nvim/terminal_env_check.lua:102",
+          "what": "headless check proving the Claude CLI is launched with the live SSE port after the server is listening, and that :Codriver from cold opens exactly one terminal"
+        }
+      ]
+    }
+  }
+}

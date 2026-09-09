@@ -1,6 +1,6 @@
 [project]
   name = "codriver.nvim"
-  version = "0.1.0.0"
+  version = "0.1.5.0"
   description = "A Neovim plugin that keeps Claude Code beside you as a navigator — watching, advising, and writing only when you hand over the keyboard."
   created = "2026-07-30"
 

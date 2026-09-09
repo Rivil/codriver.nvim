@@ -1,0 +1,163 @@
+{
+  "phase": "role-visibility",
+  "generated_at": "2026-09-07T13:19:16.981673Z",
+  "languages": null,
+  "skipped": [
+    {
+      "file": "lua/codriver/init.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "lua/codriver/statusline.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "lua/codriver/winbar.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/codriver/init_spec.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/codriver/statusline_spec.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/nvim/winbar_check.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/nvim/winbar_lifecycle_check.lua",
+      "reason": "no mutation adapter for .lua"
+    }
+  ],
+  "scope": {
+    "files": [
+      ".dross/milestones/v0.1.toml",
+      ".dross/phases/role-visibility/REVIEW.md",
+      ".dross/phases/role-visibility/changes.json",
+      ".dross/phases/role-visibility/plan.toml",
+      ".dross/phases/role-visibility/spec.toml",
+      ".dross/project.toml",
+      "lua/codriver/init.lua",
+      "lua/codriver/statusline.lua",
+      "lua/codriver/winbar.lua",
+      "tests/codriver/init_spec.lua",
+      "tests/codriver/statusline_spec.lua",
+      "tests/nvim/winbar_check.lua",
+      "tests/nvim/winbar_lifecycle_check.lua"
+    ],
+    "hunks": {
+      ".dross/milestones/v0.1.toml": [
+        {
+          "start": 1,
+          "end": 1
+        }
+      ],
+      ".dross/phases/role-visibility/REVIEW.md": [
+        {
+          "start": 1,
+          "end": 20
+        }
+      ],
+      ".dross/phases/role-visibility/changes.json": [
+        {
+          "start": 1,
+          "end": 59
+        }
+      ],
+      ".dross/phases/role-visibility/plan.toml": [
+        {
+          "start": 1,
+          "end": 36
+        }
+      ],
+      ".dross/phases/role-visibility/spec.toml": [
+        {
+          "start": 1,
+          "end": 43
+        }
+      ],
+      ".dross/project.toml": [
+        {
+          "start": 3,
+          "end": 3
+        }
+      ],
+      "lua/codriver/init.lua": [
+        {
+          "start": 20,
+          "end": 20
+        },
+        {
+          "start": 35,
+          "end": 35
+        },
+        {
+          "start": 85,
+          "end": 88
+        },
+        {
+          "start": 118,
+          "end": 121
+        },
+        {
+          "start": 271,
+          "end": 271
+        }
+      ],
+      "lua/codriver/statusline.lua": [
+        {
+          "start": 1,
+          "end": 43
+        }
+      ],
+      "lua/codriver/winbar.lua": [
+        {
+          "start": 1,
+          "end": 58
+        }
+      ],
+      "tests/codriver/init_spec.lua": [
+        {
+          "start": 38,
+          "end": 38
+        },
+        {
+          "start": 53,
+          "end": 59
+        },
+        {
+          "start": 318,
+          "end": 320
+        },
+        {
+          "start": 336,
+          "end": 336
+        }
+      ],
+      "tests/codriver/statusline_spec.lua": [
+        {
+          "start": 1,
+          "end": 45
+        }
+      ],
+      "tests/nvim/winbar_check.lua": [
+        {
+          "start": 1,
+          "end": 70
+        }
+      ],
+      "tests/nvim/winbar_lifecycle_check.lua": [
+        {
+          "start": 1,
+          "end": 90
+        }
+      ]
+    },
+    "base": "0a16cb1d85122e1dbd7bb74880d055d20801473b",
+    "source": "git+changes"
+  },
+  "measured_on": "local"
+}

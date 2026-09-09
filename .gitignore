@@ -67,3 +67,12 @@ luacov.stats.out
 .claude/*
 !.claude/settings.json
 !.claude/hooks/
+
+# dross handoff — local working memory, not tracked
+.dross/handoff.md
+
+# dross per-machine exec consent — must not travel with the repo
+.dross/local.toml
+
+# dross machine-local state — a stale copy on another branch must never win
+.dross/state.json
