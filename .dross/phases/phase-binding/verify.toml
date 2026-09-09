@@ -1,9 +1,9 @@
 [verify]
   phase = "phase-binding"
-  generated_at = 2026-09-09T13:31:15.161928Z
-  verdict = "partial"
+  generated_at = 2026-09-09T15:53:50.290612Z
+  verdict = "pass"
   finalized = true
-  finalized_at = 2026-09-09T13:33:51.712874Z
+  finalized_at = 2026-09-09T15:54:15.628099Z
 
 [summary]
   mutation_status = "skipped"
@@ -33,8 +33,8 @@
 [[criterion]]
   id = "c-3"
   status = "covered"
-  tests = ["tests/codriver/ownership_spec.lua", "tests/codriver/tasks_spec.lua:it('lists id, title, status and owner for each task')", "tests/nvim/tasks_check.lua"]
-  notes = "ownership.lua's claim/owner semantics (per-phase keying, human default) are unit-tested directly; tasks.lua's render() calls ownership.owner() per task and both the fake-backed spec and the real-buffer nvim check assert the owner column (claude vs human) appears in the rendered line."
+  tests = ["tests/codriver/ownership_spec.lua", "tests/codriver/tasks_spec.lua:it('lists id, title, status and owner for each task')", "tests/nvim/tasks_check.lua", "tests/nvim/codriver_claim_check.lua"]
+  notes = "ownership.lua's claim/owner semantics (per-phase keying, human default) are unit-tested directly; tasks.lua's render() calls ownership.owner() per task and both the fake-backed spec and the real-buffer nvim check assert the owner column (claude vs human) appears in the rendered line. Amended this run: codriver_claim_check.lua now drives the real :CodriverClaim command end to end — no active phase (WARN, nothing recorded), unknown task id (WARN, still recorded), known task id (recorded silently) — closing the FLAG from the previous verify run that only the pure ownership.* helpers behind claim_command were tested, not the command wiring itself."
 
 [[criterion]]
   id = "c-4"
@@ -49,12 +49,8 @@
   notes = "dross.read() returns a structured {available=false[, reason=\"corrupt\"]} instead of raising for missing state.json, no current_phase, and malformed plan.toml (dross_spec.lua, all pcall-wrapped where relevant). tasks_check.lua confirms open() notifies rather than opening a window or erroring on a corrupt plan.toml. dross_untracked_notify_check.lua confirms setup()+:CodriverStart do not raise with no .dross/ present at all."
 
 [[finding]]
-  severity = "FLAG"
-  text = ":CodriverClaim's own command handler (claim_command, lua/codriver/init.lua:155-174) has no test coverage of its own — no spec or nvim check ever invokes the command or the handler directly. Only the pure ownership.claim/owner/is_known helpers it calls are unit-tested. t-2's third test_contract line (\"CodriverClaim on a task id absent from dross.read()'s current task list still records the claim but triggers a WARN notify\") describes command-level behavior that remains unexercised, as does the \"no active dross phase — nothing to claim\" branch."
-
-[[finding]]
   severity = "NOTE"
-  text = "mutation testing skipped for the whole phase: no adapter for .lua (Stryker covers TS/JS/Svelte only). Verdict is based on criterion coverage alone, per the unmeasurable/skipped verdict rule."
+  text = "Previous verify run (2026-09-09T13:31Z) flagged :CodriverClaim's command handler (claim_command, init.lua:155-174) as untested beyond its pure ownership.* helpers. Closed this run by tests/nvim/codriver_claim_check.lua (t-2 amended, commit ea63d18) — see c-3."
 
 [[finding]]
   severity = "NOTE"
@@ -87,6 +83,10 @@
 [[finding]]
   severity = "NOTE"
   text = "skipped tests/codriver/tasks_spec.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/nvim/codriver_claim_check.lua: no mutation adapter for .lua"
 
 [[finding]]
   severity = "NOTE"
