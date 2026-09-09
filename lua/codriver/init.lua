@@ -29,6 +29,8 @@ M.role = require("codriver.role")
 
 local commands = require("codriver.commands")
 local config = require("codriver.config")
+local dross = require("codriver.dross")
+local ownership = require("codriver.ownership")
 local session = require("codriver.session")
 local state = require("codriver.hook.state")
 local status = require("codriver.status")
@@ -137,6 +139,29 @@ end
 local function takeback_command()
   M.role.set("navigator")
   notify("codriver: you're driving")
+end
+
+---Claim a dross task as Claude's, for the current phase.
+---@param args table
+local function claim_command(args)
+  local task_id = args.args
+
+  local result = dross.read()
+  if not result.available or not result.phase_id then
+    notify("codriver: no active dross phase — nothing to claim", vim.log.levels.WARN)
+    return
+  end
+
+  -- Recorded either way (c-3 is opt-in, not validated) — the WARN is
+  -- information about a possible typo, not a refusal.
+  ownership.claim(result.phase_id, task_id)
+
+  if not ownership.is_known(task_id, result.tasks) then
+    notify(
+      ("codriver: claimed %s, but it is not in %s's current task list"):format(task_id, result.phase_id),
+      vim.log.levels.WARN
+    )
+  end
 end
 
 ---Vendored commands codriver answers itself rather than re-exporting.
@@ -266,7 +291,16 @@ function M.setup(opts)
   -- Pure codriver commands, not sourced from the vendored capture above: no
   -- OWNED entry and no PREFLIGHT wrapping applies to them.
   vim.api.nvim_create_user_command("CodriverHandover", handover_command, { desc = "Hand the keyboard to Claude" })
-  vim.api.nvim_create_user_command("CodriverTakeback", takeback_command, { desc = "Take the keyboard back from Claude" })
+  vim.api.nvim_create_user_command(
+    "CodriverTakeback",
+    takeback_command,
+    { desc = "Take the keyboard back from Claude" }
+  )
+  vim.api.nvim_create_user_command(
+    "CodriverClaim",
+    claim_command,
+    { nargs = 1, desc = "Claim a dross task as Claude's, for the current phase" }
+  )
 
   -- Not guarded by first_setup: the vendored setup above just (re-)created the
   -- shutdown augroup with `clear = true`, which wipes any autocmd a previous
