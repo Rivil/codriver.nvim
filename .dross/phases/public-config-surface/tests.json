@@ -1,6 +1,6 @@
 {
   "phase": "public-config-surface",
-  "generated_at": "2026-09-09T07:42:34.846237Z",
+  "generated_at": "2026-09-09T07:52:08.550744Z",
   "languages": null,
   "skipped": [
     {
@@ -44,6 +44,10 @@
       "reason": "no mutation adapter for .lua"
     },
     {
+      "file": "tests/codriver/readme_spec.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
       "file": "tests/nvim/health_check.lua",
       "reason": "no mutation adapter for .lua"
     },
@@ -62,6 +66,8 @@
       ".dross/phases/public-config-surface/changes.json",
       ".dross/phases/public-config-surface/plan.toml",
       ".dross/phases/public-config-surface/spec.toml",
+      ".dross/phases/public-config-surface/tests.json",
+      ".dross/phases/public-config-surface/verify.toml",
       ".dross/project.toml",
       "README.md",
       "lua/codriver/config.lua",
@@ -73,6 +79,7 @@
       "tests/codriver/config_spec.lua",
       "tests/codriver/hook_bash_spec.lua",
       "tests/codriver/hook_decision_spec.lua",
+      "tests/codriver/readme_spec.lua",
       "tests/nvim/health_check.lua",
       "tests/nvim/hook_publish_check.lua",
       "tests/nvim/hook_state_check.lua"
@@ -87,7 +94,7 @@
       ".dross/phases/public-config-surface/changes.json": [
         {
           "start": 1,
-          "end": 104
+          "end": 105
         }
       ],
       ".dross/phases/public-config-surface/plan.toml": [
@@ -99,7 +106,19 @@
       ".dross/phases/public-config-surface/spec.toml": [
         {
           "start": 1,
-          "end": 48
+          "end": 53
+        }
+      ],
+      ".dross/phases/public-config-surface/tests.json": [
+        {
+          "start": 1,
+          "end": 298
+        }
+      ],
+      ".dross/phases/public-config-surface/verify.toml": [
+        {
+          "start": 1,
+          "end": 115
         }
       ],
       ".dross/project.toml": [
@@ -234,6 +253,12 @@
         {
           "start": 165,
           "end": 181
+        }
+      ],
+      "tests/codriver/readme_spec.lua": [
+        {
+          "start": 1,
+          "end": 64
         }
       ],
       "tests/nvim/health_check.lua": [

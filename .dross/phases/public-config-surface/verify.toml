@@ -1,9 +1,9 @@
 [verify]
   phase = "public-config-surface"
-  generated_at = 2026-09-09T07:42:34.846237Z
-  verdict = "fail"
+  generated_at = 2026-09-09T07:52:08.550744Z
+  verdict = "pass"
   finalized = true
-  finalized_at = 2026-09-09T07:47:09.202747Z
+  finalized_at = 2026-09-09T07:52:38.183928Z
 
 [summary]
   mutation_status = "skipped"
@@ -15,19 +15,20 @@
   mutants_in_scope = 0
   unclassified_in_scope = 0
   criteria_total = 5
-  criteria_covered = 3
-  criteria_uncovered = 2
+  criteria_covered = 5
+  criteria_uncovered = 0
 
 [[criterion]]
   id = "c-1"
   status = "covered"
-  tests = ["tests/codriver/config_spec.lua:describe('the bash_allow option') (accepts, deep-validates, defaults nil)", "tests/codriver/hook_bash_spec.lua:describe('bash_allow additions') (heads/git_subcommands extend the allowlist additively, hardcoded defaults survive)", "tests/nvim/hook_state_check.lua (bash_allow round-trips through the JSON state file unchanged, absent reads back nil)", "tests/nvim/hook_publish_check.lua (setup() publishes resolved bash_allow, exposes it on the codriver module, survives a role-flip republish)", "tests/codriver/hook_decision_spec.lua:\"threads session.bash_allow through to the bash matcher\""]
-  notes = "The accept/additive-only behavioural claims are thoroughly covered across four layers (validation, matcher merge, state persistence, decision wiring). The 'documented in the README' clause has no automated test — see the NOTE finding; not downgraded because the behavioural substance of the criterion is what the tests exist to protect."
+  tests = ["tests/codriver/config_spec.lua:describe('the bash_allow option') (accepts, deep-validates, defaults nil)", "tests/codriver/hook_bash_spec.lua:describe('bash_allow additions') (heads/git_subcommands extend the allowlist additively, hardcoded defaults survive)", "tests/nvim/hook_state_check.lua (bash_allow round-trips through the JSON state file unchanged, absent reads back nil)", "tests/nvim/hook_publish_check.lua (setup() publishes resolved bash_allow, exposes it on the codriver module, survives a role-flip republish)", "tests/codriver/hook_decision_spec.lua:\"threads session.bash_allow through to the bash matcher\"", "tests/codriver/readme_spec.lua:\"documents bash_allow's shape and additive-only behaviour\""]
+  notes = "Accept/additive-only behaviour covered across four code layers, and the README-documentation clause now has its own test (readme_spec.lua), closing the gap noted in the prior fail verdict."
 
 [[criterion]]
   id = "c-2"
-  status = "uncovered"
-  notes = "Purely a documentation criterion: 'test_command's exact-match exemption is documented in the README.' The exemption behaviour itself was already covered before this phase (hook_bash_spec.lua:\"matches the configured test command whole, never as a prefix\"), but nothing in the suite reads README.md — no test would fail if this phase's README edit were reverted or drifted out of date."
+  status = "covered"
+  tests = ["tests/codriver/readme_spec.lua:\"documents test_command's exact-match exemption from the Bash allowlist\""]
+  notes = "New in this run: the spec reads README.md and asserts it mentions test_command, states the exemption is exact-match, and ties it to the Bash allowlist. Would fail if this phase's README edit were reverted. The exemption's runtime behaviour itself remains covered by hook_bash_spec.lua's pre-existing \"matches the configured test command whole, never as a prefix\" test."
 
 [[criterion]]
   id = "c-3"
@@ -37,8 +38,9 @@
 
 [[criterion]]
   id = "c-4"
-  status = "uncovered"
-  notes = "Purely a documentation criterion: the README's Options section reads as one coherent reference for auto_start/claudecode/test_command/bash_allow (confirmed by inspection at README.md:59-98), but no test reads README.md, so nothing catches this section drifting out of sync with the actual config surface."
+  status = "covered"
+  tests = ["tests/codriver/readme_spec.lua:\"lists all four Options keys in one coherent example block, in order\""]
+  notes = "New in this run: the spec scopes to the ```lua example under ### Options and asserts auto_start, claudecode, test_command, and bash_allow all appear in that order within the same fenced block. Would fail if the block dropped a key or the ordering broke."
 
 [[criterion]]
   id = "c-5"
@@ -47,20 +49,12 @@
   notes = "Drives the real :checkhealth codriver command (not health.check() directly) and asserts both the cold default listing and the additions after setup() with bash_allow configured."
 
 [[finding]]
-  severity = "BLOCKING"
-  text = "criterion c-2 (test_command's README documentation) has no covering test — README.md is not read by any test in the suite"
-
-[[finding]]
-  severity = "BLOCKING"
-  text = "criterion c-4 (Options section as one coherent reference) has no covering test — README.md is not read by any test in the suite"
-
-[[finding]]
-  severity = "NOTE"
-  text = "c-1's README-documentation clause shares the same gap as c-2/c-4 (no test reads README.md), but is not itself blocking since the criterion's behavioural substance is thoroughly covered"
-
-[[finding]]
   severity = "NOTE"
   text = "mutation skipped: no adapter for .lua/.md — verdict is based on criterion coverage alone, per the unmeasurable/skipped mutation-status rule"
+
+[[finding]]
+  severity = "NOTE"
+  text = "c-2 and c-4 were uncovered in the prior verify run (2026-09-09T07:42Z); tests/codriver/readme_spec.lua (t-5 amendment, commit 4ed5fa7) closed both gaps"
 
 [[finding]]
   severity = "NOTE"
@@ -101,6 +95,10 @@
 [[finding]]
   severity = "NOTE"
   text = "skipped tests/codriver/hook_decision_spec.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/codriver/readme_spec.lua: no mutation adapter for .lua"
 
 [[finding]]
   severity = "NOTE"
