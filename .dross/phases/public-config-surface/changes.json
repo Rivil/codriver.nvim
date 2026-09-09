@@ -1,7 +1,9 @@
 {
   "phase": "public-config-surface",
+  "pr": 5,
   "base": "milestone/v0.1",
   "base_commit": "5166c715fa586d1f1a5b24e5a7f12eaed8b943c1",
+  "status": "shipped",
   "tasks": {
     "t-1": {
       "files": [
