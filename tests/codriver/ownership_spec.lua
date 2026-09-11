@@ -108,6 +108,50 @@ describe("codriver.ownership", function()
 
       assert.equal("human", ownership.owner("phase-a", "anything"))
     end)
+
+    it("release() clears a claimed entry, reverting owner() to human", function()
+      set_fs()
+
+      ownership.claim("phase-a", "t-1")
+      assert.equal("claude", ownership.owner("phase-a", "t-1"))
+
+      ownership.release("phase-a", "t-1")
+
+      assert.equal("human", ownership.owner("phase-a", "t-1"))
+    end)
+  end)
+
+  describe("pruning", function()
+    it("claim() drops a stale entry for a task id absent from the passed tasks list before writing the new claim", function()
+      set_fs()
+
+      ownership.claim("phase-a", "t-9")
+      ownership.claim("phase-a", "t-1", { { id = "t-1" } })
+
+      assert.equal("human", ownership.owner("phase-a", "t-9"))
+      assert.equal("claude", ownership.owner("phase-a", "t-1"))
+    end)
+
+    it("release() also drops a stale entry for a task id absent from the passed tasks list", function()
+      set_fs()
+
+      ownership.claim("phase-a", "t-1")
+      ownership.claim("phase-a", "t-9")
+
+      ownership.release("phase-a", "t-1", { { id = "t-1" } })
+
+      assert.equal("human", ownership.owner("phase-a", "t-9"))
+      assert.equal("human", ownership.owner("phase-a", "t-1"))
+    end)
+
+    it("claim()/release() with no tasks list passed (nil) skip pruning entirely, unchanged from current behaviour", function()
+      set_fs()
+
+      ownership.claim("phase-a", "t-9")
+      ownership.claim("phase-a", "t-1")
+
+      assert.equal("claude", ownership.owner("phase-a", "t-9"))
+    end)
   end)
 
   describe("is_known", function()
