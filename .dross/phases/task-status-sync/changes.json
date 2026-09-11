@@ -21,17 +21,16 @@
     },
     "t-2": {
       "files": [
-        "lua/codriver/tasks.lua",
         "tests/nvim/tasks_check.lua"
       ],
-      "commit": "a24a650",
-      "completed_at": "2026-09-11T15:19:03.993087Z",
+      "commit": "01617ff",
+      "completed_at": "2026-09-11T17:15:42.617046Z",
       "landmarks": [
         {
           "feature": "task status write-through",
-          "symbol": "tasks.M.open",
-          "loc": "lua/codriver/tasks.lua:113",
-          "what": "d/u keys in the CodriverTasks float mark done / revert in_progress via task_status.set, re-rendering from disk with ERROR notify on failure"
+          "symbol": "tasks_check.capture_buffer_snapshots",
+          "loc": "tests/nvim/tasks_check.lua:9b",
+          "what": "asserts d/u redraw the displayed status line in place and leave it unchanged on a failed write"
         }
       ]
     }
