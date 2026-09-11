@@ -44,13 +44,53 @@ local function save(store)
   vim.fn.writefile({ vim.json.encode(store) }, path)
 end
 
----Claim a task as Claude's, for a specific phase.
+---Drop stored entries for `phase_id` whose task id is absent from `tasks` —
+---the `pruning_trigger` decision's re-sync, run before every claim/release
+---write. No-op when `tasks` is nil: the caller doesn't have the current list
+---to hand (e.g. no active dross phase to read it from).
+---@param store table
+---@param phase_id string
+---@param tasks CodriverDrossTask[]|nil
+local function prune(store, phase_id, tasks)
+  if not tasks then
+    return
+  end
+
+  local known = {}
+  for _, task in ipairs(tasks) do
+    known[task.id] = true
+  end
+
+  for task_id in pairs(store[phase_id]) do
+    if not known[task_id] then
+      store[phase_id][task_id] = nil
+    end
+  end
+end
+
+---Claim a task as Claude's, for a specific phase. Prunes stale entries for
+---this phase first when `tasks` (the phase's current task list) is given.
 ---@param phase_id string
 ---@param task_id string
-function M.claim(phase_id, task_id)
+---@param tasks CodriverDrossTask[]|nil
+function M.claim(phase_id, task_id, tasks)
   local store = load()
   store[phase_id] = store[phase_id] or {}
+  prune(store, phase_id, tasks)
   store[phase_id][task_id] = M.CLAUDE
+  save(store)
+end
+
+---Release a task back to the human, for a specific phase. Prunes stale
+---entries for this phase first when `tasks` is given, same as claim().
+---@param phase_id string
+---@param task_id string
+---@param tasks CodriverDrossTask[]|nil
+function M.release(phase_id, task_id, tasks)
+  local store = load()
+  store[phase_id] = store[phase_id] or {}
+  prune(store, phase_id, tasks)
+  store[phase_id][task_id] = nil
   save(store)
 end
 

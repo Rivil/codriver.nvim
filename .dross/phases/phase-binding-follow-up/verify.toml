@@ -1,0 +1,71 @@
+[verify]
+  phase = "phase-binding-follow-up"
+  generated_at = 2026-09-11T12:35:02.788628Z
+  verdict = "pass"
+  finalized = true
+  finalized_at = 2026-09-11T12:36:03.400064Z
+
+[summary]
+  mutation_status = "skipped"
+  measured_on = "local"
+  mutation_score = 0.0
+  mutants_killed = 0
+  mutants_survived = 0
+  mutants_not_covered = 0
+  mutants_in_scope = 0
+  unclassified_in_scope = 0
+  criteria_total = 4
+  criteria_covered = 4
+  criteria_uncovered = 0
+
+[[criterion]]
+  id = "c-1"
+  status = "covered"
+  tests = ["tests/nvim/codriver_claim_check.lua: `:CodriverClaim t-1 human` releases a previously-claimed task back to human (line 117-122)"]
+
+[[criterion]]
+  id = "c-2"
+  status = "covered"
+  tests = ["tests/nvim/tasks_check.lua: `c`/`r` on the cursor task claim/release without closing the float (line 141-157)"]
+
+[[criterion]]
+  id = "c-3"
+  status = "covered"
+  tests = ["tests/codriver/tasks_spec.lua:118 'computes an exact \"yours: N  claude: M\" header from the phase's current tasks'"]
+
+[[criterion]]
+  id = "c-4"
+  status = "covered"
+  tests = ["tests/codriver/ownership_spec.lua:125,135,147 pruning describe block (claim()/release() drop stale entries, nil-tasks skips pruning)", "tests/nvim/codriver_claim_check.lua:144-156 real :CodriverClaim prunes a stale entry", "tests/nvim/tasks_check.lua:206-217 real c/r write from the float prunes a stale entry"]
+
+[[finding]]
+  severity = "NOTE"
+  text = "mutation skipped: no mutation adapter for .lua — verdict based on criterion coverage alone (full test suite run: 212/212 busted successes, all nvim checks passed, including codriver_claim_check.lua and tasks_check.lua for this phase)"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/init.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/ownership.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/tasks.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/codriver/ownership_spec.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/codriver/tasks_spec.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/nvim/codriver_claim_check.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/nvim/tasks_check.lua: no mutation adapter for .lua"

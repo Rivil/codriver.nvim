@@ -1,4 +1,4 @@
-phases = ["phase-binding", "task-status-sync", "owner-driven-handover"]
+phases = ["phase-binding", "task-status-sync", "owner-driven-handover", "phase-binding-follow-up"]
 
 [milestone]
   version = "v0.2"

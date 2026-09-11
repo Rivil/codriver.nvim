@@ -19,6 +19,8 @@ end
 ---@param owner_fn function|nil
 local function fake_ownership(owner_fn)
   return {
+    HUMAN = "human",
+    CLAUDE = "claude",
     owner = owner_fn or function()
       return "human"
     end,
@@ -111,6 +113,44 @@ describe("codriver.tasks", function()
 
       assert.is_false(rendered.available)
       assert.is_nil(rendered.reason)
+    end)
+
+    it('computes an exact "yours: N  claude: M" header from the phase\'s current tasks', function()
+      package.loaded[DROSS] = fake_dross(function()
+        return {
+          available = true,
+          phase_id = "phase-x",
+          tasks = {
+            { id = "t-1", title = "First", status = "pending" },
+            { id = "t-2", title = "Second", status = "pending" },
+            { id = "t-3", title = "Third", status = "done" },
+          },
+        }
+      end)
+      package.loaded[OWNERSHIP] = fake_ownership(function(_, task_id)
+        return task_id == "t-1" and "claude" or "human"
+      end)
+
+      local rendered = tasks.render()
+
+      assert.equal("yours: 2  claude: 1", rendered.header)
+    end)
+
+    it("keeps rendered.lines task-only — the header lives in a separate field, not lines[1]", function()
+      package.loaded[DROSS] = fake_dross(function()
+        return {
+          available = true,
+          phase_id = "phase-x",
+          tasks = { { id = "t-1", title = "First", status = "pending" } },
+        }
+      end)
+      package.loaded[OWNERSHIP] = fake_ownership()
+
+      local rendered = tasks.render()
+
+      assert.equal(1, #rendered.lines)
+      assert.is_truthy(rendered.lines[1]:find("t-1", 1, true))
+      assert.equal("yours: 1  claude: 0", rendered.header)
     end)
   end)
 end)
