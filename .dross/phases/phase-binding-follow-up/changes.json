@@ -2,5 +2,38 @@
   "phase": "phase-binding-follow-up",
   "base": "milestone/v0.2",
   "base_commit": "48e33a388617a8f88d0a00568775fbc6ba000ebc",
-  "tasks": {}
+  "tasks": {
+    "t-1": {
+      "files": [
+        "lua/codriver/ownership.lua",
+        "tests/codriver/ownership_spec.lua"
+      ],
+      "commit": "cf22216",
+      "completed_at": "2026-09-11T10:35:12.723114Z",
+      "landmarks": [
+        {
+          "feature": "task ownership",
+          "symbol": "M.release",
+          "loc": "lua/codriver/ownership.lua:69",
+          "what": "release()+prune-on-write drop stale phase entries on every claim/release write"
+        }
+      ]
+    },
+    "t-2": {
+      "files": [
+        "lua/codriver/tasks.lua",
+        "tests/codriver/tasks_spec.lua"
+      ],
+      "commit": "5046b86",
+      "completed_at": "2026-09-11T11:20:31.366054Z",
+      "landmarks": [
+        {
+          "feature": "task ownership",
+          "symbol": "M.render",
+          "loc": "lua/codriver/tasks.lua:23",
+          "what": "render() returns a yours-vs-Claude header tally, open() prepends it to the float"
+        }
+      ]
+    }
+  }
 }
