@@ -1,0 +1,114 @@
+{
+  "phase": "task-status-sync",
+  "generated_at": "2026-09-11T16:30:38.015375Z",
+  "languages": null,
+  "skipped": [
+    {
+      "file": "lua/codriver/init.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "lua/codriver/task_status.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "lua/codriver/tasks.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/codriver/task_status_spec.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/nvim/tasks_check.lua",
+      "reason": "no mutation adapter for .lua"
+    }
+  ],
+  "scope": {
+    "files": [
+      ".dross/phases/task-status-sync/REVIEW.md",
+      ".dross/phases/task-status-sync/changes.json",
+      ".dross/phases/task-status-sync/plan.toml",
+      ".dross/phases/task-status-sync/spec.toml",
+      ".dross/project.toml",
+      "lua/codriver/init.lua",
+      "lua/codriver/task_status.lua",
+      "lua/codriver/tasks.lua",
+      "tests/codriver/task_status_spec.lua",
+      "tests/nvim/tasks_check.lua"
+    ],
+    "hunks": {
+      ".dross/phases/task-status-sync/REVIEW.md": [
+        {
+          "start": 1,
+          "end": 25
+        }
+      ],
+      ".dross/phases/task-status-sync/changes.json": [
+        {
+          "start": 1,
+          "end": 39
+        }
+      ],
+      ".dross/phases/task-status-sync/plan.toml": [
+        {
+          "start": 1,
+          "end": 25
+        }
+      ],
+      ".dross/phases/task-status-sync/spec.toml": [
+        {
+          "start": 1,
+          "end": 44
+        }
+      ],
+      ".dross/project.toml": [
+        {
+          "start": 3,
+          "end": 3
+        }
+      ],
+      "lua/codriver/init.lua": [
+        {
+          "start": 20,
+          "end": 20
+        }
+      ],
+      "lua/codriver/task_status.lua": [
+        {
+          "start": 1,
+          "end": 42
+        }
+      ],
+      "lua/codriver/tasks.lua": [
+        {
+          "start": 107,
+          "end": 118
+        },
+        {
+          "start": 186,
+          "end": 198
+        }
+      ],
+      "tests/codriver/task_status_spec.lua": [
+        {
+          "start": 1,
+          "end": 90
+        }
+      ],
+      "tests/nvim/tasks_check.lua": [
+        {
+          "start": 219,
+          "end": 365
+        },
+        {
+          "start": 372,
+          "end": 376
+        }
+      ]
+    },
+    "base": "8ed9e9731dbb3a7320631c4027fde779bf653267",
+    "source": "git+changes"
+  },
+  "measured_on": "local"
+}
