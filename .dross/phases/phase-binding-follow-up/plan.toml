@@ -32,7 +32,7 @@ task_seq = 0
   covers = ["c-1", "c-4"]
   depends_on = ["t-1"]
   test_contract = ["`:CodriverClaim t-1 human` releases a previously-claimed task back to human", "bare `:CodriverClaim t-1` and `:CodriverClaim t-1 claude` both still claim, unchanged from today", "an unrecognized second arg (e.g. `:CodriverClaim t-1 nonsense`) WARNs and leaves ownership unchanged", "claiming/releasing through the real command drops a stale ownership entry for a task id no longer in the phase's plan.toml"]
-  status = "pending"
+  status = "done"
 
 [[task]]
   id = "t-4"
@@ -43,4 +43,4 @@ task_seq = 0
   covers = ["c-2"]
   depends_on = ["t-1", "t-2"]
   test_contract = ["pressing `c` on the task under the cursor claims it and the float re-renders showing the new owner without closing", "pressing `r` on the task under the cursor releases it (owner reverts to human) without closing", "`j`/`k` move the cursor between task lines without closing the float or changing ownership", "any other key (e.g. `q`) still closes the float, unchanged from today's behaviour", "claiming/releasing via `c`/`r` drops a stale ownership entry for a task id no longer in the phase's plan.toml, same as :CodriverClaim", "the header line appears as the first line of the real buffer opened by open()/_show(), above the task lines"]
-  status = "pending"
+  status = "done"
