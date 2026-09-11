@@ -1,0 +1,90 @@
+[phase]
+id = "phase-binding-follow-up"
+
+[[task]]
+id            = "t-1"
+wave          = 1
+title         = "Add ownership.release() + prune-on-write"
+files         = ["lua/codriver/ownership.lua", "tests/codriver/ownership_spec.lua"]
+description   = """
+Add `M.release(phase_id, task_id, tasks)` alongside `M.claim`, clearing a
+task's stored entry so `owner()` falls back to the human default. Both
+`claim()` and `release()` take an optional `tasks` list (same shape as
+`is_known`'s) and, before writing the new entry, drop any stored entry for
+this phase whose task id is absent from that list.
+"""
+covers        = ["c-4"]
+test_contract = [
+  "release() clears a claimed entry — owner() returns human afterward",
+  "claim()/release() drop stale phase entries for task ids absent from a passed tasks list before writing the new one",
+  "claim()/release() with no tasks list passed (nil) skip pruning entirely, unchanged from current behaviour",
+]
+status        = "pending"
+
+[[task]]
+id            = "t-2"
+wave          = 1
+title         = "Add owned-by-you/Claude header to tasks.render()"
+files         = ["lua/codriver/tasks.lua", "tests/codriver/tasks_spec.lua"]
+description   = """
+render() gains a `header` field (separate from `lines`) reporting the
+human/claude tally across the phase's current tasks, formatted exactly as
+"yours: <human-count>  claude: <claude-count>". `lines` stays exactly one
+entry per task, unchanged shape — `_show()`/`open()` prepend the header when
+displaying.
+"""
+covers        = ["c-3"]
+test_contract = [
+  "rendered.header is exactly \"yours: <human-count>  claude: <claude-count>\" for the phase's current tasks",
+  "rendered.lines stays task-only (one line per task) — header lives in a separate field, not lines[1]",
+]
+status        = "pending"
+
+[[task]]
+id         = "t-3"
+wave       = 2
+depends_on = ["t-1"]
+title      = ":CodriverClaim accepts optional owner arg (release/claim)"
+files      = ["lua/codriver/init.lua", "tests/nvim/codriver_claim_check.lua"]
+description = """
+Change `:CodriverClaim` to `nargs = "+"` and parse fargs: bare `<id>` or
+`<id> claude` claims (unchanged), `<id> human` releases via
+ownership.release(). Both paths pass the current phase's task list through
+to ownership.claim/release for pruning. An unrecognized second argument
+WARNs and leaves ownership unchanged (no claim, no release).
+"""
+covers        = ["c-1", "c-4"]
+test_contract = [
+  "`:CodriverClaim t-1 human` releases a previously-claimed task back to human",
+  "bare `:CodriverClaim t-1` and `:CodriverClaim t-1 claude` both still claim, unchanged from today",
+  "an unrecognized second arg (e.g. `:CodriverClaim t-1 nonsense`) WARNs and leaves ownership unchanged",
+  "claiming/releasing through the real command drops a stale ownership entry for a task id no longer in the phase's plan.toml",
+]
+status        = "pending"
+
+[[task]]
+id         = "t-4"
+wave       = 2
+depends_on = ["t-1", "t-2"]
+title      = "Interactive claim/release in the :CodriverTasks float"
+files      = ["lua/codriver/tasks.lua", "tests/nvim/tasks_check.lua"]
+description = """
+Replace open()'s single blocking getchar() with a loop: `j`/`k` move the
+cursor between task lines, `c` claims the task under the cursor via
+ownership.claim(phase_id, task_id, tasks), `r` releases it via
+ownership.release(phase_id, task_id, tasks) — both passing the phase's
+current task list (already available from render()'s underlying dross.read()
+result) so stale entries prune on every float-driven write too, same as
+:CodriverClaim. Both re-render in place via render() (which already re-reads
+dross/ownership fresh). Any other key closes the float, unchanged from today.
+"""
+covers        = ["c-2"]
+test_contract = [
+  "pressing `c` on the task under the cursor claims it and the float re-renders showing the new owner without closing",
+  "pressing `r` on the task under the cursor releases it (owner reverts to human) without closing",
+  "`j`/`k` move the cursor between task lines without closing the float or changing ownership",
+  "any other key (e.g. `q`) still closes the float, unchanged from today's behaviour",
+  "claiming/releasing via `c`/`r` drops a stale ownership entry for a task id no longer in the phase's plan.toml, same as :CodriverClaim",
+  "the header line appears as the first line of the real buffer opened by open()/_show(), above the task lines",
+]
+status        = "pending"
