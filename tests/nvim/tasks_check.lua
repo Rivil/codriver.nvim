@@ -216,12 +216,162 @@ harness.expect_eq(
   "a real c/r write from the float must prune a stale entry for a task id absent from plan.toml"
 )
 
+-- 9. `d` marks the task under the cursor done via codriver.task_status.set,
+-- and `u` reverts it back to in_progress (task-status-sync's write-through
+-- keys). vim.system is faked per-case so no real dross process is needed for
+-- the argv/re-render/ownership assertions; the real end-to-end write is
+-- proven separately below, guarded on `dross` actually being on PATH.
+-- step 8's `r` press released t-1 (the cursor's default row) as a side
+-- effect, so re-claim it here for a known starting point.
+ownership.claim("phase-x", "t-1")
+harness.expect_eq(ownership.owner("phase-x", "t-1"), ownership.CLAUDE, "t-1 re-claimed for a known starting point")
+
+local real_system = vim.system
+local captured_cmd
+
+vim.system = function(cmd, opts)
+  captured_cmd = { cmd = cmd, opts = opts }
+  return {
+    wait = function()
+      return { code = 0 }
+    end,
+  }
+end
+
+vim.api.nvim_feedkeys("dq", "nt", false)
+tasks.open()
+
+vim.system = real_system
+
+harness.expect(
+  vim.deep_equal(captured_cmd.cmd, { "dross", "task", "status", "phase-x", "t-1", "done" }),
+  "`d` must call vim.system with the dross task status argv for the cursor task"
+)
+harness.expect(captured_cmd.opts.text, "`d` must call vim.system with {text = true}")
+harness.expect_eq(vim.fn.getchar(1), 0, "`d` must not close the float before the trailing `q` is read")
+harness.expect_eq(
+  ownership.owner("phase-x", "t-1"),
+  ownership.CLAUDE,
+  "`d` must not touch ownership for the task acted on"
+)
+
+captured_cmd = nil
+vim.system = function(cmd, opts)
+  captured_cmd = { cmd = cmd, opts = opts }
+  return {
+    wait = function()
+      return { code = 0 }
+    end,
+  }
+end
+
+vim.api.nvim_feedkeys("uq", "nt", false)
+tasks.open()
+
+vim.system = real_system
+
+harness.expect(
+  vim.deep_equal(captured_cmd.cmd, { "dross", "task", "status", "phase-x", "t-1", "in_progress" }),
+  "`u` must call vim.system with the dross task status argv for the cursor task"
+)
+harness.expect_eq(vim.fn.getchar(1), 0, "`u` must not close the float before the trailing `q` is read")
+harness.expect_eq(
+  ownership.owner("phase-x", "t-1"),
+  ownership.CLAUDE,
+  "`u` must not touch ownership for the task acted on"
+)
+
+-- 10. A failed write (non-zero exit) notifies at ERROR with the failure
+-- message, and still re-renders without closing or crashing.
+local failure_notifications = capture_notifications(function()
+  vim.system = function()
+    return {
+      wait = function()
+        return { code = 1, stderr = "invalid status transition", stdout = "" }
+      end,
+    }
+  end
+  vim.api.nvim_feedkeys("dq", "nt", false)
+  tasks.open()
+  vim.system = real_system
+end)
+
+harness.expect(#failure_notifications >= 1, "expected a notification when the write fails")
+harness.expect_eq(failure_notifications[1].level, vim.log.levels.ERROR, "a failed write's notification must be ERROR")
+harness.expect_contains(
+  failure_notifications[1].msg,
+  "invalid status transition",
+  "the notification must carry the failure message"
+)
+
+-- 11. A spawn failure (vim.system itself raising, e.g. dross missing from
+-- PATH) still notifies and does not crash the key loop or leave the float
+-- open.
+local spawn_ok, spawn_notifications = pcall(function()
+  return capture_notifications(function()
+    vim.system = function()
+      error("ENOENT: dross not found")
+    end
+    vim.api.nvim_feedkeys("dq", "nt", false)
+    tasks.open()
+    vim.system = real_system
+  end)
+end)
+
+harness.expect(spawn_ok, "a spawn failure inside task_status.set must not raise out of open()")
+harness.expect(#spawn_notifications >= 1, "expected a notification when the spawn itself fails")
+harness.expect_eq(spawn_notifications[1].level, vim.log.levels.ERROR, "a spawn failure's notification must be ERROR")
+
+-- 12. When `dross` is actually on PATH: pressing `d` through the real CLI
+-- updates the sandbox fixture's plan.toml status field on disk. Guarded and
+-- skipped (not failed) when the binary is unavailable — this proves the CLI
+-- integration, it does not require dross be installed to run the suite.
+if vim.fn.executable("dross") == 1 then
+  harness.write(
+    PROJECT .. "/.dross/project.toml",
+    table.concat({
+      "[project]",
+      '  name = "fixture"',
+      '  version = "0.0.0.0"',
+      "",
+      "[stack]",
+      "",
+      "[runtime]",
+      "",
+      "[repo]",
+      "",
+      "[remote]",
+      "",
+      "[paths]",
+      "",
+      "[env]",
+      "",
+      "[goals]",
+    }, "\n")
+  )
+
+  vim.api.nvim_feedkeys("dq", "nt", false)
+  tasks.open()
+
+  local plan_text = table.concat(vim.fn.readfile(PROJECT .. "/.dross/phases/phase-x/plan.toml"), "\n")
+  harness.expect_match(
+    plan_text,
+    'id%s*=%s*"t%-1".-status%s*=%s*"done"',
+    "real dross CLI must persist t-1's status as done in plan.toml"
+  )
+else
+  print(harness.name .. ": skipping real-dross case — `dross` not on PATH")
+end
+
 vim.fn.chdir(harness.repo_root)
 
 harness.ok(
   "no active phase and a corrupt plan.toml both notify without opening a window or erroring, a valid plan.toml "
     .. "renders id/title/status/owner into a real read-only buffer, any keypress not bound to an action closes the "
     .. "real float, `c`/`r` claim/release the task under the cursor without closing, `j`/`k` move the cursor "
-    .. "without closing or touching ownership, the header stays the first line of the real buffer, and a real "
-    .. "c/r write prunes a stale ownership entry for a task id absent from plan.toml"
+    .. "without closing or touching ownership, the header stays the first line of the real buffer, a real c/r "
+    .. "write prunes a stale ownership entry for a task id absent from plan.toml, `d`/`u` call codriver.task_status "
+    .. "with the right argv and re-render without touching ownership, a failed write notifies at ERROR without "
+    .. "leaving a stale status, a spawn failure notifies without crashing, and (when dross is on PATH) a real `d` "
+    .. "persists the new status to plan.toml on disk"
 )
