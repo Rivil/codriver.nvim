@@ -205,18 +205,25 @@ _introduced phase-binding · 7b605f3_
 
 ### Task ownership
 
-A codriver-local `(phase_id, task_id) -> owner` mapping, set explicitly by
-`:CodriverClaim <task-id>` (owner defaults to human, never inferred), keyed
-per-phase so a claimed task id never bleeds into another phase reusing the
-same id; claiming an id absent from the current task list still records the
-claim but WARNs.
+A codriver-local `(phase_id, task_id) -> owner` mapping, set via
+`:CodriverClaim <id>` (bare or `<id> claude` claims, `<id> human` releases) or
+interactively with `c`/`r` on the cursor task in the `:CodriverTasks` float —
+owner defaults to human, never inferred, keyed per-phase so a claimed task id
+never bleeds into another phase reusing the same id. Every claim/release
+write re-syncs stored entries against the phase's current task list first,
+pruning ids no longer present; claiming an id absent from the current task
+list still records the claim but WARNs, and an unrecognized `:CodriverClaim`
+owner arg WARNs and leaves ownership unchanged.
 
 - ownership.M.claim — lua/codriver/ownership.lua:50
-- claim_command — lua/codriver/init.lua:155
+- ownership.M.release — lua/codriver/ownership.lua:69
+- claim_command — lua/codriver/init.lua:162
+- tasks.M.render — lua/codriver/tasks.lua:23
+- tasks.M.open — lua/codriver/tasks.lua:117
 - ownership_spec — tests/codriver/ownership_spec.lua:1
 - codriver_claim_check — tests/nvim/codriver_claim_check.lua:1
 
-_introduced phase-binding · ea63d18_
+_introduced phase-binding · ea63d18 · extended phase-binding-follow-up · 9662b65_
 
 ### Untracked session notice
 
