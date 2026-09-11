@@ -138,9 +138,90 @@ vim.api.nvim_del_augroup_by_id(group)
 harness.expect(win_enters >= 1, "expected open() to actually open a window before closing it")
 harness.expect_eq(vim.tbl_count(after), vim.tbl_count(before), "expected the window to be closed after a keypress")
 
+-- 5. `c` claims the task under the cursor and `r` releases it — moved there
+-- with `j` first — without the float closing before the trailing `q`.
+-- getchar(1) peeks the input queue without consuming it, so a leftover
+-- keystroke here would mean the loop exited (and closed the float) early.
+harness.expect_eq(ownership.owner("phase-x", "t-2"), ownership.HUMAN, "t-2 starts unclaimed")
+
+vim.api.nvim_feedkeys("jcq", "nt", false)
+tasks.open()
+
+harness.expect_eq(ownership.owner("phase-x", "t-2"), ownership.CLAUDE, "`c` on the cursor task must claim it")
+harness.expect_eq(vim.fn.getchar(1), 0, "`j` then `c` must not close the float before the trailing `q` is read")
+
+vim.api.nvim_feedkeys("jrq", "nt", false)
+tasks.open()
+
+harness.expect_eq(ownership.owner("phase-x", "t-2"), ownership.HUMAN, "`r` on the cursor task must release it")
+harness.expect_eq(vim.fn.getchar(1), 0, "`j` then `r` must not close the float before the trailing `q` is read")
+
+-- 6. `j`/`k` move the cursor between task lines without closing the float or
+-- touching ownership — spy on the real nvim_win_set_cursor call open() makes.
+local cursor_rows = {}
+local real_set_cursor = vim.api.nvim_win_set_cursor
+vim.api.nvim_win_set_cursor = function(win, pos)
+  table.insert(cursor_rows, pos[1])
+  return real_set_cursor(win, pos)
+end
+
+vim.api.nvim_feedkeys("jkq", "nt", false)
+tasks.open()
+
+vim.api.nvim_win_set_cursor = real_set_cursor
+
+harness.expect_eq(#cursor_rows, 3, "expected one cursor move before the loop plus one per j/k keypress")
+harness.expect_eq(
+  cursor_rows[1],
+  2,
+  "the float must open with the cursor on the first task line (row 2, below the header)"
+)
+harness.expect_eq(cursor_rows[2], 3, "`j` must move the cursor to the second task line")
+harness.expect_eq(cursor_rows[3], 2, "`k` must move the cursor back to the first task line")
+harness.expect_eq(ownership.owner("phase-x", "t-1"), ownership.CLAUDE, "j/k must not change ownership")
+harness.expect_eq(ownership.owner("phase-x", "t-2"), ownership.HUMAN, "j/k must not change ownership")
+harness.expect_eq(vim.fn.getchar(1), 0, "j/k must not close the float before the trailing `q` is read")
+
+-- 7. The header line is still the first line of the real buffer opened by
+-- open()/_show(), above the task lines — unchanged by adding `c`/`r`/`j`/`k`.
+-- Captured inside the spy itself, before the buffer is wiped on close: `q`
+-- closes the float synchronously inside tasks.open(), so reading the buffer
+-- back afterwards would hit an already-wiped id (bufhidden = "wipe").
+local shown_lines
+local real_show = tasks._show
+tasks._show = function(lines)
+  local buf, win = real_show(lines)
+  shown_lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+  return buf, win
+end
+
+vim.api.nvim_feedkeys("q", "nt", false)
+tasks.open()
+
+tasks._show = real_show
+
+harness.expect_contains(shown_lines[1], "yours:", "the header must be the first line of the real buffer")
+harness.expect_contains(shown_lines[2], "t-1", "the first task line must come right after the header")
+
+-- 8. Claiming/releasing via `c`/`r` prunes a stale ownership entry for a task
+-- id no longer in the phase's plan.toml, same as :CodriverClaim (t-3).
+ownership.claim("phase-x", "t-stale")
+
+vim.api.nvim_feedkeys("rq", "nt", false)
+tasks.open()
+
+harness.expect_eq(
+  ownership.owner("phase-x", "t-stale"),
+  ownership.HUMAN,
+  "a real c/r write from the float must prune a stale entry for a task id absent from plan.toml"
+)
+
 vim.fn.chdir(harness.repo_root)
 
 harness.ok(
   "no active phase and a corrupt plan.toml both notify without opening a window or erroring, a valid plan.toml "
-    .. "renders id/title/status/owner into a real read-only buffer, and any keypress closes the real float"
+    .. "renders id/title/status/owner into a real read-only buffer, any keypress not bound to an action closes the "
+    .. "real float, `c`/`r` claim/release the task under the cursor without closing, `j`/`k` move the cursor "
+    .. "without closing or touching ownership, the header stays the first line of the real buffer, and a real "
+    .. "c/r write prunes a stale ownership entry for a task id absent from plan.toml"
 )

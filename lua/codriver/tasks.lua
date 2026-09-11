@@ -20,6 +20,10 @@ local M = {}
 ---@field phase_id string|nil
 ---@field lines string[]|nil One line per task: "id  status  title  (owner)".
 ---@field header string|nil "yours: N  claude: M" tally across the phase's tasks (c-3).
+---@field tasks CodriverDrossTask[]|nil Same order as `lines` — the task under the
+---cursor at task-line i is `tasks[i]`. Also the list open() passes through to
+---ownership.claim/release so a claim/release from the float prunes stale
+---entries the same way :CodriverClaim does.
 
 ---@return CodriverTasksRender
 function M.render()
@@ -44,7 +48,7 @@ function M.render()
 
   local header = ("yours: %d  claude: %d"):format(human_count, claude_count)
 
-  return { available = true, phase_id = result.phase_id, lines = lines, header = header }
+  return { available = true, phase_id = result.phase_id, lines = lines, header = header, tasks = result.tasks }
 end
 
 ---@param rendered CodriverTasksRender
@@ -90,8 +94,22 @@ function M._show(lines)
   return buf, win
 end
 
----Open (or notify in place of) the read-only `:CodriverTasks` float. Closes
----on any keypress.
+---@param rendered CodriverTasksRender
+---@return string[]
+local function build_display(rendered)
+  local display = { rendered.header }
+  vim.list_extend(display, rendered.lines)
+  return display
+end
+
+---Open (or notify in place of) the `:CodriverTasks` float. With at least one
+---task: `j`/`k` move the cursor between task lines, `c` claims and `r`
+---releases the task under the cursor (float_interaction) — both re-render in
+---place via a fresh `M.render()` (so they see any on-disk change the same as
+---a brand new open would) and keep the float open. Any other key closes,
+---same as every key did before `c`/`r` existed. With no tasks at all there is
+---nothing to move onto or act on, so it stays the original single-keypress
+---close.
 function M.open()
   local rendered = M.render()
 
@@ -100,20 +118,73 @@ function M.open()
     return
   end
 
-  local lines = rendered.lines
-  if #lines == 0 then
-    lines = { ("codriver: %s has no tasks yet"):format(rendered.phase_id) }
+  local tasks = rendered.tasks or {}
+  if #tasks == 0 then
+    local _, win = M._show({ rendered.header, ("codriver: %s has no tasks yet"):format(rendered.phase_id) })
+    vim.cmd("redraw")
+    pcall(vim.fn.getchar)
+    if vim.api.nvim_win_is_valid(win) then
+      vim.api.nvim_win_close(win, true)
+    end
+    return
   end
 
-  local display = { rendered.header }
-  vim.list_extend(display, lines)
+  local buf, win = M._show(build_display(rendered))
+  local cursor = 1
 
-  local _, win = M._show(display)
+  ---Row 1 is the header; task i lives at row i+1.
+  local function move_cursor()
+    if vim.api.nvim_win_is_valid(win) then
+      vim.api.nvim_win_set_cursor(win, { cursor + 1, 0 })
+    end
+  end
 
+  local function redraw()
+    if vim.api.nvim_buf_is_valid(buf) then
+      vim.bo[buf].modifiable = true
+      vim.api.nvim_buf_set_lines(buf, 0, -1, false, build_display(rendered))
+      vim.bo[buf].modifiable = false
+    end
+    move_cursor()
+    vim.cmd("redraw")
+  end
+
+  move_cursor()
   vim.cmd("redraw")
-  -- Blocks for exactly one keypress, whatever it is — this is a read-only
-  -- view with nothing to bind individual keys to.
-  pcall(vim.fn.getchar)
+
+  while true do
+    local ok, key = pcall(vim.fn.getchar)
+    if not ok then
+      break
+    end
+
+    local char = type(key) == "number" and vim.fn.nr2char(key) or key
+
+    if char == "j" then
+      cursor = math.min(cursor + 1, #tasks)
+      move_cursor()
+      vim.cmd("redraw")
+    elseif char == "k" then
+      cursor = math.max(cursor - 1, 1)
+      move_cursor()
+      vim.cmd("redraw")
+    elseif char == "c" or char == "r" then
+      local ownership = require("codriver.ownership")
+      local task_id = tasks[cursor].id
+      if char == "c" then
+        ownership.claim(rendered.phase_id, task_id, tasks)
+      else
+        ownership.release(rendered.phase_id, task_id, tasks)
+      end
+
+      rendered = M.render()
+      tasks = rendered.tasks or {}
+      cursor = math.min(cursor, math.max(#tasks, 1))
+      redraw()
+    else
+      break
+    end
+  end
 
   if vim.api.nvim_win_is_valid(win) then
     vim.api.nvim_win_close(win, true)
