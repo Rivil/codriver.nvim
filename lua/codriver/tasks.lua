@@ -19,6 +19,7 @@ local M = {}
 ---@field reason string|nil Set to "corrupt" when a file existed but failed to parse.
 ---@field phase_id string|nil
 ---@field lines string[]|nil One line per task: "id  status  title  (owner)".
+---@field header string|nil "yours: N  claude: M" tally across the phase's tasks (c-3).
 
 ---@return CodriverTasksRender
 function M.render()
@@ -30,12 +31,20 @@ function M.render()
 
   local ownership = require("codriver.ownership")
   local lines = {}
+  local human_count, claude_count = 0, 0
   for _, task in ipairs(result.tasks or {}) do
     local owner = ownership.owner(result.phase_id, task.id)
+    if owner == ownership.CLAUDE then
+      claude_count = claude_count + 1
+    else
+      human_count = human_count + 1
+    end
     table.insert(lines, ("%-6s %-9s %-42s %s"):format(task.id, task.status or "?", task.title or "", owner))
   end
 
-  return { available = true, phase_id = result.phase_id, lines = lines }
+  local header = ("yours: %d  claude: %d"):format(human_count, claude_count)
+
+  return { available = true, phase_id = result.phase_id, lines = lines, header = header }
 end
 
 ---@param rendered CodriverTasksRender
@@ -96,7 +105,10 @@ function M.open()
     lines = { ("codriver: %s has no tasks yet"):format(rendered.phase_id) }
   end
 
-  local _, win = M._show(lines)
+  local display = { rendered.header }
+  vim.list_extend(display, lines)
+
+  local _, win = M._show(display)
 
   vim.cmd("redraw")
   -- Blocks for exactly one keypress, whatever it is — this is a read-only
