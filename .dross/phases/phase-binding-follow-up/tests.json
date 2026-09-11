@@ -1,0 +1,211 @@
+{
+  "phase": "phase-binding-follow-up",
+  "generated_at": "2026-09-11T12:35:02.788628Z",
+  "languages": null,
+  "skipped": [
+    {
+      "file": "lua/codriver/init.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "lua/codriver/ownership.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "lua/codriver/tasks.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/codriver/ownership_spec.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/codriver/tasks_spec.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/nvim/codriver_claim_check.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/nvim/tasks_check.lua",
+      "reason": "no mutation adapter for .lua"
+    }
+  ],
+  "scope": {
+    "files": [
+      ".dross/milestones/v0.2.toml",
+      ".dross/phases/phase-binding-follow-up/REVIEW.md",
+      ".dross/phases/phase-binding-follow-up/changes.json",
+      ".dross/phases/phase-binding-follow-up/plan.toml",
+      ".dross/phases/phase-binding-follow-up/spec.toml",
+      ".dross/project.toml",
+      "lua/codriver/init.lua",
+      "lua/codriver/ownership.lua",
+      "lua/codriver/tasks.lua",
+      "tests/codriver/ownership_spec.lua",
+      "tests/codriver/tasks_spec.lua",
+      "tests/nvim/codriver_claim_check.lua",
+      "tests/nvim/tasks_check.lua"
+    ],
+    "hunks": {
+      ".dross/milestones/v0.2.toml": [
+        {
+          "start": 1,
+          "end": 1
+        }
+      ],
+      ".dross/phases/phase-binding-follow-up/REVIEW.md": [
+        {
+          "start": 1,
+          "end": 34
+        }
+      ],
+      ".dross/phases/phase-binding-follow-up/changes.json": [
+        {
+          "start": 1,
+          "end": 71
+        }
+      ],
+      ".dross/phases/phase-binding-follow-up/plan.toml": [
+        {
+          "start": 1,
+          "end": 46
+        }
+      ],
+      ".dross/phases/phase-binding-follow-up/spec.toml": [
+        {
+          "start": 1,
+          "end": 44
+        }
+      ],
+      ".dross/project.toml": [
+        {
+          "start": 3,
+          "end": 3
+        }
+      ],
+      "lua/codriver/init.lua": [
+        {
+          "start": 20,
+          "end": 20
+        },
+        {
+          "start": 153,
+          "end": 160
+        },
+        {
+          "start": 163,
+          "end": 176
+        },
+        {
+          "start": 184,
+          "end": 188
+        },
+        {
+          "start": 191,
+          "end": 191
+        },
+        {
+          "start": 336,
+          "end": 336
+        }
+      ],
+      "lua/codriver/ownership.lua": [
+        {
+          "start": 47,
+          "end": 72
+        },
+        {
+          "start": 75,
+          "end": 76
+        },
+        {
+          "start": 79,
+          "end": 79
+        },
+        {
+          "start": 84,
+          "end": 96
+        }
+      ],
+      "lua/codriver/tasks.lua": [
+        {
+          "start": 22,
+          "end": 26
+        },
+        {
+          "start": 38,
+          "end": 38
+        },
+        {
+          "start": 41,
+          "end": 45
+        },
+        {
+          "start": 49,
+          "end": 51
+        },
+        {
+          "start": 97,
+          "end": 112
+        },
+        {
+          "start": 121,
+          "end": 129
+        },
+        {
+          "start": 132,
+          "end": 133
+        },
+        {
+          "start": 135,
+          "end": 152
+        },
+        {
+          "start": 154,
+          "end": 187
+        }
+      ],
+      "tests/codriver/ownership_spec.lua": [
+        {
+          "start": 111,
+          "end": 154
+        }
+      ],
+      "tests/codriver/tasks_spec.lua": [
+        {
+          "start": 22,
+          "end": 23
+        },
+        {
+          "start": 117,
+          "end": 154
+        }
+      ],
+      "tests/nvim/codriver_claim_check.lua": [
+        {
+          "start": 108,
+          "end": 157
+        },
+        {
+          "start": 162,
+          "end": 164
+        }
+      ],
+      "tests/nvim/tasks_check.lua": [
+        {
+          "start": 141,
+          "end": 218
+        },
+        {
+          "start": 223,
+          "end": 226
+        }
+      ]
+    },
+    "base": "48e33a388617a8f88d0a00568775fbc6ba000ebc",
+    "source": "git+changes"
+  },
+  "measured_on": "local"
+}
