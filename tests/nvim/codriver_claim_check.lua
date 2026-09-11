@@ -105,9 +105,61 @@ end)
 harness.expect_eq(#known_id_notifications, 0, "claiming a known task id must not notify")
 harness.expect_eq(ownership.owner("phase-x", "t-1"), ownership.CLAUDE, "the claim on a known id must record")
 
+-- 4. Explicit `claude` arg claims the same as the bare form.
+local explicit_claude_notifications = capture(function()
+  vim.cmd("CodriverClaim t-1 claude")
+end)
+
+harness.expect_eq(#explicit_claude_notifications, 0, "`<id> claude` on a known task id must not notify")
+harness.expect_eq(ownership.owner("phase-x", "t-1"), ownership.CLAUDE, "`<id> claude` must still record the claim")
+
+-- 5. `<id> human` releases a previously-claimed task back to human.
+local release_notifications = capture(function()
+  vim.cmd("CodriverClaim t-1 human")
+end)
+
+harness.expect_eq(#release_notifications, 0, "releasing a known task id must not notify")
+harness.expect_eq(ownership.owner("phase-x", "t-1"), ownership.HUMAN, "`<id> human` must release the claim")
+
+-- 6. An unrecognized second argument WARNs and leaves ownership untouched.
+ownership.claim("phase-x", "t-1")
+
+local bad_arg_notifications = capture(function()
+  vim.cmd("CodriverClaim t-1 nonsense")
+end)
+
+harness.expect(#bad_arg_notifications >= 1, "expected a notification for an unrecognized owner arg")
+harness.expect_contains(bad_arg_notifications[1].msg, "nonsense", "unrecognized-arg notification names the arg")
+harness.expect_eq(
+  bad_arg_notifications[1].level,
+  vim.log.levels.WARN,
+  "the unrecognized-arg notification must be a WARN"
+)
+harness.expect_eq(
+  ownership.owner("phase-x", "t-1"),
+  ownership.CLAUDE,
+  "an unrecognized owner arg must leave the existing claim unchanged"
+)
+
+-- 7. Claiming/releasing through the real command drops a stale ownership
+-- entry for a task id no longer in the phase's plan.toml, same as the pure
+-- claim()/release() pruning already proven in ownership_spec.lua — this only
+-- proves the real command wires the current task list through.
+ownership.claim("phase-x", "t-stale")
+
+vim.cmd("CodriverClaim t-1 human")
+
+harness.expect_eq(
+  ownership.owner("phase-x", "t-stale"),
+  ownership.HUMAN,
+  "a real :CodriverClaim release must prune a stale entry for a task id absent from plan.toml"
+)
+
 vim.fn.chdir(harness.repo_root)
 
 harness.ok(
   ":CodriverClaim WARNs and records nothing when there is no active dross phase, WARNs but still records when the "
-    .. "id is absent from the current task list, and claims a known id silently"
+    .. "id is absent from the current task list, claims a known id silently with the bare or 'claude' form, "
+    .. "releases with 'human', WARNs and leaves ownership unchanged for an unrecognized owner arg, and prunes stale "
+    .. "entries for ids absent from the current task list on every real claim/release"
 )

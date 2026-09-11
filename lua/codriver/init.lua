@@ -150,10 +150,30 @@ local function takeback_command()
   notify("codriver: you're driving")
 end
 
----Claim a dross task as Claude's, for the current phase.
+---Claim or release a dross task, for the current phase.
+---
+---Bare `<id>` or `<id> claude` claims (unchanged from before the optional
+---owner arg existed); `<id> human` releases back to the human instead. Both
+---paths pass the current phase's task list through to ownership.claim/
+---release so a stale entry for a task id no longer in plan.toml gets pruned
+---on the same write (c-4). An unrecognized second argument WARNs and leaves
+---ownership untouched — no claim, no release.
 ---@param args table
 local function claim_command(args)
-  local task_id = args.args
+  local task_id = args.fargs[1]
+  local owner_arg = args.fargs[2]
+
+  if owner_arg ~= nil and owner_arg ~= ownership.CLAUDE and owner_arg ~= ownership.HUMAN then
+    notify(
+      ("codriver: unrecognized owner %q for :CodriverClaim — expected %q or %q"):format(
+        owner_arg,
+        ownership.CLAUDE,
+        ownership.HUMAN
+      ),
+      vim.log.levels.WARN
+    )
+    return
+  end
 
   local result = dross.read()
   if not result.available or not result.phase_id then
@@ -161,9 +181,14 @@ local function claim_command(args)
     return
   end
 
+  if owner_arg == ownership.HUMAN then
+    ownership.release(result.phase_id, task_id, result.tasks)
+    return
+  end
+
   -- Recorded either way (c-3 is opt-in, not validated) — the WARN is
   -- information about a possible typo, not a refusal.
-  ownership.claim(result.phase_id, task_id)
+  ownership.claim(result.phase_id, task_id, result.tasks)
 
   if not ownership.is_known(task_id, result.tasks) then
     notify(
@@ -308,7 +333,7 @@ function M.setup(opts)
   vim.api.nvim_create_user_command(
     "CodriverClaim",
     claim_command,
-    { nargs = 1, desc = "Claim a dross task as Claude's, for the current phase" }
+    { nargs = "+", desc = "Claim (default/'claude') or release ('human') a dross task, for the current phase" }
   )
   vim.api.nvim_create_user_command("CodriverTasks", tasks.open, { desc = "List the current dross phase's tasks" })
 
