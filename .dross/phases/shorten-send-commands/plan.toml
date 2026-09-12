@@ -18,15 +18,18 @@ it — leave it out of the resolved keys table rather than carrying a falsy
 value forward, so keymaps.lua in t-2 can just iterate what it's given).
 Anything else (a number, a table, an empty string) raises naming the field.
 `nil`/omission is not a distinct case — it resolves to the enabled default,
-per the confirmed reading of c-5.
+per the confirmed reading of c-5. Expose the result as `keys` on
+`M.resolve`'s `codriver` return table (alongside `auto_start`,
+`test_command`, `bash_allow`) — `resolved.codriver.keys` is the exact
+handoff t-2 consumes.
 """
   covers = ["c-3", "c-5"]
   test_contract = [
-    "opts.keys.send set to a non-empty string overrides the default lhs for CodriverSend in the resolved table",
-    "opts.keys.send = false is absent from the resolved keys table rather than carrying a falsy value forward",
+    "opts.keys.send set to a non-empty string overrides the default lhs for CodriverSend in resolved.codriver.keys",
+    "opts.keys.send = false is absent from resolved.codriver.keys rather than carrying a falsy value forward",
     "an unknown key under opts.keys (e.g. opts.keys.nope) raises, naming it",
     "opts.keys.send set to a non-string, non-false value (e.g. a number or empty string) raises",
-    "omitting opts.keys entirely resolves both send and send_text enabled at their defaults (<leader>cs, <leader>cS)",
+    "omitting opts.keys entirely resolves resolved.codriver.keys with both send and send_text enabled at their defaults (<leader>cs, <leader>cS)",
   ]
   status = "pending"
 
@@ -40,9 +43,10 @@ per the confirmed reading of c-5.
 New lua/codriver/keymaps.lua exposing `M.apply(resolved_keys)`: for a
 present `send` entry, vim.keymap.set({"n", "v"}, lhs, ...) to
 "<Cmd>CodriverSend<CR>" for normal mode and ":CodriverSend<CR>" for visual
-mode — the plain `:` form is required in visual mode so Neovim's own
-'<,'> prefix insertion carries the visual range into the ranged command;
-<Cmd> would bypass that and send the whole buffer instead. For a present
+mode — the plain `:` form is the conventional idiom for invoking a ranged
+command from visual mode (Neovim's own '<,'> prefix insertion applies to
+it). Verify during implementation that the visual range lands correctly
+before locking in the exact mapping form. For a present
 `send_text` entry, map normal mode to the literal string
 ":CodriverSendText " (no <CR>) so it prefills the command-line and waits
 for input, per the locked sendtext_ux decision. An absent entry (disabled
