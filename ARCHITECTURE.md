@@ -234,14 +234,19 @@ a fresh read of `plan.toml` — never an optimistic local mutation, so the
 displayed line always reflects what the write actually left on disk. A
 failed write (non-zero exit, or the spawn itself raising) notifies at ERROR
 with the failure message and leaves the displayed status unchanged; it never
-touches the task's ownership entry.
+touches the task's ownership entry. On a successful `u` (never `d`), the
+branch additionally checks the task's owner and drives `codriver.role` to
+match — Claude-owned flips to driver, human-owned to navigator — notifying
+with the same text `:CodriverHandover`/`:CodriverTakeback` already use, and
+no-ops when the role already matches.
 
 - task_status.M.set — lua/codriver/task_status.lua:20
 - tasks.M.open (d/u branch) — lua/codriver/tasks.lua:190
+- tasks.M.open (u branch role switch) — lua/codriver/tasks.lua:213
 - task_status_spec — tests/codriver/task_status_spec.lua:1
 - tasks_check — tests/nvim/tasks_check.lua:1
 
-_introduced task-status-sync · b462008 · extended task-status-sync · 01617ff_
+_introduced task-status-sync · b462008 · extended task-status-sync · 01617ff · extended owner-driven-handover · 27dd440_
 
 ### Untracked session notice
 
