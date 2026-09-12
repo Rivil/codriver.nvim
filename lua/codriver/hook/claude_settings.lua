@@ -5,9 +5,13 @@ local M = {}
 -- them and needs real filesystem primitives, so it lives here but is only
 -- exercised headlessly (tests/nvim/hook_settings_check.lua).
 
-local HOOK_MARKER = "codriver%-hook%.lua"
+-- codriver-hook.lua (PreToolUse) and codriver-review-hook.lua (Stop) are
+-- both codriver's own — checked as two markers, not one pattern, since
+-- "codriver%-hook%.lua" does not appear as a substring of
+-- "codriver-review-hook.lua" (there is a "review-" in between).
+local HOOK_MARKERS = { "codriver%-hook%.lua", "codriver%-review%-hook%.lua" }
 
----True when `entry` is a PreToolUse entry codriver itself registered, identified
+---True when `entry` is a hook entry codriver itself registered, identified
 ---by the hook script's basename rather than a full command match — a moved
 ---plugin root must still be recognised as stale.
 ---@param entry table
@@ -17,8 +21,12 @@ local function is_codriver_entry(entry)
     return false
   end
   for _, h in ipairs(entry.hooks) do
-    if type(h) == "table" and type(h.command) == "string" and h.command:find(HOOK_MARKER) then
-      return true
+    if type(h) == "table" and type(h.command) == "string" then
+      for _, marker in ipairs(HOOK_MARKERS) do
+        if h.command:find(marker) then
+          return true
+        end
+      end
     end
   end
   return false
@@ -206,11 +214,13 @@ function M.encode(doc)
 end
 
 ---Atomic read-merge-write of the Claude settings file at `path`, registering
----`command` as codriver's PreToolUse hook. Refuses (raises, naming the path)
----rather than overwriting a file that fails to parse as JSON.
+---`command` as codriver's hook for `hook_event` (defaults to "PreToolUse",
+---matching merge()'s own default). Refuses (raises, naming the path) rather
+---than overwriting a file that fails to parse as JSON.
 ---@param path string
 ---@param command string
-function M.install(path, command)
+---@param hook_event string|nil
+function M.install(path, command, hook_event)
   local existing = nil
   if vim.fn.filereadable(path) == 1 then
     local raw = table.concat(vim.fn.readfile(path), "\n")
@@ -221,7 +231,7 @@ function M.install(path, command)
     existing = decoded
   end
 
-  local doc = M.merge(existing, command)
+  local doc = M.merge(existing, command, hook_event)
   local encoded = M.encode(doc)
 
   vim.fn.mkdir(vim.fn.fnamemodify(path, ":h"), "p", tonumber("700", 8))

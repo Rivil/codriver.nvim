@@ -45,9 +45,9 @@ local SETTINGS_PATH = PROJECT .. "/.claude/settings.local.json"
 -- stands in for it: wrapped, not replaced, so the file on disk is real too.
 local events = {}
 local real_install = claude_settings.install
-claude_settings.install = function(path, command)
+claude_settings.install = function(path, command, hook_event)
   table.insert(events, "claude_settings.install")
-  return real_install(path, command)
+  return real_install(path, command, hook_event)
 end
 
 local provider = {
@@ -74,8 +74,12 @@ require("codriver").setup({
 vim.cmd("CodriverStart")
 
 harness.expect(
-  #events == 2 and events[1] == "claude_settings.install" and events[2] == "terminal.open",
-  "expected [claude_settings.install, terminal.open], got %s",
+  #events == 3
+    and events[1] == "claude_settings.install"
+    and events[2] == "claude_settings.install"
+    and events[3] == "terminal.open",
+  "expected [claude_settings.install, claude_settings.install, terminal.open] (PreToolUse + Stop, then the "
+    .. "terminal), got %s",
   vim.inspect(events)
 )
 
@@ -100,6 +104,27 @@ harness.expect_eq(
 local run_result = harness.run({ "nvim", "--clean", "-l", script_path }, { stdin = "{}", timeout = 10000 })
 harness.expect_eq(run_result.code, 0, "the registered command failed to run: " .. tostring(run_result.stderr))
 
+-- Same claims, for the Stop hook registered alongside it (c-4, c-5).
+harness.expect_eq(#doc.hooks.Stop, 1, "expected exactly one registered Stop entry")
+local stop_command = doc.hooks.Stop[1].hooks[1].command
+local stop_script_path = stop_command:match("^nvim %-%-clean %-l (.+)$")
+harness.expect(
+  stop_script_path ~= nil,
+  "could not parse a script path out of the registered Stop command %q",
+  stop_command
+)
+harness.expect_eq(
+  vim.fn.filereadable(stop_script_path),
+  1,
+  "the registered Stop hook script does not exist at " .. tostring(stop_script_path)
+)
+local stop_run_result = harness.run({ "nvim", "--clean", "-l", stop_script_path }, { stdin = "{}", timeout = 10000 })
+harness.expect_eq(
+  stop_run_result.code,
+  0,
+  "the registered Stop command failed to run: " .. tostring(stop_run_result.stderr)
+)
+
 -- 7. stop() disarms: the state file goes, even though the settings entry
 -- deliberately survives (settings_delivery's accepted cost).
 vim.cmd("CodriverStop")
@@ -114,6 +139,7 @@ harness.expect_eq(
   1,
   "a start/stop/start cycle must not leave two codriver PreToolUse entries"
 )
+harness.expect_eq(#doc_after_cycle.hooks.Stop, 1, "a start/stop/start cycle must not leave two codriver Stop entries")
 
 vim.cmd("CodriverStop")
 
