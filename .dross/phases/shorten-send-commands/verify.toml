@@ -1,0 +1,81 @@
+[verify]
+  phase = "shorten-send-commands"
+  generated_at = 2026-09-12T09:52:01.099724Z
+  verdict = "pass"
+  finalized = true
+  finalized_at = 2026-09-12T09:53:06.522922Z
+
+[summary]
+  mutation_status = "skipped"
+  measured_on = "local"
+  mutation_score = 0.0
+  mutants_killed = 0
+  mutants_survived = 0
+  mutants_not_covered = 0
+  mutants_in_scope = 0
+  unclassified_in_scope = 0
+  criteria_total = 5
+  criteria_covered = 5
+  criteria_uncovered = 0
+
+[[criterion]]
+  id = "c-1"
+  status = "covered"
+  tests = ["tests/nvim/keymaps_check.lua: default <leader>cs normal-mode rhs check (lines 63-65); whole-buffer queueing via feedkeys (lines 95-105)"]
+  notes = "Exercises the real vim.keymap.set registration and drives it through nvim_feedkeys, asserting the vendored mention_queue gets exactly the current buffer's full line range — not just that the lhs exists."
+
+[[criterion]]
+  id = "c-2"
+  status = "covered"
+  tests = ["tests/nvim/keymaps_check.lua: default <leader>cs visual-mode rhs check (lines 67-69); partial-range queueing via feedkeys (lines 107-117)"]
+  notes = "Asserts start_line/end_line match exactly the two selected lines, not the whole buffer — distinguishes visual-scoped send from c-1's whole-buffer case."
+
+[[criterion]]
+  id = "c-3"
+  status = "covered"
+  tests = ["tests/codriver/config_spec.lua:314-350 (describe \"the keys option\")"]
+  notes = "Covers override of a known key, unknown-key raise naming the key, non-string/non-false raise naming the field, and the omitted-opts.keys default resolution — matches config.lua's existing deep-merge/unknown-key-raises convention (resolve_keys, config.lua:169-212)."
+
+[[criterion]]
+  id = "c-4"
+  status = "covered"
+  tests = ["tests/nvim/keymaps_check.lua:71-77 (default <leader>cS rhs is \":CodriverSendText \" with no trailing <CR>)"]
+  notes = "Headless script can't hold a live cmdline wait, so the no-<CR> rhs is checked directly as the deterministic proxy for 'prefills without submitting', as the file's own header comment explains."
+
+[[criterion]]
+  id = "c-5"
+  status = "covered"
+  tests = ["tests/codriver/config_spec.lua:321-325 (keys.send = false omitted from resolved.codriver.keys)", "tests/nvim/keymaps_check.lua:126-141 (keymaps.apply honours the omission: disabled entry unmapped in both modes; a custom lhs binds and the default <leader>cs is not also left mapped)"]
+  notes = "Covered at both layers: config.lua's resolution (t-1) and keymaps.lua's apply() consuming the resolved table (t-2) — the disable and override cases are both asserted to not leave the old default binding behind, which is the actual clobber risk c-5 guards against."
+
+[[finding]]
+  severity = "NOTE"
+  text = "mutation skipped: no Stryker-equivalent mutation adapter exists for .lua in this repo; verdict is based on criterion coverage alone, backed by a full green run of `mise run test` (222 busted successes, 0 failures; all tests/nvim/*_check.lua including keymaps_check.lua passed)."
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped README.md: no mutation adapter for .md"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/config.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/init.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/keymaps.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/codriver/config_spec.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/codriver/init_spec.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/nvim/keymaps_check.lua: no mutation adapter for .lua"
