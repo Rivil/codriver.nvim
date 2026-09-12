@@ -1,118 +1,53 @@
+task_seq = 0
+
 [phase]
-id = "write-allowlist"
+  id = "write-allowlist"
 
 [[task]]
-id            = "t-1"
-wave          = 1
-title         = "Add write_allow option to config.lua"
-files         = ["lua/codriver/config.lua", "tests/codriver/config_spec.lua"]
-description   = """
-Add `write_allow` to CODRIVER_KEYS as a flat list of path-prefix strings,
-validated with the same validate_string_list rigor as bash_allow.heads, and
-copied into resolved.codriver.write_allow.
-"""
-covers        = ["c-1", "c-5"]
-test_contract = [
-  "opts.write_allow that isn't a table errors naming write_allow",
-  "opts.write_allow containing an empty-string entry errors naming write_allow[i]",
-  "a valid write_allow list of strings round-trips unchanged into resolved.codriver.write_allow",
-  "omitting write_allow leaves resolved.codriver.write_allow nil",
-]
-status        = "pending"
+  id = "t-1"
+  wave = 1
+  title = "Add write_allow option to config.lua"
+  files = ["lua/codriver/config.lua", "tests/codriver/config_spec.lua"]
+  description = "Add `write_allow` to CODRIVER_KEYS as a flat list of path-prefix strings,\nvalidated with the same validate_string_list rigor as bash_allow.heads, and\ncopied into resolved.codriver.write_allow.\n"
+  covers = ["c-1", "c-5"]
+  test_contract = ["opts.write_allow that isn't a table errors naming write_allow", "opts.write_allow containing an empty-string entry errors naming write_allow[i]", "a valid write_allow list of strings round-trips unchanged into resolved.codriver.write_allow", "omitting write_allow leaves resolved.codriver.write_allow nil"]
+  status = "done"
 
 [[task]]
-id            = "t-2"
-wave          = 1
-title         = "Allow Edit/Write under an allowed prefix"
-files         = ["lua/codriver/hook/decision.lua", "tests/codriver/hook_decision_spec.lua"]
-description   = """
-In M.decide, when role is navigator and tool is Edit/Write/MultiEdit/NotebookEdit,
-extract the target path (file_path for Edit/Write/MultiEdit, notebook_path for
-NotebookEdit) from tool_input and allow the call if it matches a
-session.write_allow entry under segment-boundary-aware prefix matching (entry
-"notes" matches "notes/x" and "notes" exactly, never "notes-leak/x").
-Otherwise fall through to the existing navigator deny. Bash stays untouched —
-still governed solely by bash.allows.
-"""
-covers        = ["c-1", "c-2", "c-4"]
-test_contract = [
-  "a Write call whose file_path starts with a configured write_allow prefix returns allow while navigator",
-  "a MultiEdit call whose file_path starts with a configured write_allow prefix returns allow while navigator, same as Write",
-  "a NotebookEdit call whose notebook_path starts with a configured write_allow prefix returns allow while navigator, verifying the notebook_path field is read rather than file_path",
-  "an Edit call whose file_path is outside every write_allow prefix still returns deny while navigator",
-  "with session.write_allow nil, Write/Edit/MultiEdit/NotebookEdit calls deny while navigator exactly as before this phase",
-  "entry \"notes\" does not match \"notes-leak/secret.md\" — segment boundary is enforced, not a raw string prefix",
-  "a Bash command targeting an allowlisted path is unaffected by write_allow — still governed solely by bash.allows",
-]
-status        = "pending"
+  id = "t-2"
+  wave = 1
+  title = "Allow Edit/Write under an allowed prefix"
+  files = ["lua/codriver/hook/decision.lua", "tests/codriver/hook_decision_spec.lua"]
+  description = "In M.decide, when role is navigator and tool is Edit/Write/MultiEdit/NotebookEdit,\nextract the target path (file_path for Edit/Write/MultiEdit, notebook_path for\nNotebookEdit) from tool_input and allow the call if it matches a\nsession.write_allow entry under segment-boundary-aware prefix matching (entry\n\"notes\" matches \"notes/x\" and \"notes\" exactly, never \"notes-leak/x\").\nOtherwise fall through to the existing navigator deny. Bash stays untouched —\nstill governed solely by bash.allows.\n"
+  covers = ["c-1", "c-2", "c-4"]
+  test_contract = ["a Write call whose file_path starts with a configured write_allow prefix returns allow while navigator", "a MultiEdit call whose file_path starts with a configured write_allow prefix returns allow while navigator, same as Write", "a NotebookEdit call whose notebook_path starts with a configured write_allow prefix returns allow while navigator, verifying the notebook_path field is read rather than file_path", "an Edit call whose file_path is outside every write_allow prefix still returns deny while navigator", "with session.write_allow nil, Write/Edit/MultiEdit/NotebookEdit calls deny while navigator exactly as before this phase", "entry \"notes\" does not match \"notes-leak/secret.md\" — segment boundary is enforced, not a raw string prefix", "a Bash command targeting an allowlisted path is unaffected by write_allow — still governed solely by bash.allows"]
+  status = "done"
 
 [[task]]
-id            = "t-3"
-wave          = 1
-title         = "Thread write_allow through session state"
-files         = [
-  "lua/codriver/init.lua",
-  "lua/codriver/hook/state.lua",
-  "tests/codriver/hook_state_spec.lua",
-  "tests/nvim/hook_state_check.lua",
-  "tests/nvim/hook_publish_check.lua",
-]
-description   = """
-Add write_allow to state.publish's record, state.read's vim.NIL normalization,
-and state.probe's returned table, mirroring bash_allow's existing fields.
-Thread resolved.codriver.write_allow through init.lua's publish_role the same
-way bash_allow already is. Add a first hook_state_spec.lua covering the
-round-trip and a persistence check for c-3 at the busted level, then extend
-the real-headless-Neovim integration lane (hook_state_check.lua's JSON
-round-trip section, hook_publish_check.lua's setup()/on_change threading
-section) with write_allow assertions mirroring bash_allow's existing coverage
-there — c-3's restart-durability claim needs the real filesystem/pid contract,
-not just a faked busted stub.
-"""
-covers        = ["c-1", "c-3"]
-test_contract = [
-  "state.publish/read round-trips a write_allow value unchanged, the same guarantee bash_allow already has",
-  "state.probe's live-session table includes write_allow exactly as it already includes bash_allow",
-  "a file written to disk is unaffected by state.clear() — proves no cleanup/rollback path touches an allowed write",
-  "hook_state_check.lua's real JSON round-trip section carries write_allow unchanged, same as its existing bash_allow assertion",
-  "hook_publish_check.lua's setup()/on_change section shows write_allow published and not dropped on role-flip republish, same as its existing bash_allow assertion",
-]
-status        = "pending"
+  id = "t-3"
+  wave = 1
+  title = "Thread write_allow through session state"
+  files = ["lua/codriver/init.lua", "lua/codriver/hook/state.lua", "tests/codriver/hook_state_spec.lua", "tests/nvim/hook_state_check.lua", "tests/nvim/hook_publish_check.lua"]
+  description = "Add write_allow to state.publish's record, state.read's vim.NIL normalization,\nand state.probe's returned table, mirroring bash_allow's existing fields.\nThread resolved.codriver.write_allow through init.lua's publish_role the same\nway bash_allow already is. Add a first hook_state_spec.lua covering the\nround-trip and a persistence check for c-3 at the busted level, then extend\nthe real-headless-Neovim integration lane (hook_state_check.lua's JSON\nround-trip section, hook_publish_check.lua's setup()/on_change threading\nsection) with write_allow assertions mirroring bash_allow's existing coverage\nthere — c-3's restart-durability claim needs the real filesystem/pid contract,\nnot just a faked busted stub.\n"
+  covers = ["c-1", "c-3"]
+  test_contract = ["state.publish/read round-trips a write_allow value unchanged, the same guarantee bash_allow already has", "state.probe's live-session table includes write_allow exactly as it already includes bash_allow", "a file written to disk is unaffected by state.clear() — proves no cleanup/rollback path touches an allowed write", "hook_state_check.lua's real JSON round-trip section carries write_allow unchanged, same as its existing bash_allow assertion", "hook_publish_check.lua's setup()/on_change section shows write_allow published and not dropped on role-flip republish, same as its existing bash_allow assertion"]
+  status = "done"
 
 [[task]]
-id            = "t-4"
-wave          = 1
-title         = "README: document write_allow"
-files         = ["README.md", "tests/codriver/readme_spec.lua"]
-description   = """
-Document write_allow in the Options section alongside bash_allow: its shape
-(a flat list of path-prefix strings), that it is prefix-matched with a segment
-boundary rather than glob or a raw string prefix, and that Bash writes are
-unaffected by it.
-"""
-covers        = ["c-1"]
-test_contract = [
-  "README's Options example block mentions write_allow and shows its shape as a flat string list",
-  "README states write_allow is prefix-matched with a segment boundary, not glob and not a raw string prefix",
-  "README states write_allow does not extend to Bash — Bash stays governed solely by bash_allow",
-]
-status        = "pending"
+  id = "t-4"
+  wave = 1
+  title = "README: document write_allow"
+  files = ["README.md", "tests/codriver/readme_spec.lua"]
+  description = "Document write_allow in the Options section alongside bash_allow: its shape\n(a flat list of path-prefix strings), that it is prefix-matched with a segment\nboundary rather than glob or a raw string prefix, and that Bash writes are\nunaffected by it.\n"
+  covers = ["c-1"]
+  test_contract = ["README's Options example block mentions write_allow and shows its shape as a flat string list", "README states write_allow is prefix-matched with a segment boundary, not glob and not a raw string prefix", "README states write_allow does not extend to Bash — Bash stays governed solely by bash_allow"]
+  status = "done"
 
 [[task]]
-id            = "t-5"
-wave          = 1
-title         = "checkhealth reports configured write_allow"
-files         = ["lua/codriver/health.lua", "tests/nvim/health_check.lua"]
-description   = """
-Add check_write_allowlist to :checkhealth codriver, mirroring
-check_bash_allowlist's placement and reporting style. Unlike bash_allow, there
-are no hardcoded defaults to merge (an empty/omitted write_allow means nothing
-is writable, per c-4) — report the configured write_allow prefixes verbatim,
-not through an effective_allowlist-style merge.
-"""
-covers        = []
-test_contract = [
-  "checkhealth codriver reports the configured write_allow prefixes verbatim when write_allow is set in setup()",
-  "checkhealth codriver reports an empty write_allow list (not an error, not a crash) when write_allow is omitted",
-]
-status        = "pending"
+  id = "t-5"
+  wave = 1
+  title = "checkhealth reports configured write_allow"
+  files = ["lua/codriver/health.lua", "tests/nvim/health_check.lua"]
+  description = "Add check_write_allowlist to :checkhealth codriver, mirroring\ncheck_bash_allowlist's placement and reporting style. Unlike bash_allow, there\nare no hardcoded defaults to merge (an empty/omitted write_allow means nothing\nis writable, per c-4) — report the configured write_allow prefixes verbatim,\nnot through an effective_allowlist-style merge.\n"
+  test_contract = ["checkhealth codriver reports the configured write_allow prefixes verbatim when write_allow is set in setup()", "checkhealth codriver reports an empty write_allow list (not an error, not a crash) when write_allow is omitted"]
+  status = "done"

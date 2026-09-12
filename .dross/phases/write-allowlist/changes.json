@@ -2,5 +2,89 @@
   "phase": "write-allowlist",
   "base": "milestone/v0.3",
   "base_commit": "ca45a954eac0945de299fbd0c28691b4b349bf66",
-  "tasks": {}
+  "tasks": {
+    "t-1": {
+      "files": [
+        "lua/codriver/config.lua",
+        "tests/codriver/config_spec.lua"
+      ],
+      "commit": "df2a7f6",
+      "completed_at": "2026-09-12T11:03:38.77322Z",
+      "landmarks": [
+        {
+          "feature": "write allowlist",
+          "symbol": "CODRIVER_KEYS.write_allow",
+          "loc": "lua/codriver/config.lua:31",
+          "what": "setup() accepts a validated write_allow path-prefix list and resolves it into resolved.codriver.write_allow"
+        }
+      ]
+    },
+    "t-2": {
+      "files": [
+        "lua/codriver/hook/decision.lua",
+        "tests/codriver/hook_decision_spec.lua"
+      ],
+      "commit": "95dea16",
+      "completed_at": "2026-09-12T11:05:11.133752Z",
+      "landmarks": [
+        {
+          "feature": "write allowlist",
+          "symbol": "WRITE_TOOL_PATH_FIELD·path_write_allowed",
+          "loc": "lua/codriver/hook/decision.lua:38",
+          "what": "Edit/Write/MultiEdit/NotebookEdit are allowed while navigator when their target path matches a session.write_allow prefix under segment-boundary matching, Bash untouched"
+        }
+      ]
+    },
+    "t-3": {
+      "files": [
+        "lua/codriver/init.lua",
+        "lua/codriver/hook/state.lua",
+        "tests/codriver/hook_state_spec.lua",
+        "tests/nvim/hook_state_check.lua",
+        "tests/nvim/hook_publish_check.lua"
+      ],
+      "commit": "9170971",
+      "completed_at": "2026-09-12T11:11:38.884972Z",
+      "landmarks": [
+        {
+          "feature": "write allowlist",
+          "symbol": "state.publish·state.probe write_allow field",
+          "loc": "lua/codriver/hook/state.lua:19",
+          "what": "write_allow round-trips through the state file's publish/read/probe cycle and setup()'s on_change republish, mirroring bash_allow"
+        }
+      ]
+    },
+    "t-4": {
+      "files": [
+        "README.md",
+        "tests/codriver/readme_spec.lua"
+      ],
+      "commit": "af17ec1",
+      "completed_at": "2026-09-12T11:12:58.183555Z",
+      "landmarks": [
+        {
+          "feature": "write allowlist",
+          "symbol": "README Options write_allow",
+          "loc": "README.md:97",
+          "what": "README documents write_allow's shape, segment-boundary matching, and Bash exclusion alongside bash_allow"
+        }
+      ]
+    },
+    "t-5": {
+      "files": [
+        "lua/codriver/health.lua",
+        "tests/nvim/health_check.lua"
+      ],
+      "commit": "f27f8f2",
+      "completed_at": "2026-09-12T11:14:05.352643Z",
+      "landmarks": [
+        {
+          "feature": "write allowlist",
+          "symbol": "check_write_allowlist",
+          "loc": "lua/codriver/health.lua:116",
+          "what": ":checkhealth codriver reports the configured write_allow prefixes verbatim, empty when omitted"
+        }
+      ]
+    }
+  }
 }
