@@ -1,7 +1,9 @@
 {
   "phase": "task-status-sync",
+  "pr": 9,
   "base": "milestone/v0.2",
   "base_commit": "8ed9e9731dbb3a7320631c4027fde779bf653267",
+  "status": "shipped",
   "tasks": {
     "t-1": {
       "files": [
