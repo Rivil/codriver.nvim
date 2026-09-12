@@ -1,44 +1,14 @@
+task_seq = 0
+
 [phase]
-id = "owner-driven-handover"
+  id = "owner-driven-handover"
 
 [[task]]
-id            = "t-1"
-wave          = 1
-title         = "u-key drives role from task ownership"
-files         = ["lua/codriver/tasks.lua", "tests/nvim/tasks_check.lua"]
-description   = """
-Split open()'s combined `d`/`u` branch in the key loop. `d` keeps its current
-code path exactly as-is — it never looks at ownership or role (c-3).
-
-For `u`: after task_status.set(phase_id, task_id, "in_progress") returns
-ok=true, look up ownership.owner(phase_id, task_id) (require("codriver.role")
-alongside the existing task_status require) and compute the expected role —
-ownership.CLAUDE -> "driver", ownership.HUMAN -> "navigator". If that differs
-from role.get(), call role.set(expected) and vim.notify the exact same message
-:CodriverHandover/:CodriverTakeback already use ("codriver: Claude is driving"
-/ "codriver: you're driving") — reusing that text is what satisfies c-5's
-"same feedback guarantee" requirement rather than inventing new copy.
-
-If task_status.set's write fails (ok=false), no role lookup or switch is
-attempted at all — the task didn't actually transition, so flipping role would
-describe a state that isn't true on disk. If the owner already matches the
-current role, role.set() is not called and no role-switch notification fires
-(role.set() itself already no-ops on no-change; this task's own notify call
-must independently be gated on the same difference check, not fire
-unconditionally after every successful `u`).
-
-No confirmation prompt for the switch (locked switch_mechanism decision) and
-no special-casing for a second in_progress task under the opposite owner
-(locked concurrent_tasks decision) — the just-started task's owner always
-wins.
-"""
-covers        = ["c-1", "c-2", "c-3", "c-4", "c-5"]
-test_contract = [
-  "pressing `u` on a claude-owned task while role is navigator flips role.get() to \"driver\" and notifies \"codriver: Claude is driving\"",
-  "pressing `u` on a human-owned task while role is driver flips role.get() to \"navigator\" and notifies \"codriver: you're driving\"",
-  "pressing `u` on a task whose owner already matches the current role leaves role.get() unchanged and fires no role-switch notification",
-  "pressing `d` on a claude-owned task while role is navigator leaves role.get() as \"navigator\" — d never drives a role switch",
-  "pressing `d` on a human-owned task while role is driver leaves role.get() as \"driver\"",
-  "when task_status.set for a `u` press returns ok=false, role.get() is unchanged — a failed write must not flip the role",
-]
-status        = "pending"
+  id = "t-1"
+  wave = 1
+  title = "u-key drives role from task ownership"
+  files = ["lua/codriver/tasks.lua", "tests/nvim/tasks_check.lua"]
+  description = "Split open()'s combined `d`/`u` branch in the key loop. `d` keeps its current\ncode path exactly as-is — it never looks at ownership or role (c-3).\n\nFor `u`: after task_status.set(phase_id, task_id, \"in_progress\") returns\nok=true, look up ownership.owner(phase_id, task_id) — requiring both\ncodriver.role and codriver.ownership locally in the `u` branch, the same way\nthe separate `c`/`r` arm already requires codriver.ownership; `u`'s existing\narm only has codriver.task_status in scope today. Compute the expected role —\nownership.CLAUDE -> \"driver\", ownership.HUMAN -> \"navigator\". If that differs\nfrom role.get(), call role.set(expected) and vim.notify the exact same message\n:CodriverHandover/:CodriverTakeback already use (\"codriver: Claude is driving\"\n/ \"codriver: you're driving\") — reusing that text is what satisfies c-5's\n\"same feedback guarantee\" requirement rather than inventing new copy.\n\nIf task_status.set's write fails (ok=false), no role lookup or switch is\nattempted at all — the task didn't actually transition, so flipping role would\ndescribe a state that isn't true on disk. If the owner already matches the\ncurrent role, role.set() is not called and no role-switch notification fires\n(role.set() itself already no-ops on no-change; this task's own notify call\nmust independently be gated on the same difference check, not fire\nunconditionally after every successful `u`).\n\n`c`/`r` (claim/release) never touch role, even when pressed on a task that is\nalready in_progress — the locked trigger_scope decision's most specific claim,\nwhich is why it also gets its own test_contract item rather than being implied\nby `c`/`r` sitting in a separate elseif arm.\n\nNo confirmation prompt for the switch (locked switch_mechanism decision) and\nno special-casing for a second in_progress task under the opposite owner\n(locked concurrent_tasks decision) — the just-started task's owner always\nwins."
+  covers = ["c-1", "c-2", "c-3", "c-4", "c-5"]
+  test_contract = ["pressing `u` on a claude-owned task while role is navigator flips role.get() to \"driver\" and notifies \"codriver: Claude is driving\"", "pressing `u` on a human-owned task while role is driver flips role.get() to \"navigator\" and notifies \"codriver: you're driving\"", "pressing `u` on a task whose owner already matches the current role leaves role.get() unchanged and fires no role-switch notification", "pressing `d` on a claude-owned task while role is navigator leaves role.get() as \"navigator\" — d never drives a role switch", "pressing `d` on a human-owned task while role is driver leaves role.get() as \"driver\"", "when task_status.set for a `u` press returns ok=false, role.get() is unchanged — a failed write must not flip the role", "pressing `c` or `r` on a task that is already in_progress leaves role.get() unchanged — claim/release never drives a role switch, even on an in-progress task"]
+  status = "pending"
