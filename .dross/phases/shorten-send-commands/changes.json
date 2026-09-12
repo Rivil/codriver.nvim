@@ -2,5 +2,40 @@
   "phase": "shorten-send-commands",
   "base": "milestone/v0.3",
   "base_commit": "ca939ce799ae06bbcc0219d28a156edeb308afdc",
-  "tasks": {}
+  "tasks": {
+    "t-1": {
+      "files": [
+        "lua/codriver/config.lua",
+        "tests/codriver/config_spec.lua"
+      ],
+      "commit": "f484bc3",
+      "completed_at": "2026-09-12T09:24:22.360305Z",
+      "landmarks": [
+        {
+          "feature": "configurable send keymaps",
+          "symbol": "resolve_keys",
+          "loc": "lua/codriver/config.lua:171",
+          "what": "opts.keys deep-merges against send/send_text defaults, false disables, unknown/invalid keys raise"
+        }
+      ]
+    },
+    "t-2": {
+      "files": [
+        "lua/codriver/keymaps.lua",
+        "lua/codriver/init.lua",
+        "README.md",
+        "tests/nvim/keymaps_check.lua"
+      ],
+      "commit": "4de727c",
+      "completed_at": "2026-09-12T09:35:08.245116Z",
+      "landmarks": [
+        {
+          "feature": "configurable send keymaps",
+          "symbol": "keymaps.apply",
+          "loc": "lua/codriver/keymaps.lua:17",
+          "what": "default \u003cleader\u003ecs/\u003cleader\u003ecS keymaps for CodriverSend/CodriverSendText, wired from setup() after command registration"
+        }
+      ]
+    }
+  }
 }

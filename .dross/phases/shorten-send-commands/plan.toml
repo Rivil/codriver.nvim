@@ -8,64 +8,18 @@ task_seq = 0
   wave = 1
   title = "Add opts.keys surface to config.lua"
   files = ["lua/codriver/config.lua", "tests/codriver/config_spec.lua"]
-  description = """
-Add `keys` to CODRIVER_KEYS and M.defaults (`send = "<leader>cs"`,
-`send_text = "<leader>cS"`). Resolve `opts.keys` against those defaults with
-a deep-merge: an unknown key under `opts.keys` raises, naming it, same
-convention as the top-level boundary. Each known entry accepts either a
-non-empty string (overrides the default lhs) or literal `false` (disables
-it — leave it out of the resolved keys table rather than carrying a falsy
-value forward, so keymaps.lua in t-2 can just iterate what it's given).
-Anything else (a number, a table, an empty string) raises naming the field.
-`nil`/omission is not a distinct case — it resolves to the enabled default,
-per the confirmed reading of c-5. Expose the result as `keys` on
-`M.resolve`'s `codriver` return table (alongside `auto_start`,
-`test_command`, `bash_allow`) — `resolved.codriver.keys` is the exact
-handoff t-2 consumes.
-"""
+  description = "Add `keys` to CODRIVER_KEYS and M.defaults (`send = \"<leader>cs\"`,\n`send_text = \"<leader>cS\"`). Resolve `opts.keys` against those defaults with\na deep-merge: an unknown key under `opts.keys` raises, naming it, same\nconvention as the top-level boundary. Each known entry accepts either a\nnon-empty string (overrides the default lhs) or literal `false` (disables\nit — leave it out of the resolved keys table rather than carrying a falsy\nvalue forward, so keymaps.lua in t-2 can just iterate what it's given).\nAnything else (a number, a table, an empty string) raises naming the field.\n`nil`/omission is not a distinct case — it resolves to the enabled default,\nper the confirmed reading of c-5. Expose the result as `keys` on\n`M.resolve`'s `codriver` return table (alongside `auto_start`,\n`test_command`, `bash_allow`) — `resolved.codriver.keys` is the exact\nhandoff t-2 consumes.\n"
   covers = ["c-3", "c-5"]
-  test_contract = [
-    "opts.keys.send set to a non-empty string overrides the default lhs for CodriverSend in resolved.codriver.keys",
-    "opts.keys.send = false is absent from resolved.codriver.keys rather than carrying a falsy value forward",
-    "an unknown key under opts.keys (e.g. opts.keys.nope) raises, naming it",
-    "opts.keys.send set to a non-string, non-false value (e.g. a number or empty string) raises",
-    "omitting opts.keys entirely resolves resolved.codriver.keys with both send and send_text enabled at their defaults (<leader>cs, <leader>cS)",
-  ]
-  status = "pending"
+  test_contract = ["opts.keys.send set to a non-empty string overrides the default lhs for CodriverSend in resolved.codriver.keys", "opts.keys.send = false is absent from resolved.codriver.keys rather than carrying a falsy value forward", "an unknown key under opts.keys (e.g. opts.keys.nope) raises, naming it", "opts.keys.send set to a non-string, non-false value (e.g. a number or empty string) raises", "omitting opts.keys entirely resolves resolved.codriver.keys with both send and send_text enabled at their defaults (<leader>cs, <leader>cS)"]
+  status = "done"
 
 [[task]]
   id = "t-2"
   wave = 2
-  depends_on = ["t-1"]
   title = "Wire default Send/SendText keymaps"
   files = ["lua/codriver/keymaps.lua", "lua/codriver/init.lua", "README.md", "tests/nvim/keymaps_check.lua"]
-  description = """
-New lua/codriver/keymaps.lua exposing `M.apply(resolved_keys)`: for a
-present `send` entry, vim.keymap.set({"n", "v"}, lhs, ...) to
-"<Cmd>CodriverSend<CR>" for normal mode and ":CodriverSend<CR>" for visual
-mode — the plain `:` form is the conventional idiom for invoking a ranged
-command from visual mode (Neovim's own '<,'> prefix insertion applies to
-it). Verify during implementation that the visual range lands correctly
-before locking in the exact mapping form. For a present
-`send_text` entry, map normal mode to the literal string
-":CodriverSendText " (no <CR>) so it prefills the command-line and waits
-for input, per the locked sendtext_ux decision. An absent entry (disabled
-via opts.keys.<name> = false in t-1) is simply not mapped.
-
-Call keymaps.apply(resolved.codriver.keys) from init.lua's setup(), after
-the vendored/pure commands are registered.
-
-Update README's Options section (document the new `keys` table alongside
-auto_start/bash_allow) and the commands table (note the default keymaps
-next to CodriverSend/CodriverSendText), matching how every existing option
-is already documented there.
-"""
+  description = "New lua/codriver/keymaps.lua exposing `M.apply(resolved_keys)`: for a\npresent `send` entry, vim.keymap.set({\"n\", \"v\"}, lhs, ...) to\n\"<Cmd>CodriverSend<CR>\" for normal mode and \":CodriverSend<CR>\" for visual\nmode — the plain `:` form is the conventional idiom for invoking a ranged\ncommand from visual mode (Neovim's own '<,'> prefix insertion applies to\nit). Verify during implementation that the visual range lands correctly\nbefore locking in the exact mapping form. For a present\n`send_text` entry, map normal mode to the literal string\n\":CodriverSendText \" (no <CR>) so it prefills the command-line and waits\nfor input, per the locked sendtext_ux decision. An absent entry (disabled\nvia opts.keys.<name> = false in t-1) is simply not mapped.\n\nCall keymaps.apply(resolved.codriver.keys) from init.lua's setup(), after\nthe vendored/pure commands are registered.\n\nUpdate README's Options section (document the new `keys` table alongside\nauto_start/bash_allow) and the commands table (note the default keymaps\nnext to CodriverSend/CodriverSendText), matching how every existing option\nis already documented there.\n"
   covers = ["c-1", "c-2", "c-4", "c-5"]
-  test_contract = [
-    "<leader>cs in normal mode on a non-tree buffer queues an at-mention for the current buffer, same as :CodriverSend",
-    "<leader>cs in visual mode queues an at-mention scoped to exactly the visually-selected line range, not the whole buffer",
-    "<leader>cS enters command-line mode with the line prefilled as \"CodriverSendText \" and does not submit",
-    "setup() with opts.keys.send = false leaves <leader>cs unmapped in both normal and visual mode",
-    "setup() with opts.keys.send = \"<leader>xx\" binds the custom lhs instead of <leader>cs, and leaves <leader>cs itself unmapped",
-  ]
-  status = "pending"
+  depends_on = ["t-1"]
+  test_contract = ["<leader>cs in normal mode on a non-tree buffer queues an at-mention for the current buffer, same as :CodriverSend", "<leader>cs in visual mode queues an at-mention scoped to exactly the visually-selected line range, not the whole buffer", "<leader>cS enters command-line mode with the line prefilled as \"CodriverSendText \" and does not submit", "setup() with opts.keys.send = false leaves <leader>cs unmapped in both normal and visual mode", "setup() with opts.keys.send = \"<leader>xx\" binds the custom lhs instead of <leader>cs, and leaves <leader>cs itself unmapped"]
+  status = "done"
