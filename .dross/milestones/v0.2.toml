@@ -3,7 +3,7 @@ phases = ["phase-binding", "task-status-sync", "owner-driven-handover", "phase-b
 [milestone]
   version = "v0.2"
   title = "A pairing session bound to a real dross task graph"
-  status = "active"
+  status = "complete"
   started = "2026-09-09"
   base = "main"
 
