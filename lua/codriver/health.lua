@@ -113,6 +113,15 @@ local function check_bash_allowlist(bash_allow)
   info("Bash allowlist git subcommands: " .. table.concat(sorted_keys(allowlist.git_subcommands), ", "))
 end
 
+---The configured write allowlist, reported verbatim. Unlike bash_allow, there
+---is no hardcoded floor to merge in: an empty or omitted write_allow means
+---nothing is writable while navigator (c-4), so an empty list here is the
+---correct report, not a missing one.
+---@param write_allow string[]|nil
+local function check_write_allowlist(write_allow)
+  info("Write allowlist: " .. table.concat(write_allow or {}, ", "))
+end
+
 ---The three things that can independently be false about a session.
 ---@param snapshot CodriverStatusSnapshot|table
 local function check_session(snapshot)
@@ -181,6 +190,7 @@ function M.check()
   check_cli(config)
   check_terminal_provider(config)
   check_bash_allowlist(codriver.config and codriver.config.bash_allow)
+  check_write_allowlist(codriver.config and codriver.config.write_allow)
 
   check_session(require("codriver.session").snapshot())
 end

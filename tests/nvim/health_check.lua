@@ -133,7 +133,34 @@ harness.expect_contains(
   "the git-subcommand line does not include a subcommand added via bash_allow.git_subcommands"
 )
 
+-- ---------------------------------------------------------- write allowlist ---
+-- c-1/c-4: the report names the configured write allowlist verbatim, and an
+-- omitted one reports as empty rather than erroring or dropping the line.
+
+local write_line_cold = line_with(cold, "Write allowlist")
+harness.expect(write_line_cold, "no Write allowlist line in the cold report:\n%s", cold)
+harness.expect_not_contains(
+  write_line_cold,
+  "ERROR",
+  "an omitted write_allow must report as an empty list, not an error"
+)
+
+require("codriver").setup({ write_allow = { "notes", "scratch/logs" } })
+local with_write_allow = report()
+
+local write_line_with_allow = line_with(with_write_allow, "Write allowlist")
+harness.expect_contains(
+  write_line_with_allow,
+  "notes",
+  "the write allowlist line does not include a prefix configured via write_allow"
+)
+harness.expect_contains(
+  write_line_with_allow,
+  "scratch/logs",
+  "the write allowlist line does not include every prefix configured via write_allow"
+)
+
 harness.ok(
-  "checkhealth codriver reports listening, lockfile and connected as three separate states, and the effective "
-    .. "Bash allowlist including any bash_allow additions"
+  "checkhealth codriver reports listening, lockfile and connected as three separate states, the effective "
+    .. "Bash allowlist including any bash_allow additions, and the configured write allowlist"
 )
