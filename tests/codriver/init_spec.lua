@@ -318,6 +318,11 @@ describe("codriver", function()
       -- t-2's addition: codriver.winbar paints into vim.o.winbar on every
       -- setup(). A plain table stands in for the real global-local option.
       _G.vim.o = { winbar = "" }
+      -- shorten-send-commands' addition: codriver.keymaps.apply() now runs on
+      -- every setup(), which reaches for vim.keymap.set. These tests care
+      -- about setup()'s command/terminal/server orchestration, not about
+      -- which keys get bound, so a no-op stands in.
+      _G.vim.keymap = { set = function() end }
     end)
 
     after_each(function()
@@ -334,6 +339,7 @@ describe("codriver", function()
       _G.vim.v = nil
       _G.vim.split = nil
       _G.vim.o = nil
+      _G.vim.keymap = nil
       _G.reset_vim_stub()
     end)
 

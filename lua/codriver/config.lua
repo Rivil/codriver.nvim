@@ -28,6 +28,7 @@ local CODRIVER_KEYS = {
   claudecode = true,
   test_command = true,
   bash_allow = true,
+  keys = true,
 }
 
 ---@class CodriverOptions
@@ -39,9 +40,17 @@ local CODRIVER_KEYS = {
 ---without a human at the keyboard. Opening a WebSocket server and writing a
 ---lockfile on every `nvim` launch contradicts that, and litters one lockfile
 ---per Neovim instance. Users who want Claude always reachable opt in.
+---
+---`keys` are on by default — a plugin whose commands need to be typed out
+---isn't "reachable via a keymap". `opts.keys.<name> = false` disables one
+---without clobbering a user's own binding of the same lhs.
 ---@type CodriverOptions
 M.defaults = {
   auto_start = false,
+  keys = {
+    send = "<leader>cs",
+    send_text = "<leader>cS",
+  },
 }
 
 ---Vendored defaults codriver has an opinion about. Deliberately short: every
@@ -135,6 +144,73 @@ local function codriver_key_list()
   return table.concat(keys, ", ")
 end
 
+---Sorted list of the keymap names codriver accepts under `opts.keys`.
+---@return string
+local function keys_key_list()
+  local names = {}
+  for name in pairs(M.defaults.keys) do
+    table.insert(names, name)
+  end
+  table.sort(names)
+  return table.concat(names, ", ")
+end
+
+---Resolve `opts.keys` against `M.defaults.keys`.
+---
+---An entry set to `false` disables that keymap — it is left out of the
+---result entirely rather than carried forward as a falsy value, so
+---keymaps.lua can just iterate whatever it is handed. `nil`/omission is not
+---a distinct case: it resolves to the enabled default. Anything else must be
+---a non-empty string overriding the default lhs. Called one frame below
+---`M.resolve`, so errors raise at level 3 to still point at `setup()`'s own
+---call site, matching `validate_string_list`.
+---@param value table|nil
+---@return table<string, string>
+local function resolve_keys(value)
+  if value == nil then
+    value = {}
+  end
+  if type(value) ~= "table" then
+    error(("codriver.config: keys must be a table, got %s"):format(vim.inspect(value)), 3)
+  end
+
+  local unknown = {}
+  for name in pairs(value) do
+    if M.defaults.keys[name] == nil then
+      table.insert(unknown, tostring(name))
+    end
+  end
+  if #unknown > 0 then
+    table.sort(unknown)
+    error(
+      ("codriver.config: unknown key%s under `keys`: %s. codriver's keymaps are: %s"):format(
+        #unknown > 1 and "s" or "",
+        table.concat(unknown, ", "),
+        keys_key_list()
+      ),
+      3
+    )
+  end
+
+  local resolved = {}
+  for name, default_lhs in pairs(M.defaults.keys) do
+    local entry = value[name]
+    if entry == nil then
+      resolved[name] = default_lhs
+    elseif entry == false then
+      -- disabled: leave it out of the resolved table entirely.
+    elseif type(entry) == "string" and entry ~= "" then
+      resolved[name] = entry
+    else
+      error(
+        ("codriver.config: keys.%s must be a non-empty string or false, got %s"):format(name, vim.inspect(entry)),
+        3
+      )
+    end
+  end
+  return resolved
+end
+
 ---Split a user's `setup()` table into codriver's config and the vendored one.
 ---
 ---Raises on an unknown top-level key rather than passing a half-understood
@@ -197,6 +273,7 @@ function M.resolve(opts, channel)
     end
     bash_allow = deep_copy(opts.bash_allow)
   end
+  local keys = resolve_keys(opts.keys)
 
   local claudecode = deep_merge(M.claudecode_defaults, opts.claudecode)
   claudecode.env = claudecode.env or {}
@@ -240,7 +317,7 @@ function M.resolve(opts, channel)
   end
 
   return {
-    codriver = { auto_start = auto_start, test_command = test_command, bash_allow = bash_allow },
+    codriver = { auto_start = auto_start, test_command = test_command, bash_allow = bash_allow, keys = keys },
     claudecode = claudecode,
   }
 end

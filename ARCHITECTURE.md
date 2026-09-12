@@ -40,6 +40,20 @@ codriver owns exactly one namespace.
 
 _introduced session-bringup · 7cfaf6e_
 
+### Configurable send keymaps
+
+Default `<leader>cs`/`<leader>cS` keymaps reach `:CodriverSend`/`:CodriverSendText`
+without typing the command, rebindable or disable-able via `opts.keys` following
+config.lua's existing deep-merge/unknown-key-raises convention — a key set to
+`false` is omitted from the resolved table entirely rather than carried forward
+falsy, so it never clobbers a user's own binding.
+
+- config.resolve_keys — lua/codriver/config.lua:171
+- keymaps.M.apply — lua/codriver/keymaps.lua:17
+- keymaps_check — tests/nvim/keymaps_check.lua:1
+
+_introduced shorten-send-commands · 4de727c_
+
 ### Dross phase reader
 
 Reads the active dross phase and its task list (id/title/status) directly off
