@@ -1,0 +1,44 @@
+[phase]
+id        = "phase-binding-follow-up"
+title     = "phase-binding follow-up"
+milestone = "v0.2"
+
+[[criteria]]
+id   = "c-1"
+text = "`:CodriverClaim <id>` can release a task back to human, not just claim it to Claude."
+
+[[criteria]]
+id   = "c-2"
+text = "`:CodriverTasks` lets you claim/release the task under the cursor directly from the list, not just view it."
+
+[[criteria]]
+id   = "c-3"
+text = "`:CodriverTasks` shows an at-a-glance count of tasks owned by you vs Claude, not just per-line."
+
+[[criteria]]
+id   = "c-4"
+text = "Ownership entries for task ids no longer present in the phase's plan.toml are pruned rather than accumulating indefinitely."
+
+[[decisions]]
+key    = "release_command"
+choice = "Reuse :CodriverClaim with an optional owner argument: `:CodriverClaim <id> human` releases, `:CodriverClaim <id> claude` (or bare `<id>`) claims."
+why    = "One command surface instead of two near-duplicate commands; the bare-id form stays backward compatible with phase-binding's existing usage."
+locked = true
+
+[[decisions]]
+key    = "float_interaction"
+choice = "In `:CodriverTasks`, `c` claims and `r` releases the task under the cursor (cursor moves with j/k); any other key still closes the float as today."
+why    = "Closes the loop between viewing and acting without introducing a second UI surface or breaking the existing close-on-any-key behaviour for everything except the two new bindings."
+locked = true
+
+[[decisions]]
+key    = "summary_surface"
+choice = "The yours-vs-Claude's count is a header line inside the existing :CodriverTasks float, not a separate statusline component."
+why    = "No new UI surface, no statusline-plugin dependency question, and it's always current since the float re-reads on every open (c-4 from phase-binding)."
+locked = true
+
+[[decisions]]
+key    = "pruning_trigger"
+choice = "Ownership entries for a phase are re-synced against that phase's current task list on every claim/release write, dropping orphaned task ids before applying the new claim. No standalone prune command."
+why    = "Self-healing on next use, no background job, no new command to remember to run."
+locked = true

@@ -1,0 +1,40 @@
+{
+  "phase": "task-status-sync",
+  "pr": 9,
+  "base": "milestone/v0.2",
+  "base_commit": "8ed9e9731dbb3a7320631c4027fde779bf653267",
+  "status": "complete",
+  "tasks": {
+    "t-1": {
+      "files": [
+        "lua/codriver/task_status.lua",
+        "tests/codriver/task_status_spec.lua"
+      ],
+      "commit": "b462008",
+      "completed_at": "2026-09-11T15:15:26.03392Z",
+      "landmarks": [
+        {
+          "feature": "task status write-through",
+          "symbol": "task_status.set",
+          "loc": "lua/codriver/task_status.lua:20",
+          "what": "shells out to dross task status \u003cphase\u003e \u003ctask\u003e \u003cstatus\u003e with pcall-wrapped spawn and exit-code mapping"
+        }
+      ]
+    },
+    "t-2": {
+      "files": [
+        "tests/nvim/tasks_check.lua"
+      ],
+      "commit": "01617ff",
+      "completed_at": "2026-09-11T17:15:42.617046Z",
+      "landmarks": [
+        {
+          "feature": "task status write-through",
+          "symbol": "tasks_check.capture_buffer_snapshots",
+          "loc": "tests/nvim/tasks_check.lua:9b",
+          "what": "asserts d/u redraw the displayed status line in place and leave it unchanged on a failed write"
+        }
+      ]
+    }
+  }
+}

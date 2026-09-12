@@ -1,0 +1,206 @@
+{
+  "phase": "phase-binding",
+  "generated_at": "2026-09-09T15:53:50.290612Z",
+  "languages": null,
+  "skipped": [
+    {
+      "file": ".gitignore",
+      "reason": "no mutation adapter for .gitignore"
+    },
+    {
+      "file": "lua/codriver/dross.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "lua/codriver/init.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "lua/codriver/ownership.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "lua/codriver/tasks.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/codriver/dross_spec.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/codriver/ownership_spec.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/codriver/tasks_spec.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/nvim/codriver_claim_check.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/nvim/dross_untracked_notify_check.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/nvim/tasks_check.lua",
+      "reason": "no mutation adapter for .lua"
+    }
+  ],
+  "scope": {
+    "files": [
+      ".dross/phases/phase-binding/REVIEW.md",
+      ".dross/phases/phase-binding/changes.json",
+      ".dross/phases/phase-binding/plan.toml",
+      ".dross/phases/phase-binding/spec.toml",
+      ".dross/phases/phase-binding/tests.json",
+      ".dross/phases/phase-binding/verify.toml",
+      ".dross/project.toml",
+      ".gitignore",
+      "lua/codriver/dross.lua",
+      "lua/codriver/init.lua",
+      "lua/codriver/ownership.lua",
+      "lua/codriver/tasks.lua",
+      "tests/codriver/dross_spec.lua",
+      "tests/codriver/ownership_spec.lua",
+      "tests/codriver/tasks_spec.lua",
+      "tests/nvim/codriver_claim_check.lua",
+      "tests/nvim/dross_untracked_notify_check.lua",
+      "tests/nvim/tasks_check.lua"
+    ],
+    "hunks": {
+      ".dross/phases/phase-binding/REVIEW.md": [
+        {
+          "start": 1,
+          "end": 25
+        }
+      ],
+      ".dross/phases/phase-binding/changes.json": [
+        {
+          "start": 1,
+          "end": 76
+        }
+      ],
+      ".dross/phases/phase-binding/plan.toml": [
+        {
+          "start": 1,
+          "end": 47
+        }
+      ],
+      ".dross/phases/phase-binding/spec.toml": [
+        {
+          "start": 1,
+          "end": 48
+        }
+      ],
+      ".dross/phases/phase-binding/tests.json": [
+        {
+          "start": 1,
+          "end": 181
+        }
+      ],
+      ".dross/phases/phase-binding/verify.toml": [
+        {
+          "start": 1,
+          "end": 97
+        }
+      ],
+      ".dross/project.toml": [
+        {
+          "start": 3,
+          "end": 3
+        }
+      ],
+      ".gitignore": [
+        {
+          "start": 79,
+          "end": 82
+        }
+      ],
+      "lua/codriver/dross.lua": [
+        {
+          "start": 1,
+          "end": 110
+        }
+      ],
+      "lua/codriver/init.lua": [
+        {
+          "start": 19,
+          "end": 20
+        },
+        {
+          "start": 32,
+          "end": 33
+        },
+        {
+          "start": 37,
+          "end": 37
+        },
+        {
+          "start": 88,
+          "end": 95
+        },
+        {
+          "start": 153,
+          "end": 175
+        },
+        {
+          "start": 303,
+          "end": 313
+        }
+      ],
+      "lua/codriver/ownership.lua": [
+        {
+          "start": 1,
+          "end": 85
+        }
+      ],
+      "lua/codriver/tasks.lua": [
+        {
+          "start": 1,
+          "end": 111
+        }
+      ],
+      "tests/codriver/dross_spec.lua": [
+        {
+          "start": 1,
+          "end": 138
+        }
+      ],
+      "tests/codriver/ownership_spec.lua": [
+        {
+          "start": 1,
+          "end": 130
+        }
+      ],
+      "tests/codriver/tasks_spec.lua": [
+        {
+          "start": 1,
+          "end": 116
+        }
+      ],
+      "tests/nvim/codriver_claim_check.lua": [
+        {
+          "start": 1,
+          "end": 113
+        }
+      ],
+      "tests/nvim/dross_untracked_notify_check.lua": [
+        {
+          "start": 1,
+          "end": 99
+        }
+      ],
+      "tests/nvim/tasks_check.lua": [
+        {
+          "start": 1,
+          "end": 146
+        }
+      ]
+    },
+    "base": "3c37f9b32e249ba18cc9e70bc5378302841a0173",
+    "source": "git+changes"
+  },
+  "measured_on": "local"
+}

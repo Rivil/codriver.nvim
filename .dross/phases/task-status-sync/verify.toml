@@ -1,0 +1,65 @@
+[verify]
+  phase = "task-status-sync"
+  generated_at = 2026-09-12T07:32:49.849619Z
+  verdict = "pass"
+  finalized = true
+  finalized_at = 2026-09-12T07:33:34.978133Z
+
+[summary]
+  mutation_status = "skipped"
+  measured_on = "local"
+  mutation_score = 0.0
+  mutants_killed = 0
+  mutants_survived = 0
+  mutants_not_covered = 0
+  mutants_in_scope = 0
+  unclassified_in_scope = 0
+  criteria_total = 4
+  criteria_covered = 4
+  criteria_uncovered = 0
+
+[[criterion]]
+  id = "c-1"
+  status = "covered"
+  tests = ["tests/codriver/task_status_spec.lua:it('invokes vim.system with the dross task status argv, in order')", "tests/nvim/tasks_check.lua:435 (real-dross guarded case, `d` through the real CLI persists status=done to plan.toml, re-read off disk)"]
+
+[[criterion]]
+  id = "c-2"
+  status = "covered"
+  tests = ["tests/nvim/tasks_check.lua:327-347 (`d` — buffer-snapshot spy asserts the redrawn line shows `done`, was `pending`)", "tests/nvim/tasks_check.lua:349-365 (`u` — same spy asserts the redrawn line shows `in_progress`, was `done`)"]
+  notes = "Amendment closes the gap the prior run flagged: the spy wraps nvim_buf_set_lines so the assertion runs through the real render()->redraw() pipeline and checks the actual displayed line content, not just that the float stays open."
+
+[[criterion]]
+  id = "c-3"
+  status = "covered"
+  tests = ["tests/nvim/tasks_check.lua:370-388 (failed write — buffer-snapshot spy asserts the displayed line is unchanged after a failed `d`)", "tests/nvim/tasks_check.lua:390-411 (failed write notifies at ERROR with the failure message)", "tests/nvim/tasks_check.lua:413-429 (spawn failure notifies without crashing)"]
+  notes = "Amendment adds the previously-missing half: the displayed line is now asserted unchanged on failure (370-388), alongside the pre-existing ERROR-notify coverage."
+
+[[criterion]]
+  id = "c-4"
+  status = "covered"
+  tests = ["tests/nvim/tasks_check.lua:252-282 (`u` on the cursor task calls task_status.set with status \"in_progress\", from the same key-loop surface as `d`)"]
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/init.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/task_status.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/tasks.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/codriver/task_status_spec.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/nvim/tasks_check.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "mutation skipped: no mutation adapter for .lua in dross (project is a Neovim/Lua plugin) — verdict is based on criterion coverage alone, per the mutation_status != measured rule."

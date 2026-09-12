@@ -1,0 +1,48 @@
+[phase]
+id        = "phase-binding"
+title     = "phase-binding"
+milestone = "v0.2"
+
+[[criteria]]
+id   = "c-1"
+text = "Starting a codriver session checks for a live dross phase; with none active, the session clearly indicates it's running untracked rather than silently pretending nothing's wrong."
+
+[[criteria]]
+id   = "c-2"
+text = "With an active phase, a Neovim command/surface lists that phase's tasks (id, title, status) without the user shelling out to dross by hand."
+
+[[criteria]]
+id   = "c-3"
+text = "Each visible task shows who owns it (human vs Claude)."
+
+[[criteria]]
+id   = "c-4"
+text = "The task list reflects the current on-disk state when viewed — it does not show stale data from session start."
+
+[[criteria]]
+id   = "c-5"
+text = "If dross isn't installed or the phase's files are missing/corrupt, codriver's setup() does not crash — it degrades to no task surface."
+
+[[decisions]]
+key    = "ownership_source"
+choice = "Task ownership (human vs Claude) is stored in a codriver-local mapping (task id -> owner), set by an explicit Neovim command (e.g. :CodriverClaim <task-id>) — not inferred by heuristic, not a dross schema change."
+why    = "dross's task schema has no owner field and adding one is outside this repo's control; an explicit local mapping keeps ownership opt-in and unambiguous rather than guessed."
+locked = true
+
+[[decisions]]
+key    = "dross_dependency"
+choice = "Codriver reads .dross/ files directly (plan.toml, state.json) rather than shelling out to the dross CLI."
+why    = "Zero runtime dependency on the dross binary being on PATH; c-5's degrade-gracefully criterion becomes about missing/malformed .dross/ files rather than a missing executable."
+locked = true
+
+[[decisions]]
+key    = "untracked_indication"
+choice = "A one-line Neovim notification (vim.notify, WARN level) at session start signals no active dross phase."
+why    = "Consistent with role-enforcement's existing notification pattern for blocked edits; avoids introducing a new UI surface for a one-time signal."
+locked = true
+
+[[decisions]]
+key    = "task_list_surface"
+choice = "A new :CodriverTasks command opens a read-only scratch buffer/float listing id, title, status, and owner; closes on any key."
+why    = "Self-contained — no dependency on quickfix semantics (which expect file:line) or on an external picker plugin (telescope/fzf) the user may not have installed."
+locked = true

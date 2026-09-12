@@ -1,0 +1,49 @@
+[phase]
+  id = "task-status-sync"
+  title = "task-status-sync"
+  milestone = "v0.2"
+
+[[criteria]]
+  id = "c-1"
+  text = "From inside Neovim, marking a task done writes that status through to the phase's plan.toml — `dross task show <phase> <id>` reflects it immediately after, not just codriver's own state."
+
+[[criteria]]
+  id = "c-2"
+  text = "The :CodriverTasks float reflects an updated status in place after marking done — no close/reopen required, consistent with how claim/release already re-render."
+
+[[criteria]]
+  id = "c-3"
+  text = "If the write-through fails (dross errors, invalid status transition, file missing), codriver surfaces the failure and does not leave the UI showing a status that was never actually persisted."
+
+[[criteria]]
+  id = "c-4"
+  text = "Marking a task done is reversible — you can revert a mis-click back to in_progress from the same surface, mirroring the claim/release symmetry from phase-binding-follow-up."
+
+[[decisions]]
+  key = "write_mechanism"
+  choice = "Status writes shell out to `dross task status <phase-id> <task-id> <status>` rather than hand-rolling a plan.toml writer."
+  why = "plan.toml has no writer in this repo; hand-rolling one risks corrupting dross's own formatting/comments. The read-side no-dross-binary-dependency decision (phase-binding) was about passive reads not needing dross installed — a write is a deliberate user action, and dross task status is the CLI's supported write path."
+  locked = true
+
+[[decisions]]
+  key = "trigger_surface"
+  choice = "New keys inside the existing :CodriverTasks float only — `d` marks the task under cursor done, `u` reverts it to in_progress. No standalone :CodriverDone command."
+  why = "Mirrors the c/r claim/release pattern exactly; a second command surface would duplicate the float's existing interaction model for no benefit."
+  locked = true
+
+[[decisions]]
+  key = "status_range"
+  choice = "The float only exposes the done ↔ in_progress transition (d / u). pending and failed remain CLI-only, out of scope for this phase's UI."
+  why = "Covers the milestone criterion (completing a task) plus an undo path without building a full status-editor UI dross's own task status command already covers for less common transitions."
+  locked = true
+
+[[decisions]]
+  key = "ownership_on_done"
+  choice = "Marking a task done does not touch its codriver-local ownership entry — claim/release state is left as-is."
+  why = "Keeps done/undo orthogonal to ownership so the header tally and owner column stay accurate for finished work; what completion should trigger for ownership/handover is owner-driven-handover's call, not this phase's."
+  locked = true
+
+[[deferred]]
+  id = "2c035c8381119b21"
+  text = "dross state set version round-trips .dross/project.toml through its project schema and silently strips [[competition]].note fields, comments, and unschematized keys (build_command/migrate_command, key ordering) — same destructive path as dross project set, different command name. Recurred 3x in this repo (2026-09-07, 2026-09-09, 2026-09-11)."
+  why = "version bump should patch the field in place, not re-serialize the whole document — worth reporting upstream to dross itself"

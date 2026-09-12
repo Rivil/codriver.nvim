@@ -16,8 +16,8 @@ local M = {}
 
 M.version = {
   major = 0,
-  minor = 1,
-  patch = 5,
+  minor = 2,
+  patch = 3,
 }
 
 ---@return string
@@ -29,9 +29,12 @@ M.role = require("codriver.role")
 
 local commands = require("codriver.commands")
 local config = require("codriver.config")
+local dross = require("codriver.dross")
+local ownership = require("codriver.ownership")
 local session = require("codriver.session")
 local state = require("codriver.hook.state")
 local status = require("codriver.status")
+local tasks = require("codriver.tasks")
 local winbar = require("codriver.winbar")
 
 ---Guards the role listener against a second `setup()` call registering a
@@ -80,6 +83,14 @@ local function start_command()
   if result.error then
     notify("codriver: could not start a session — " .. result.error, vim.log.levels.ERROR)
     return
+  end
+
+  -- Separate from the status line below: this is about whether the *session*
+  -- is tracked by a dross phase at all, not whether it started cleanly.
+  -- dross.read() never raises (c-5), so this can never turn a good start into
+  -- an error.
+  if not dross.read().available then
+    notify("codriver: no active dross phase — this session is running untracked", vim.log.levels.WARN)
   end
 
   -- The indicator exists only while a session does (c-4, no_session_lifecycle):
@@ -137,6 +148,54 @@ end
 local function takeback_command()
   M.role.set("navigator")
   notify("codriver: you're driving")
+end
+
+---Claim or release a dross task, for the current phase.
+---
+---Bare `<id>` or `<id> claude` claims (unchanged from before the optional
+---owner arg existed); `<id> human` releases back to the human instead. Both
+---paths pass the current phase's task list through to ownership.claim/
+---release so a stale entry for a task id no longer in plan.toml gets pruned
+---on the same write (c-4). An unrecognized second argument WARNs and leaves
+---ownership untouched — no claim, no release.
+---@param args table
+local function claim_command(args)
+  local task_id = args.fargs[1]
+  local owner_arg = args.fargs[2]
+
+  if owner_arg ~= nil and owner_arg ~= ownership.CLAUDE and owner_arg ~= ownership.HUMAN then
+    notify(
+      ("codriver: unrecognized owner %q for :CodriverClaim — expected %q or %q"):format(
+        owner_arg,
+        ownership.CLAUDE,
+        ownership.HUMAN
+      ),
+      vim.log.levels.WARN
+    )
+    return
+  end
+
+  local result = dross.read()
+  if not result.available or not result.phase_id then
+    notify("codriver: no active dross phase — nothing to claim", vim.log.levels.WARN)
+    return
+  end
+
+  if owner_arg == ownership.HUMAN then
+    ownership.release(result.phase_id, task_id, result.tasks)
+    return
+  end
+
+  -- Recorded either way (c-3 is opt-in, not validated) — the WARN is
+  -- information about a possible typo, not a refusal.
+  ownership.claim(result.phase_id, task_id, result.tasks)
+
+  if not ownership.is_known(task_id, result.tasks) then
+    notify(
+      ("codriver: claimed %s, but it is not in %s's current task list"):format(task_id, result.phase_id),
+      vim.log.levels.WARN
+    )
+  end
 end
 
 ---Vendored commands codriver answers itself rather than re-exporting.
@@ -266,7 +325,17 @@ function M.setup(opts)
   -- Pure codriver commands, not sourced from the vendored capture above: no
   -- OWNED entry and no PREFLIGHT wrapping applies to them.
   vim.api.nvim_create_user_command("CodriverHandover", handover_command, { desc = "Hand the keyboard to Claude" })
-  vim.api.nvim_create_user_command("CodriverTakeback", takeback_command, { desc = "Take the keyboard back from Claude" })
+  vim.api.nvim_create_user_command(
+    "CodriverTakeback",
+    takeback_command,
+    { desc = "Take the keyboard back from Claude" }
+  )
+  vim.api.nvim_create_user_command(
+    "CodriverClaim",
+    claim_command,
+    { nargs = "+", desc = "Claim (default/'claude') or release ('human') a dross task, for the current phase" }
+  )
+  vim.api.nvim_create_user_command("CodriverTasks", tasks.open, { desc = "List the current dross phase's tasks" })
 
   -- Not guarded by first_setup: the vendored setup above just (re-)created the
   -- shutdown augroup with `clear = true`, which wipes any autocmd a previous

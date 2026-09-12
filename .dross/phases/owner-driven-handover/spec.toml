@@ -1,0 +1,42 @@
+[phase]
+id        = "owner-driven-handover"
+title     = "owner-driven-handover"
+milestone = "v0.2"
+
+[[criteria]]
+id   = "c-1"
+text = "Setting a task to in_progress (the `u` key in :CodriverTasks) when it's Claude-owned drives Claude into the driver role, instead of you separately running :CodriverHandover."
+
+[[criteria]]
+id   = "c-2"
+text = "Setting a task to in_progress when it's human-owned, while Claude currently holds the keyboard, drives Claude back to navigator — the symmetric case of c-1."
+
+[[criteria]]
+id   = "c-3"
+text = "Marking a task done (`d`) never touches role — only the transition into in_progress checks ownership and drives a handover."
+
+[[criteria]]
+id   = "c-4"
+text = "If the role already matches the task's owner when you start it, nothing fires — no redundant prompt or notification."
+
+[[criteria]]
+id   = "c-5"
+text = "The existing handover feedback guarantee (handover phase's c-6) still applies when the switch fires from :CodriverTasks instead of the explicit :CodriverHandover/:CodriverTakeback commands — you see confirmation of who's driving after it happens."
+
+[[decisions]]
+key    = "switch_mechanism"
+choice = "Auto-drive: the role flips immediately with a notification, no y/n confirmation — consistent with how c/r/d/u already act in the float."
+why    = "Matches the plugin's existing no-confirmation precedent for every other float action; role-enforcement already makes the switch safe since Claude still can't write anything the human didn't intend by starting the task."
+locked = true
+
+[[decisions]]
+key    = "trigger_scope"
+choice = "Only the in_progress status transition (`u` key) checks ownership and drives role. Claiming or releasing a task (`c`/`r`) never touches role, even on a task that's already in_progress."
+why    = "Claim/release is bookkeeping about who owns future work, not a statement that anyone is switching to the keyboard right now — conflating the two would fire role switches on ownership reassignments nobody asked to act on yet."
+locked = true
+
+[[decisions]]
+key    = "concurrent_tasks"
+choice = "The just-started task's owner always wins the role switch, with no special-casing when a different task is already in_progress under the opposite owner."
+why    = "Role is already a single global switch and plan.toml already allows multiple in_progress tasks with no ordering guarantee; adding a refusal/warn path for a rare case is unwarranted complexity."
+locked = true

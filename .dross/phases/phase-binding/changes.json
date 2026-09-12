@@ -1,0 +1,78 @@
+{
+  "phase": "phase-binding",
+  "pr": 7,
+  "base": "milestone/v0.2",
+  "base_commit": "5deb851c0d341053177cf09c035d8998e6d80a2c",
+  "status": "complete",
+  "tasks": {
+    "t-1": {
+      "files": [
+        "lua/codriver/dross.lua",
+        "tests/codriver/dross_spec.lua"
+      ],
+      "commit": "cd03f89",
+      "completed_at": "2026-09-09T12:49:46.884548Z",
+      "landmarks": [
+        {
+          "feature": "dross phase reader",
+          "symbol": "M.read",
+          "loc": "lua/codriver/dross.lua:76",
+          "what": "reads active dross phase + task list (id/title/status) directly off .dross/state.json and plan.toml, degrading to available=false on any missing/corrupt file"
+        }
+      ]
+    },
+    "t-2": {
+      "files": [
+        "lua/codriver/ownership.lua",
+        "lua/codriver/init.lua",
+        "tests/codriver/ownership_spec.lua",
+        "tests/nvim/codriver_claim_check.lua"
+      ],
+      "commit": "ea63d18",
+      "completed_at": "2026-09-09T15:14:19.590543Z",
+      "notes": "amends t-2 per /dross-verify's FLAG finding: claim_command's own command wiring had no test beyond the pure ownership.* helpers it calls; source code was already correct, only coverage was missing",
+      "landmarks": [
+        {
+          "feature": "task ownership",
+          "symbol": "claim_command",
+          "loc": "lua/codriver/init.lua:155",
+          "what": "amended: added real-nvim command-level coverage for :CodriverClaim's no-active-phase and unknown-task-id WARN branches (tests/nvim/codriver_claim_check.lua), closing the /dross-verify FLAG finding"
+        }
+      ]
+    },
+    "t-3": {
+      "files": [
+        "lua/codriver/init.lua",
+        "tests/nvim/dross_untracked_notify_check.lua"
+      ],
+      "commit": "84d2af6",
+      "completed_at": "2026-09-09T12:52:48.737477Z",
+      "landmarks": [
+        {
+          "feature": "untracked session notice",
+          "symbol": "start_command",
+          "loc": "lua/codriver/init.lua:79",
+          "what": "CodriverStart now WARNs once when dross.read() reports no active phase, before opening the winbar/status line"
+        }
+      ]
+    },
+    "t-4": {
+      "files": [
+        "lua/codriver/tasks.lua",
+        "lua/codriver/init.lua",
+        "tests/codriver/tasks_spec.lua",
+        "tests/nvim/tasks_check.lua"
+      ],
+      "commit": "7b605f3",
+      "completed_at": "2026-09-09T12:57:00.499023Z",
+      "landmarks": [
+        {
+          "feature": "task list surface",
+          "symbol": "M.open",
+          "loc": "lua/codriver/tasks.lua:84",
+          "what": ":CodriverTasks opens a read-only float listing id/title/status/owner, re-reading dross+ownership fresh every call, closing on any keypress, notifying instead of opening when unavailable"
+        }
+      ]
+    }
+  }
+}

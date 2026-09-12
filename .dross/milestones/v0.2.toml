@@ -1,0 +1,12 @@
+phases = ["phase-binding", "task-status-sync", "owner-driven-handover", "phase-binding-follow-up"]
+
+[milestone]
+  version = "v0.2"
+  title = "A pairing session bound to a real dross task graph"
+  status = "active"
+  started = "2026-09-09"
+  base = "main"
+
+[scope]
+  success_criteria = ["A session only starts against a live dross phase; task assignment (human vs Claude) is visible from inside Neovim.", "Completing a task updates dross's real task status (dross task show reflects it), not just plugin-internal state.", "Starting work on a Claude-owned task can prompt or drive the handover, rather than you switching roles by hand every time."]
+  non_goals = ["Ambient review on save is out of scope here — that's the other deferred differentiator, its own milestone."]
