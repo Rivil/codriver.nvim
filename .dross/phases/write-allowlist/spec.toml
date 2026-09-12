@@ -1,0 +1,48 @@
+[phase]
+id        = "write-allowlist"
+title     = "write-allowlist"
+milestone = "v0.3"
+
+[[criteria]]
+id   = "c-1"
+text = "A project configures a list of write-allowed paths via opts (mirroring bash_allow's shape); a Claude Edit/Write/MultiEdit/NotebookEdit call targeting a path under one of those entries succeeds while navigator, without a human handover."
+
+[[criteria]]
+id   = "c-2"
+text = "A tool call targeting a path not covered by the allowlist is still denied while navigator, exactly as before."
+
+[[criteria]]
+id   = "c-3"
+text = "A file Claude writes under an allowlisted path is readable with its content intact after Neovim is fully quit and a new session started."
+
+[[criteria]]
+id   = "c-4"
+text = "With no write_allow opts configured, navigator behaves identically to today — no path is writable."
+
+[[criteria]]
+id   = "c-5"
+text = "Malformed write_allow opts entries are rejected at setup() with a clear error, matching bash_allow's validate_string_list rigor."
+
+[[decisions]]
+key    = "bash_scope"
+choice = "write_allow governs only Edit/Write/MultiEdit/NotebookEdit; Bash remains governed solely by bash_allow, even when a command's target would fall under an allowlisted path."
+why    = "role-enforcement's bash_policy is deliberately sound-by-construction (an allowlist of read-only invocations, since eval/substitution defeat any path-parsing deny-list). Extending write_allow to Bash would reopen exactly the parsing problem that decision was designed to avoid."
+locked = true
+
+[[decisions]]
+key    = "overbroad_entries"
+choice = "No semantic guard against an allowlist entry that covers the whole repo (e.g. \".\" or the repo root) — codriver validates shape/type only, same as bash_allow today."
+why    = "Trusting user config keeps validation simple and consistent with the existing precedent; a misconfigured allowlist is a user error, not a codriver concern to police in this milestone (no config wizard is in scope per the milestone non-goals)."
+locked = true
+
+[[decisions]]
+key    = "match_semantics"
+choice = "Directory-prefix matching: a path is allowed if it starts with one of the configured prefix strings. No glob support."
+why    = "No glob/pattern-matching utility exists anywhere in this codebase today; writing one from scratch is new surface area with no precedent. Prefix matching mirrors bash_allow's plain-string simplicity and covers the common case (a notes directory) without it."
+locked = true
+
+[[decisions]]
+key    = "write_visibility"
+choice = "An allowed write while navigator raises no notification — silent, visible only via normal means (git diff, file explorer)."
+why    = "role-enforcement's notification pattern (c-8) exists specifically to surface a *blocked* action the user can't otherwise see; an allowlisted write is not an anomaly and reusing that channel would blur denial-notifications with routine-write-notifications."
+locked = true
