@@ -28,6 +28,7 @@ local CODRIVER_KEYS = {
   claudecode = true,
   test_command = true,
   bash_allow = true,
+  write_allow = true,
   keys = true,
 }
 
@@ -273,6 +274,11 @@ function M.resolve(opts, channel)
     end
     bash_allow = deep_copy(opts.bash_allow)
   end
+  local write_allow = nil
+  if opts.write_allow ~= nil then
+    validate_string_list(opts.write_allow, "write_allow")
+    write_allow = deep_copy(opts.write_allow)
+  end
   local keys = resolve_keys(opts.keys)
 
   local claudecode = deep_merge(M.claudecode_defaults, opts.claudecode)
@@ -317,7 +323,13 @@ function M.resolve(opts, channel)
   end
 
   return {
-    codriver = { auto_start = auto_start, test_command = test_command, bash_allow = bash_allow, keys = keys },
+    codriver = {
+      auto_start = auto_start,
+      test_command = test_command,
+      bash_allow = bash_allow,
+      write_allow = write_allow,
+      keys = keys,
+    },
     claudecode = claudecode,
   }
 end
