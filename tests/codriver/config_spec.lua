@@ -310,4 +310,42 @@ describe("codriver.config", function()
       assert.is_nil(config.resolve({}).codriver.bash_allow)
     end)
   end)
+
+  describe("the keys option", function()
+    it("overrides the default lhs for a known key", function()
+      local resolved = config.resolve({ keys = { send = "<leader>xx" } })
+
+      assert.are.equal("<leader>xx", resolved.codriver.keys.send)
+    end)
+
+    it("omits a key disabled with false rather than carrying a falsy value forward", function()
+      local resolved = config.resolve({ keys = { send = false } })
+
+      assert.is_nil(resolved.codriver.keys.send)
+    end)
+
+    it("rejects an unknown key under opts.keys, naming it", function()
+      local ok, err = pcall(config.resolve, { keys = { nope = "<leader>x" } })
+
+      assert.is_false(ok)
+      assert.is_truthy(tostring(err):find("nope", 1, true))
+    end)
+
+    it("rejects a non-string, non-false value, naming it", function()
+      local ok, err = pcall(config.resolve, { keys = { send = 42 } })
+      assert.is_false(ok)
+      assert.is_truthy(tostring(err):find("keys.send", 1, true))
+
+      assert.has_error(function()
+        config.resolve({ keys = { send = "" } })
+      end)
+    end)
+
+    it("resolves both send and send_text at their defaults when opts.keys is omitted", function()
+      local keys = config.resolve({}).codriver.keys
+
+      assert.are.equal("<leader>cs", keys.send)
+      assert.are.equal("<leader>cS", keys.send_text)
+    end)
+  end)
 end)
