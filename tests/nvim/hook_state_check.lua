@@ -232,6 +232,21 @@ harness.expect_eq(
   "the published record must carry bash_allow.git_subcommands unchanged"
 )
 
+-- 7c. write_allow round-trips through the same JSON state file, unchanged —
+-- the same guarantee 7b just proved for bash_allow.
+state.publish({ role = "navigator", write_allow = { "notes", "scratch/logs" } })
+local written_write_allow = vim.json.decode(table.concat(vim.fn.readfile(path), "\n"))
+harness.expect_eq(
+  written_write_allow.write_allow and written_write_allow.write_allow[1],
+  "notes",
+  "the published record must carry write_allow[1] unchanged"
+)
+harness.expect_eq(
+  written_write_allow.write_allow and written_write_allow.write_allow[2],
+  "scratch/logs",
+  "the published record must carry write_allow[2] unchanged"
+)
+
 -- 4. read() keeps its failure modes apart. The caller allows on missing and
 -- denies on corrupt, so one value for both makes c-7 and no_session_behaviour
 -- indistinguishable.
@@ -266,6 +281,11 @@ harness.expect_eq(
   without.bash_allow,
   nil,
   "a record published with no bash_allow must read back as nil, not as vim.NIL"
+)
+harness.expect_eq(
+  without.write_allow,
+  nil,
+  "a record published with no write_allow must read back as nil, not as vim.NIL"
 )
 harness.expect_eq(without.role, "driver", "publish() must not drop the fields it was given")
 
@@ -313,6 +333,7 @@ state.publish({
   role = "navigator",
   test_command = "mise run test",
   bash_allow = { heads = { "foo" } },
+  write_allow = { "notes" },
 })
 local live = state.probe({ CODRIVER_STATE_FILE = state.path() })
 harness.expect_eq(live.live, true, "a readable record whose owner is alive must report live")
@@ -326,6 +347,11 @@ harness.expect_eq(
   live.bash_allow and live.bash_allow.heads and live.bash_allow.heads[1],
   "foo",
   "probe() must surface bash_allow when the on-disk record carries it"
+)
+harness.expect_eq(
+  live.write_allow and live.write_allow[1],
+  "notes",
+  "probe() must surface write_allow when the on-disk record carries it, exactly as it already does bash_allow"
 )
 
 -- clear() removes the record. The owning process is still up, so this is

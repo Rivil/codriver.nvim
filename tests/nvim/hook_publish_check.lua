@@ -20,6 +20,7 @@ local state = require("codriver.hook.state")
 
 local TEST_COMMAND = "mise run test"
 local BASH_ALLOW = { heads = { "foo" }, git_subcommands = { "stash" } }
+local WRITE_ALLOW = { "notes" }
 
 -- ---------------------------------------------------- forced empty servername ---
 
@@ -62,6 +63,7 @@ local codriver = require("codriver")
 codriver.setup({
   test_command = TEST_COMMAND,
   bash_allow = BASH_ALLOW,
+  write_allow = WRITE_ALLOW,
   claudecode = { terminal = { provider = provider } },
 })
 
@@ -81,6 +83,11 @@ harness.expect_eq(
   "foo",
   "setup() must publish the resolved bash_allow"
 )
+harness.expect_eq(
+  immediately.write_allow and immediately.write_allow[1],
+  "notes",
+  "setup() must publish the resolved write_allow"
+)
 
 -- setup() must also expose the resolved config on the module itself, not only
 -- through the state file — health.lua reads it directly.
@@ -88,6 +95,11 @@ harness.expect_eq(
   codriver.config and codriver.config.bash_allow and codriver.config.bash_allow.heads and codriver.config.bash_allow.heads[1],
   "foo",
   "setup() must expose the resolved bash_allow on the codriver module for health.lua to read"
+)
+harness.expect_eq(
+  codriver.config and codriver.config.write_allow and codriver.config.write_allow[1],
+  "notes",
+  "setup() must expose the resolved write_allow on the codriver module for health.lua to read"
 )
 
 -- 4 + 5. Drive a real terminal-opening command to observe the environment the
@@ -138,6 +150,11 @@ harness.expect_eq(
   after_flip.bash_allow and after_flip.bash_allow.heads and after_flip.bash_allow.heads[1],
   "foo",
   "the on_change republish dropped bash_allow — a field it was not asked to change"
+)
+harness.expect_eq(
+  after_flip.write_allow and after_flip.write_allow[1],
+  "notes",
+  "the on_change republish dropped write_allow — a field it was not asked to change"
 )
 
 role.set("navigator")
