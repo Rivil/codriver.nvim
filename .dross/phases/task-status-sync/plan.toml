@@ -1,0 +1,25 @@
+task_seq = 0
+
+[phase]
+  id = "task-status-sync"
+
+[[task]]
+  id = "t-1"
+  wave = 1
+  title = "task_status module: shell out to dross task status"
+  files = ["lua/codriver/task_status.lua", "tests/codriver/task_status_spec.lua"]
+  description = "New module: M.set(phase_id, task_id, status) shells out to `dross task\nstatus <phase_id> <task_id> <status>` via vim.system(cmd, {text=true}):wait().\nThe vim.system(...) call itself is wrapped in pcall, not just :wait()'s\nresult — vim.system() raises synchronously (before :wait() runs) when the\nexecutable can't be spawned (e.g. dross not on PATH), so a bare call would\nerror instead of degrading. A zero exit returns {ok=true}; a non-zero exit,\nor a pcall failure from the spawn itself, returns {ok=false, message} (the\ncommand's stderr, falling back to stdout, or the pcall error string for a\nspawn failure). Per the locked write_mechanism decision, this is the only\nwrite path to dross's real task status — no plan.toml writer. Required at\ncall time (same lazy-require pattern as codriver.dross/codriver.ownership)\nso a spec can fake it via package.loaded. The busted spec fakes _G.vim.system\nlocally (save/restore around the describe block, same pattern dross_spec.lua\nuses for _G.vim.fn) — busted's stub is deliberately tiny and does not grow a\ngeneral subprocess mock for this.\n"
+  covers = ["c-1", "c-3"]
+  test_contract = ["set() invokes vim.system with the command {\"dross\", \"task\", \"status\", phase_id, task_id, status} — the phase id, task id, and status appear as separate argv elements in that order", "a zero-exit-code result returns {ok=true}, with no message field required", "a non-zero-exit-code result returns {ok=false, message=<stderr text>} rather than raising", "when vim.system(...) itself raises (spawn failure, e.g. dross not found), set() returns {ok=false, message=<the error>} instead of propagating the error"]
+  status = "done"
+
+[[task]]
+  id = "t-2"
+  wave = 2
+  title = "d/u keys in :CodriverTasks: mark done / revert in_progress"
+  files = ["lua/codriver/tasks.lua", "tests/nvim/tasks_check.lua"]
+  description = "Extend open()'s key loop (alongside c/r) per the locked trigger_surface and\nstatus_range decisions: `d` calls task_status.set(phase_id, task_id, \"done\")\nfor the task under the cursor, `u` calls task_status.set(..., \"in_progress\").\nOn ok=true, re-render via the existing M.render() (fresh dross.read()) so the\nfloat shows the real on-disk status without closing (c-2) — no local status\nfield is ever mutated directly, so a failed write structurally cannot leave a\nstale status on screen (c-3): the post-attempt render always reflects\nwhatever is actually on disk. On ok=false, vim.notify(message, ERROR) and\nstill re-render (a no-op display-wise, since the write didn't land). d/u\nnever touch ownership (locked ownership_on_done decision) and never close the\nfloat, same as c/r. Any other key still closes, unchanged.\n\ntests/nvim/tasks_check.lua gets a fake-vim.system case (spies the call,\nasserts argv + re-render + notify-on-failure without a real dross process)\nplus one real-dross case guarded by `if vim.fn.executable(\"dross\") == 1\nthen ... end` that actually shells to dross task status against the sandbox\nfixture phase and asserts plan.toml's on-disk status changed — printing a\nskip note when dross isn't on PATH rather than failing.\n"
+  covers = ["c-1", "c-2", "c-3", "c-4"]
+  depends_on = ["t-1"]
+  test_contract = ["pressing `d` on the task under the cursor calls task_status.set with that task's id and status \"done\", and the float re-renders in place (no close) showing the new status from a fresh render()", "pressing `u` on the task under the cursor calls task_status.set with status \"in_progress\", re-rendering in place the same way", "when task_status.set returns ok=false, vim.notify fires at ERROR level with its message and the displayed status is unchanged from what render() reads off disk (nothing optimistically mutated)", "when task_status.set returns ok=false because the spawn itself failed (e.g. a faked task_status.set simulating dross missing from PATH), the key loop still notifies and does not crash or exit uncaught", "d/u never change ownership.owner() for the task acted on", "any other key (e.g. `q`) still closes the float, unchanged", "when `dross` is on PATH: pressing `d` through the real CLI actually updates the sandbox fixture's plan.toml status field, verified by re-reading the file after open() returns (skipped with a printed note when dross is not on PATH)"]
+  status = "done"

@@ -104,12 +104,18 @@ end
 
 ---Open (or notify in place of) the `:CodriverTasks` float. With at least one
 ---task: `j`/`k` move the cursor between task lines, `c` claims and `r`
----releases the task under the cursor (float_interaction) — both re-render in
----place via a fresh `M.render()` (so they see any on-disk change the same as
----a brand new open would) and keep the float open. Any other key closes,
----same as every key did before `c`/`r` existed. With no tasks at all there is
----nothing to move onto or act on, so it stays the original single-keypress
----close.
+---releases the task under the cursor (float_interaction), `d` marks it done
+---and `u` reverts it to in_progress (task_status_sync's locked
+---trigger_surface/status_range decisions) — all four re-render in place via a
+---fresh `M.render()` (so they see any on-disk change the same as a brand new
+---open would) and keep the float open. `d`/`u` never mutate a local status
+---field directly: the post-attempt render always reflects whatever
+---`codriver.task_status.set()`'s write actually left on disk, so a failed
+---write structurally cannot leave a stale status on screen. A failed `d`/`u`
+---write also `vim.notify`s at ERROR with the failure message. Any other key
+---closes, same as every key did before `c`/`r`/`d`/`u` existed. With no tasks
+---at all there is nothing to move onto or act on, so it stays the original
+---single-keypress close.
 function M.open()
   local rendered = M.render()
 
@@ -175,6 +181,19 @@ function M.open()
         ownership.claim(rendered.phase_id, task_id, tasks)
       else
         ownership.release(rendered.phase_id, task_id, tasks)
+      end
+
+      rendered = M.render()
+      tasks = rendered.tasks or {}
+      cursor = math.min(cursor, math.max(#tasks, 1))
+      redraw()
+    elseif char == "d" or char == "u" then
+      local task_status = require("codriver.task_status")
+      local task_id = tasks[cursor].id
+      local status = char == "d" and "done" or "in_progress"
+      local result = task_status.set(rendered.phase_id, task_id, status)
+      if not result.ok then
+        vim.notify(result.message, vim.log.levels.ERROR)
       end
 
       rendered = M.render()
