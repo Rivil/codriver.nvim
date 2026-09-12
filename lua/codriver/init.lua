@@ -30,6 +30,7 @@ M.role = require("codriver.role")
 local commands = require("codriver.commands")
 local config = require("codriver.config")
 local dross = require("codriver.dross")
+local keymaps = require("codriver.keymaps")
 local ownership = require("codriver.ownership")
 local session = require("codriver.session")
 local state = require("codriver.hook.state")
@@ -336,6 +337,10 @@ function M.setup(opts)
     { nargs = "+", desc = "Claim (default/'claude') or release ('human') a dross task, for the current phase" }
   )
   vim.api.nvim_create_user_command("CodriverTasks", tasks.open, { desc = "List the current dross phase's tasks" })
+
+  -- After every command above is registered, so a keymap never fires into a
+  -- command that does not exist yet.
+  keymaps.apply(resolved.codriver.keys)
 
   -- Not guarded by first_setup: the vendored setup above just (re-)created the
   -- shutdown augroup with `clear = true`, which wipes any autocmd a previous
