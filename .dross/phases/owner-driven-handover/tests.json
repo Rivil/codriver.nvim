@@ -1,0 +1,104 @@
+{
+  "phase": "owner-driven-handover",
+  "generated_at": "2026-09-12T08:19:19.155766Z",
+  "languages": null,
+  "skipped": [
+    {
+      "file": "lua/codriver/init.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "lua/codriver/tasks.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/nvim/tasks_check.lua",
+      "reason": "no mutation adapter for .lua"
+    }
+  ],
+  "scope": {
+    "files": [
+      ".dross/phases/owner-driven-handover/REVIEW.md",
+      ".dross/phases/owner-driven-handover/changes.json",
+      ".dross/phases/owner-driven-handover/plan.toml",
+      ".dross/phases/owner-driven-handover/spec.toml",
+      ".dross/project.toml",
+      "lua/codriver/init.lua",
+      "lua/codriver/tasks.lua",
+      "tests/nvim/tasks_check.lua"
+    ],
+    "hunks": {
+      ".dross/phases/owner-driven-handover/REVIEW.md": [
+        {
+          "start": 1,
+          "end": 23
+        }
+      ],
+      ".dross/phases/owner-driven-handover/changes.json": [
+        {
+          "start": 1,
+          "end": 22
+        }
+      ],
+      ".dross/phases/owner-driven-handover/plan.toml": [
+        {
+          "start": 1,
+          "end": 14
+        }
+      ],
+      ".dross/phases/owner-driven-handover/spec.toml": [
+        {
+          "start": 1,
+          "end": 42
+        }
+      ],
+      ".dross/project.toml": [
+        {
+          "start": 3,
+          "end": 3
+        }
+      ],
+      "lua/codriver/init.lua": [
+        {
+          "start": 20,
+          "end": 20
+        }
+      ],
+      "lua/codriver/tasks.lua": [
+        {
+          "start": 119,
+          "end": 129
+        },
+        {
+          "start": 201,
+          "end": 201
+        },
+        {
+          "start": 204,
+          "end": 204
+        },
+        {
+          "start": 209,
+          "end": 229
+        }
+      ],
+      "tests/nvim/tasks_check.lua": [
+        {
+          "start": 20,
+          "end": 20
+        },
+        {
+          "start": 473,
+          "end": 633
+        },
+        {
+          "start": 644,
+          "end": 647
+        }
+      ]
+    },
+    "base": "9d716749a55b8ca2ee1d40c24c6e5c5d97dd79aa",
+    "source": "git+changes"
+  },
+  "measured_on": "local"
+}

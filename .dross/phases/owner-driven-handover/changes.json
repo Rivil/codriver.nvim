@@ -1,0 +1,24 @@
+{
+  "phase": "owner-driven-handover",
+  "pr": 10,
+  "base": "milestone/v0.2",
+  "base_commit": "9d716749a55b8ca2ee1d40c24c6e5c5d97dd79aa",
+  "status": "shipped",
+  "tasks": {
+    "t-1": {
+      "files": [
+        "lua/codriver/tasks.lua",
+        "tests/nvim/tasks_check.lua"
+      ],
+      "commit": "27dd440",
+      "completed_at": "2026-09-12T08:13:35.520315Z",
+      "landmarks": [
+        {
+          "feature": "owner-driven role handover",
+          "symbol": "M.open (u branch)·loc=lua/codriver/tasks.lua:213",
+          "what": "pressing u on a task flips codriver.role to match its owner with the same notify text CodriverHandover uses"
+        }
+      ]
+    }
+  }
+}

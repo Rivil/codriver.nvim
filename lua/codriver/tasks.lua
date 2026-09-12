@@ -116,6 +116,17 @@ end
 ---closes, same as every key did before `c`/`r`/`d`/`u` existed. With no tasks
 ---at all there is nothing to move onto or act on, so it stays the original
 ---single-keypress close.
+---
+---`u` additionally drives role from the task's ownership (owner-driven-
+---handover's locked decisions): once the status write succeeds, a claude-owned
+---task flips `codriver.role` to "driver" and a human-owned one flips it to
+---"navigator", each with the exact same `vim.notify` text
+---`:CodriverHandover`/`:CodriverTakeback` already use — no separate command
+---needed to follow where the task says the keyboard should be. Already
+---matching role is left untouched and fires no notification (c-4), a failed
+---write never reaches the role check at all (c-3's "never describe a state
+---that isn't true on disk" for `u`), and `d`/`c`/`r` never look at role —
+---only the `u` transition does (trigger_scope).
 function M.open()
   local rendered = M.render()
 
@@ -187,13 +198,33 @@ function M.open()
       tasks = rendered.tasks or {}
       cursor = math.min(cursor, math.max(#tasks, 1))
       redraw()
-    elseif char == "d" or char == "u" then
+    elseif char == "d" then
       local task_status = require("codriver.task_status")
       local task_id = tasks[cursor].id
-      local status = char == "d" and "done" or "in_progress"
-      local result = task_status.set(rendered.phase_id, task_id, status)
+      local result = task_status.set(rendered.phase_id, task_id, "done")
       if not result.ok then
         vim.notify(result.message, vim.log.levels.ERROR)
+      end
+
+      rendered = M.render()
+      tasks = rendered.tasks or {}
+      cursor = math.min(cursor, math.max(#tasks, 1))
+      redraw()
+    elseif char == "u" then
+      local task_status = require("codriver.task_status")
+      local role = require("codriver.role")
+      local ownership = require("codriver.ownership")
+      local task_id = tasks[cursor].id
+      local result = task_status.set(rendered.phase_id, task_id, "in_progress")
+      if not result.ok then
+        vim.notify(result.message, vim.log.levels.ERROR)
+      else
+        local owner = ownership.owner(rendered.phase_id, task_id)
+        local expected_role = owner == ownership.CLAUDE and "driver" or "navigator"
+        if role.get() ~= expected_role then
+          role.set(expected_role)
+          vim.notify(expected_role == "driver" and "codriver: Claude is driving" or "codriver: you're driving")
+        end
       end
 
       rendered = M.render()

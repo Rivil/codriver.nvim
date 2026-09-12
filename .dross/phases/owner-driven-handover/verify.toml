@@ -1,0 +1,60 @@
+[verify]
+  phase = "owner-driven-handover"
+  generated_at = 2026-09-12T08:19:19.155766Z
+  verdict = "pass"
+  finalized = true
+  finalized_at = 2026-09-12T08:20:20.99967Z
+
+[summary]
+  mutation_status = "skipped"
+  measured_on = "local"
+  mutation_score = 0.0
+  mutants_killed = 0
+  mutants_survived = 0
+  mutants_not_covered = 0
+  mutants_in_scope = 0
+  unclassified_in_scope = 0
+  criteria_total = 5
+  criteria_covered = 5
+  criteria_uncovered = 0
+
+[[criterion]]
+  id = "c-1"
+  status = "covered"
+  tests = ["tests/nvim/tasks_check.lua:488-510 (`u` on claude-owned task while role=navigator flips to driver, notifies \"codriver: Claude is driving\")"]
+
+[[criterion]]
+  id = "c-2"
+  status = "covered"
+  tests = ["tests/nvim/tasks_check.lua:512-535 (`u` on human-owned task while role=driver flips to navigator, notifies \"codriver: you're driving\")"]
+
+[[criterion]]
+  id = "c-3"
+  status = "covered"
+  tests = ["tests/nvim/tasks_check.lua:558-577 (`d` on claude-owned task while navigating leaves role unchanged)", "tests/nvim/tasks_check.lua:579-596 (`d` on human-owned task while driving leaves role unchanged)"]
+
+[[criterion]]
+  id = "c-4"
+  status = "covered"
+  tests = ["tests/nvim/tasks_check.lua:537-556 (`u` on a task whose owner already matches current role: role unchanged, zero notifications)"]
+
+[[criterion]]
+  id = "c-5"
+  status = "covered"
+  tests = ["tests/nvim/tasks_check.lua:507-510 and 532-535 (notified() assertions check the exact :CodriverHandover/:CodriverTakeback feedback text)"]
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/init.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/tasks.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/nvim/tasks_check.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "mutation skipped: no Stryker-equivalent adapter for Lua — verdict based on criterion coverage alone (all 5 covered by tests confirmed passing via `dross test`)"
