@@ -2,5 +2,191 @@
   "phase": "ambient-review-on-save",
   "base": "milestone/v0.3",
   "base_commit": "6464f86cb86c3f689b84da5f88bdb77d45849418",
-  "tasks": {}
+  "tasks": {
+    "t-1": {
+      "files": [
+        "lua/codriver/config.lua",
+        "tests/codriver/config_spec.lua",
+        "lua/codriver/init.lua"
+      ],
+      "commit": "0946da6",
+      "completed_at": "2026-09-12T17:04:42.446912Z",
+      "landmarks": [
+        {
+          "feature": "review-on-save config toggle",
+          "symbol": "M.defaults.review_on_save",
+          "loc": "lua/codriver/config.lua:52",
+          "what": "off-by-default boolean opt-in for ambient review on save, validated like auto_start"
+        }
+      ]
+    },
+    "t-10": {
+      "files": [
+        "lua/codriver/review/autosave.lua",
+        "lua/codriver/init.lua",
+        "tests/nvim/review_autosave_check.lua"
+      ],
+      "commit": "9e19399",
+      "completed_at": "2026-09-12T17:18:51.927594Z",
+      "landmarks": [
+        {
+          "feature": "review-on-save autosave trigger",
+          "symbol": "M.install",
+          "loc": "lua/codriver/review/autosave.lua:69",
+          "what": "debounced BufWritePost review trigger gated on live role and review_on_save, wired into setup()"
+        }
+      ]
+    },
+    "t-11": {
+      "files": [
+        "scripts/codriver-review-hook.lua",
+        "lua/codriver/session.lua",
+        "lua/codriver/hook/claude_settings.lua",
+        "tests/nvim/review_hook_check.lua",
+        "tests/nvim/hook_settings_check.lua",
+        "tests/codriver/session_spec.lua",
+        "tests/nvim/hook_install_check.lua"
+      ],
+      "commit": "c7c440c",
+      "completed_at": "2026-09-12T19:12:35.84049Z",
+      "landmarks": [
+        {
+          "feature": "review-on-save stop-hook registration",
+          "symbol": "arm",
+          "loc": "lua/codriver/session.lua:75",
+          "what": "registers a Stop hook (codriver-review-hook.lua) alongside PreToolUse; hook double-gates on live role+review_on_save and REVIEW-line presence"
+        }
+      ]
+    },
+    "t-2": {
+      "files": [
+        "lua/codriver/review/snapshot.lua",
+        "tests/codriver/review_snapshot_spec.lua"
+      ],
+      "commit": "dadee28",
+      "completed_at": "2026-09-12T17:05:38.513017Z",
+      "landmarks": [
+        {
+          "feature": "review-on-save snapshot store",
+          "symbol": "M.advance",
+          "loc": "lua/codriver/review/snapshot.lua:19",
+          "what": "per-bufnr in-memory snapshot of last-reviewed content, cleared on wipeout"
+        }
+      ]
+    },
+    "t-3": {
+      "files": [
+        "lua/codriver/review/diff.lua",
+        "tests/codriver/review_diff_spec.lua"
+      ],
+      "commit": "56f7fd5",
+      "completed_at": "2026-09-12T17:07:27.746523Z",
+      "landmarks": [
+        {
+          "feature": "review-on-save line-hunk diff",
+          "symbol": "M.diff",
+          "loc": "lua/codriver/review/diff.lua:23",
+          "what": "wraps injectable vim.diff to scope hunks to changed lines since last snapshot"
+        }
+      ]
+    },
+    "t-4": {
+      "files": [
+        "lua/codriver/review/debounce.lua",
+        "tests/codriver/review_debounce_spec.lua"
+      ],
+      "commit": "a611b51",
+      "completed_at": "2026-09-12T17:08:45.546754Z",
+      "landmarks": [
+        {
+          "feature": "review-on-save save debounce",
+          "symbol": "M.new",
+          "loc": "lua/codriver/review/debounce.lua:24",
+          "what": "quiet-period debouncer coalescing rapid saves via an injectable timer"
+        }
+      ]
+    },
+    "t-5": {
+      "files": [
+        "lua/codriver/review/prompt.lua",
+        "tests/codriver/review_prompt_spec.lua"
+      ],
+      "commit": "5e584f1",
+      "completed_at": "2026-09-12T17:09:20.898617Z",
+      "landmarks": [
+        {
+          "feature": "review-on-save prompt builder",
+          "symbol": "M.build",
+          "loc": "lua/codriver/review/prompt.lua:19",
+          "what": "synthesizes scoped review request text naming the changed hunk ranges and REVIEW grammar"
+        }
+      ]
+    },
+    "t-6": {
+      "files": [
+        "lua/codriver/review/parse.lua",
+        "tests/codriver/review_parse_spec.lua"
+      ],
+      "commit": "3bbe606",
+      "completed_at": "2026-09-12T17:10:10.565941Z",
+      "landmarks": [
+        {
+          "feature": "review-on-save transcript parser",
+          "symbol": "M.parse",
+          "loc": "lua/codriver/review/parse.lua:20",
+          "what": "extracts REVIEW path:line: comment lines from Claude's reply into structured entries"
+        }
+      ]
+    },
+    "t-7": {
+      "files": [
+        "lua/codriver/hook/claude_settings.lua",
+        "lua/codriver/hook/state.lua",
+        "tests/codriver/hook_claude_settings_spec.lua",
+        "tests/codriver/hook_state_spec.lua"
+      ],
+      "commit": "44e70d4",
+      "completed_at": "2026-09-12T17:11:45.73145Z",
+      "landmarks": [
+        {
+          "feature": "review-on-save hook double-gate",
+          "symbol": "M.merge",
+          "loc": "lua/codriver/hook/claude_settings.lua:33",
+          "what": "merge() takes a 3rd hook-event arg for a Stop entry; state.publish/read/probe carry review_on_save"
+        }
+      ]
+    },
+    "t-8": {
+      "files": [
+        "lua/codriver/review/render.lua",
+        "tests/nvim/review_render_check.lua"
+      ],
+      "commit": "089e418",
+      "completed_at": "2026-09-12T17:12:48.43538Z",
+      "landmarks": [
+        {
+          "feature": "review-on-save extmark renderer",
+          "symbol": "M.show",
+          "loc": "lua/codriver/review/render.lua:20",
+          "what": "draws parsed review comments as virtual text extmarks, clearing prior draws, clamping out-of-range lines"
+        }
+      ]
+    },
+    "t-9": {
+      "files": [
+        "lua/codriver/review/notify.lua",
+        "tests/nvim/review_notify_check.lua"
+      ],
+      "commit": "e9b41e5",
+      "completed_at": "2026-09-12T17:14:33.443472Z",
+      "landmarks": [
+        {
+          "feature": "review-on-save stop-hook receiver",
+          "symbol": "M.received",
+          "loc": "lua/codriver/review/notify.lua:35",
+          "what": "routes parsed comments to render.show() per buffer, arm/consume guards a duplicate Stop event"
+        }
+      ]
+    }
+  }
 }
