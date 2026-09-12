@@ -1,0 +1,6 @@
+{
+  "phase": "shorten-send-commands",
+  "base": "milestone/v0.3",
+  "base_commit": "ca939ce799ae06bbcc0219d28a156edeb308afdc",
+  "tasks": {}
+}
