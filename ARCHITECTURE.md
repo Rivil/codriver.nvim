@@ -282,3 +282,22 @@ applying the require-rewrite and health rename in-script rather than by hand.
 - vendor-sync health rename step — scripts/vendor-sync.sh:114
 
 _introduced session-bringup · 1c8b0fc_
+
+### Write allowlist
+
+While Claude holds the navigator role, Edit/Write/MultiEdit/NotebookEdit calls
+targeting a path under a configured `write_allow` prefix are allowed without a
+human handover; everything else still denies exactly as before, and Bash stays
+governed solely by `bash_allow` regardless of write_allow. Matching is
+directory-prefix with a path-segment boundary (no glob), the list validates at
+`setup()` with the same rigor as `bash_allow`, and the configured prefixes
+round-trip through session state and survive a Neovim restart.
+
+- config.CODRIVER_KEYS.write_allow — lua/codriver/config.lua:31
+- decision.WRITE_TOOL_PATH_FIELD·path_write_allowed — lua/codriver/hook/decision.lua:38
+- state.M.publish·state.M.probe write_allow field — lua/codriver/hook/state.lua:19
+- check_write_allowlist — lua/codriver/health.lua:116
+- hook_decision_spec — tests/codriver/hook_decision_spec.lua:182
+- hook_state_spec — tests/codriver/hook_state_spec.lua:160
+
+_introduced write-allowlist · 95dea16_

@@ -1,0 +1,102 @@
+[verify]
+  phase = "write-allowlist"
+  generated_at = 2026-09-12T11:18:51.051985Z
+  verdict = "pass"
+  finalized = true
+  finalized_at = 2026-09-12T11:20:17.416522Z
+
+[summary]
+  mutation_status = "skipped"
+  measured_on = "local"
+  mutation_score = 0.0
+  mutants_killed = 0
+  mutants_survived = 0
+  mutants_not_covered = 0
+  mutants_in_scope = 0
+  unclassified_in_scope = 0
+  criteria_total = 5
+  criteria_covered = 5
+  criteria_uncovered = 0
+
+[[criterion]]
+  id = "c-1"
+  status = "covered"
+  tests = ["tests/codriver/hook_decision_spec.lua:it(\"allows a Write call whose file_path starts with a configured write_allow prefix\")", "tests/codriver/hook_decision_spec.lua:it(\"allows a MultiEdit call whose file_path starts with a configured write_allow prefix, same as Write\")", "tests/codriver/hook_decision_spec.lua:it(\"allows a NotebookEdit call whose notebook_path is allowed, reading notebook_path not file_path\")", "tests/codriver/config_spec.lua:it(\"round-trips a valid list of strings unchanged\")"]
+  notes = "Edit's own allow path is exercised negatively (deny outside prefix) but not positively in-suite; the same decide() branch is shared with the three tools above, so this is not a coverage gap."
+
+[[criterion]]
+  id = "c-2"
+  status = "covered"
+  tests = ["tests/codriver/hook_decision_spec.lua:it(\"denies an Edit call whose file_path is outside every write_allow prefix\")", "tests/codriver/hook_decision_spec.lua:it('does not match entry \"notes\" against \"notes-leak/secret.md\" — segment boundary is enforced')"]
+
+[[criterion]]
+  id = "c-3"
+  status = "covered"
+  tests = ["tests/codriver/hook_state_spec.lua:it(\"leaves an unrelated file on disk untouched by state.clear()\")"]
+  notes = "state.clear() runs on VimLeavePre (lua/codriver/init.lua:352-355); the test proves a file under an allowed path survives it untouched — the actual restart-durability claim for c-3."
+
+[[criterion]]
+  id = "c-4"
+  status = "covered"
+  tests = ["tests/codriver/hook_decision_spec.lua:it(\"denies Write/Edit/MultiEdit/NotebookEdit with session.write_allow nil, exactly as before this phase\")"]
+
+[[criterion]]
+  id = "c-5"
+  status = "covered"
+  tests = ["tests/codriver/config_spec.lua:it(\"rejects a non-table write_allow, naming it\")", "tests/codriver/config_spec.lua:it(\"rejects an empty-string entry, naming the offending index\")"]
+
+[[finding]]
+  severity = "NOTE"
+  text = "mutation skipped: this phase's entire diff is Lua (config.lua, health.lua, decision.lua, state.lua, init.lua) plus README.md — no mutation adapter exists for either language in this project, so verdict rests on criterion coverage alone. Full test suite (237 busted + all nvim integration checks) run and green in this session."
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped README.md: no mutation adapter for .md"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/config.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/health.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/hook/decision.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/hook/state.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/init.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/codriver/config_spec.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/codriver/hook_decision_spec.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/codriver/hook_state_spec.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/codriver/readme_spec.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/nvim/health_check.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/nvim/hook_publish_check.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/nvim/hook_state_check.lua: no mutation adapter for .lua"

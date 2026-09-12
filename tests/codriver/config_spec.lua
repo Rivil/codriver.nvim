@@ -311,6 +311,33 @@ describe("codriver.config", function()
     end)
   end)
 
+  describe("the write_allow option", function()
+    it("round-trips a valid list of strings unchanged", function()
+      local write_allow = { "notes", "scratch/logs" }
+      local resolved = config.resolve({ write_allow = write_allow })
+
+      assert.are.same(write_allow, resolved.codriver.write_allow)
+    end)
+
+    it("rejects a non-table write_allow, naming it", function()
+      local ok, err = pcall(config.resolve, { write_allow = "nope" })
+
+      assert.is_false(ok)
+      assert.is_truthy(tostring(err):find("write_allow", 1, true))
+    end)
+
+    it("rejects an empty-string entry, naming the offending index", function()
+      local ok, err = pcall(config.resolve, { write_allow = { "" } })
+
+      assert.is_false(ok)
+      assert.is_truthy(tostring(err):find("write_allow[1]", 1, true))
+    end)
+
+    it("defaults to nil", function()
+      assert.is_nil(config.resolve({}).codriver.write_allow)
+    end)
+  end)
+
   describe("the keys option", function()
     it("overrides the default lhs for a known key", function()
       local resolved = config.resolve({ keys = { send = "<leader>xx" } })

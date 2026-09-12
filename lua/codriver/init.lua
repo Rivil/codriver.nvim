@@ -17,7 +17,7 @@ local M = {}
 M.version = {
   major = 0,
   minor = 3,
-  patch = 1,
+  patch = 2,
 }
 
 ---@return string
@@ -290,16 +290,18 @@ function M.setup(opts)
     M.role.set(existing.role)
   end
 
-  ---Publish the role, keeping the resolved test_command and bash_allow that
-  ---were here before — the on_change republish must not drop a field it is not
-  ---changing, or c-5's allowlisted test command (or a bash_allow addition)
-  ---silently stops working after the first handover.
+  ---Publish the role, keeping the resolved test_command, bash_allow and
+  ---write_allow that were here before — the on_change republish must not drop
+  ---a field it is not changing, or c-5's allowlisted test command (or a
+  ---bash_allow/write_allow addition) silently stops working after the first
+  ---handover.
   ---@param role string
   local function publish_role(role)
     state.publish({
       role = role,
       test_command = resolved.codriver.test_command,
       bash_allow = resolved.codriver.bash_allow,
+      write_allow = resolved.codriver.write_allow,
     })
   end
 
