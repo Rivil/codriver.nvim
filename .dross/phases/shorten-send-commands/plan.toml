@@ -1,0 +1,67 @@
+task_seq = 0
+
+[phase]
+  id = "shorten-send-commands"
+
+[[task]]
+  id = "t-1"
+  wave = 1
+  title = "Add opts.keys surface to config.lua"
+  files = ["lua/codriver/config.lua", "tests/codriver/config_spec.lua"]
+  description = """
+Add `keys` to CODRIVER_KEYS and M.defaults (`send = "<leader>cs"`,
+`send_text = "<leader>cS"`). Resolve `opts.keys` against those defaults with
+a deep-merge: an unknown key under `opts.keys` raises, naming it, same
+convention as the top-level boundary. Each known entry accepts either a
+non-empty string (overrides the default lhs) or literal `false` (disables
+it — leave it out of the resolved keys table rather than carrying a falsy
+value forward, so keymaps.lua in t-2 can just iterate what it's given).
+Anything else (a number, a table, an empty string) raises naming the field.
+`nil`/omission is not a distinct case — it resolves to the enabled default,
+per the confirmed reading of c-5.
+"""
+  covers = ["c-3", "c-5"]
+  test_contract = [
+    "opts.keys.send set to a non-empty string overrides the default lhs for CodriverSend in the resolved table",
+    "opts.keys.send = false is absent from the resolved keys table rather than carrying a falsy value forward",
+    "an unknown key under opts.keys (e.g. opts.keys.nope) raises, naming it",
+    "opts.keys.send set to a non-string, non-false value (e.g. a number or empty string) raises",
+    "omitting opts.keys entirely resolves both send and send_text enabled at their defaults (<leader>cs, <leader>cS)",
+  ]
+  status = "pending"
+
+[[task]]
+  id = "t-2"
+  wave = 2
+  depends_on = ["t-1"]
+  title = "Wire default Send/SendText keymaps"
+  files = ["lua/codriver/keymaps.lua", "lua/codriver/init.lua", "README.md", "tests/nvim/keymaps_check.lua"]
+  description = """
+New lua/codriver/keymaps.lua exposing `M.apply(resolved_keys)`: for a
+present `send` entry, vim.keymap.set({"n", "v"}, lhs, ...) to
+"<Cmd>CodriverSend<CR>" for normal mode and ":CodriverSend<CR>" for visual
+mode — the plain `:` form is required in visual mode so Neovim's own
+'<,'> prefix insertion carries the visual range into the ranged command;
+<Cmd> would bypass that and send the whole buffer instead. For a present
+`send_text` entry, map normal mode to the literal string
+":CodriverSendText " (no <CR>) so it prefills the command-line and waits
+for input, per the locked sendtext_ux decision. An absent entry (disabled
+via opts.keys.<name> = false in t-1) is simply not mapped.
+
+Call keymaps.apply(resolved.codriver.keys) from init.lua's setup(), after
+the vendored/pure commands are registered.
+
+Update README's Options section (document the new `keys` table alongside
+auto_start/bash_allow) and the commands table (note the default keymaps
+next to CodriverSend/CodriverSendText), matching how every existing option
+is already documented there.
+"""
+  covers = ["c-1", "c-2", "c-4", "c-5"]
+  test_contract = [
+    "<leader>cs in normal mode on a non-tree buffer queues an at-mention for the current buffer, same as :CodriverSend",
+    "<leader>cs in visual mode queues an at-mention scoped to exactly the visually-selected line range, not the whole buffer",
+    "<leader>cS enters command-line mode with the line prefilled as \"CodriverSendText \" and does not submit",
+    "setup() with opts.keys.send = false leaves <leader>cs unmapped in both normal and visual mode",
+    "setup() with opts.keys.send = \"<leader>xx\" binds the custom lhs instead of <leader>cs, and leaves <leader>cs itself unmapped",
+  ]
+  status = "pending"
