@@ -225,6 +225,24 @@ owner arg WARNs and leaves ownership unchanged.
 
 _introduced phase-binding · ea63d18 · extended phase-binding-follow-up · 9662b65_
 
+### Task status write-through
+
+Pressing `d`/`u` on the cursor task in the `:CodriverTasks` float marks it
+done or reverts it to in_progress by shelling out to `dross task status
+<phase> <task> <status>`, then re-renders and redraws the float in place from
+a fresh read of `plan.toml` — never an optimistic local mutation, so the
+displayed line always reflects what the write actually left on disk. A
+failed write (non-zero exit, or the spawn itself raising) notifies at ERROR
+with the failure message and leaves the displayed status unchanged; it never
+touches the task's ownership entry.
+
+- task_status.M.set — lua/codriver/task_status.lua:20
+- tasks.M.open (d/u branch) — lua/codriver/tasks.lua:190
+- task_status_spec — tests/codriver/task_status_spec.lua:1
+- tasks_check — tests/nvim/tasks_check.lua:1
+
+_introduced task-status-sync · b462008 · extended task-status-sync · 01617ff_
+
 ### Untracked session notice
 
 `:CodriverStart` fires a single one-line WARN `vim.notify` when the dross
