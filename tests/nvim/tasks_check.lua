@@ -17,6 +17,7 @@ vim.fn.mkdir(PROJECT, "p")
 vim.fn.chdir(PROJECT)
 
 local ownership = require("codriver.ownership")
+local role = require("codriver.role")
 local tasks = require("codriver.tasks")
 
 ---@return table<integer, true>
@@ -469,6 +470,167 @@ else
   print(harness.name .. ": skipping real-dross case — `dross` not on PATH")
 end
 
+-- 13. owner-driven-handover: `u` on a claude-owned task while role is
+-- navigator drives Claude into the driver role, with the exact feedback
+-- :CodriverHandover already uses (c-1, c-5).
+---@param notifications { msg: string, level: integer }[]
+---@param msg string
+---@return boolean
+local function notified(notifications, msg)
+  for _, n in ipairs(notifications) do
+    if n.msg == msg then
+      return true
+    end
+  end
+  return false
+end
+
+role._reset()
+ownership.claim("phase-x", "t-1")
+harness.expect_eq(role.get(), "navigator", "role must start as navigator")
+
+vim.system = function()
+  return {
+    wait = function()
+      return { code = 0 }
+    end,
+  }
+end
+
+local u_notifications = capture_notifications(function()
+  vim.api.nvim_feedkeys("uq", "nt", false)
+  tasks.open()
+end)
+vim.system = real_system
+
+harness.expect_eq(role.get(), "driver", "`u` on a claude-owned task must flip role to driver")
+harness.expect(
+  notified(u_notifications, "codriver: Claude is driving"),
+  "expected the same feedback :CodriverHandover uses"
+)
+
+-- 14. The symmetric case (c-2): `u` on a human-owned task while role is
+-- driver drives Claude back to navigator.
+ownership.release("phase-x", "t-1")
+harness.expect_eq(role.get(), "driver", "role must still be driver from the previous check")
+
+vim.system = function()
+  return {
+    wait = function()
+      return { code = 0 }
+    end,
+  }
+end
+
+local back_notifications = capture_notifications(function()
+  vim.api.nvim_feedkeys("uq", "nt", false)
+  tasks.open()
+end)
+vim.system = real_system
+
+harness.expect_eq(role.get(), "navigator", "`u` on a human-owned task must flip role back to navigator")
+harness.expect(
+  notified(back_notifications, "codriver: you're driving"),
+  "expected the same feedback :CodriverTakeback uses"
+)
+
+-- 15. c-4: if role already matches the task's owner, `u` fires no
+-- role-switch notification and leaves role.get() unchanged.
+harness.expect_eq(role.get(), "navigator", "role is navigator, matching t-1's human ownership")
+
+vim.system = function()
+  return {
+    wait = function()
+      return { code = 0 }
+    end,
+  }
+end
+
+local noop_notifications = capture_notifications(function()
+  vim.api.nvim_feedkeys("uq", "nt", false)
+  tasks.open()
+end)
+vim.system = real_system
+
+harness.expect_eq(role.get(), "navigator", "role must be unchanged when it already matches the owner")
+harness.expect_eq(#noop_notifications, 0, "no role-switch notification when role already matches the owner")
+
+-- 16. c-3: `d` never drives a role switch, even on a claude-owned task while
+-- navigating.
+ownership.claim("phase-x", "t-1")
+role._reset()
+harness.expect_eq(role.get(), "navigator", "role reset to navigator")
+
+vim.system = function(cmd)
+  fake_write_status(cmd[4], cmd[5], cmd[6])
+  return {
+    wait = function()
+      return { code = 0 }
+    end,
+  }
+end
+
+vim.api.nvim_feedkeys("dq", "nt", false)
+tasks.open()
+vim.system = real_system
+
+harness.expect_eq(role.get(), "navigator", "`d` on a claude-owned task must not touch role")
+
+-- 17. The symmetric `d` case: role stays driver on a human-owned task.
+ownership.release("phase-x", "t-1")
+role.set("driver")
+
+vim.system = function(cmd)
+  fake_write_status(cmd[4], cmd[5], cmd[6])
+  return {
+    wait = function()
+      return { code = 0 }
+    end,
+  }
+end
+
+vim.api.nvim_feedkeys("dq", "nt", false)
+tasks.open()
+vim.system = real_system
+
+harness.expect_eq(role.get(), "driver", "`d` on a human-owned task must not touch role")
+
+-- 18. A failed `u` write (task_status.set returns ok=false) must not flip
+-- role — the task didn't actually transition, so describing one would be a
+-- lie.
+role._reset()
+ownership.claim("phase-x", "t-1")
+harness.expect_eq(role.get(), "navigator", "role reset to navigator")
+
+vim.system = function()
+  return {
+    wait = function()
+      return { code = 1, stderr = "invalid status transition", stdout = "" }
+    end,
+  }
+end
+
+vim.api.nvim_feedkeys("uq", "nt", false)
+tasks.open()
+vim.system = real_system
+
+harness.expect_eq(role.get(), "navigator", "a failed `u` write must not flip role even for a claude-owned task")
+
+-- 19. trigger_scope: `c`/`r` never drive a role switch, even on a task that
+-- is already in_progress.
+fake_write_status("phase-x", "t-1", "in_progress")
+role._reset()
+harness.expect_eq(role.get(), "navigator", "role reset to navigator")
+
+vim.api.nvim_feedkeys("cq", "nt", false)
+tasks.open()
+harness.expect_eq(role.get(), "navigator", "`c` on an in_progress task must not touch role")
+
+vim.api.nvim_feedkeys("rq", "nt", false)
+tasks.open()
+harness.expect_eq(role.get(), "navigator", "`r` on an in_progress task must not touch role")
+
+role._reset()
 vim.fn.chdir(harness.repo_root)
 
 harness.ok(
@@ -479,6 +641,8 @@ harness.ok(
     .. "write prunes a stale ownership entry for a task id absent from plan.toml, `d`/`u` call codriver.task_status "
     .. "with the right argv and re-render without touching ownership, `d`/`u` redraw the displayed line to the new "
     .. "status in place without closing, a failed write notifies at ERROR and leaves the displayed line exactly as "
-    .. "it was, a spawn failure notifies without crashing, and (when dross is on PATH) a real `d` persists the new "
-    .. "status to plan.toml on disk"
+    .. "it was, a spawn failure notifies without crashing, (when dross is on PATH) a real `d` persists the new "
+    .. "status to plan.toml on disk, `u` drives role from task ownership with the same feedback :CodriverHandover/"
+    .. ":CodriverTakeback use, a no-op when role already matches the owner, `d`/`c`/`r` never touch role, and a "
+    .. "failed `u` write never flips role"
 )
