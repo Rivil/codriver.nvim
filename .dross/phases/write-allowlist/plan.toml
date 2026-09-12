@@ -1,0 +1,65 @@
+[phase]
+id = "write-allowlist"
+
+[[task]]
+id            = "t-1"
+wave          = 1
+title         = "Add write_allow opts + README docs"
+files         = ["lua/codriver/config.lua", "tests/codriver/config_spec.lua", "README.md", "tests/codriver/readme_spec.lua"]
+description   = """
+Add `write_allow` to CODRIVER_KEYS as a flat list of path-prefix strings,
+validated with the same validate_string_list rigor as bash_allow.heads, and
+copied into resolved.codriver.write_allow. Document it in README's Options
+section alongside bash_allow, stating it is prefix-matched (not glob).
+"""
+covers        = ["c-5"]
+test_contract = [
+  "opts.write_allow that isn't a table errors naming write_allow",
+  "opts.write_allow containing an empty-string entry errors naming write_allow[i]",
+  "a valid write_allow list of strings round-trips unchanged into resolved.codriver.write_allow",
+  "README's Options example block documents write_allow's shape and states it is prefix-matched, not glob",
+]
+status        = "pending"
+
+[[task]]
+id            = "t-2"
+wave          = 1
+title         = "Allow Edit/Write under an allowed prefix"
+files         = ["lua/codriver/hook/decision.lua", "tests/codriver/hook_decision_spec.lua"]
+description   = """
+In M.decide, when role is navigator and tool is Edit/Write/MultiEdit/NotebookEdit,
+extract the target path (file_path or notebook_path) from tool_input and allow
+the call if it matches a session.write_allow entry under segment-boundary-aware
+prefix matching (entry "notes" matches "notes/x" and "notes" exactly, never
+"notes-leak/x"). Otherwise fall through to the existing navigator deny. Bash
+stays untouched — still governed solely by bash.allows.
+"""
+covers        = ["c-1", "c-2", "c-4"]
+test_contract = [
+  "a Write call whose file_path starts with a configured write_allow prefix returns allow while navigator",
+  "an Edit call whose file_path is outside every write_allow prefix still returns deny while navigator",
+  "with session.write_allow nil, Write/Edit/MultiEdit/NotebookEdit calls deny while navigator exactly as before this phase",
+  "entry \"notes\" does not match \"notes-leak/secret.md\" — segment boundary is enforced, not a raw string prefix",
+  "a Bash command targeting an allowlisted path is unaffected by write_allow — still governed solely by bash.allows",
+]
+status        = "pending"
+
+[[task]]
+id            = "t-3"
+wave          = 1
+title         = "Thread write_allow through session state"
+files         = ["lua/codriver/init.lua", "lua/codriver/hook/state.lua", "tests/codriver/hook_state_spec.lua"]
+description   = """
+Add write_allow to state.publish's record, state.read's vim.NIL normalization,
+and state.probe's returned table, mirroring bash_allow's existing fields.
+Thread resolved.codriver.write_allow through init.lua's publish_role the same
+way bash_allow already is. Add a first hook_state_spec.lua covering the
+round-trip and a persistence check for c-3.
+"""
+covers        = ["c-1", "c-3"]
+test_contract = [
+  "state.publish/read round-trips a write_allow value unchanged, the same guarantee bash_allow already has",
+  "state.probe's live-session table includes write_allow exactly as it already includes bash_allow",
+  "a file written to disk is unaffected by state.clear() — proves no cleanup/rollback path touches an allowed write",
+]
+status        = "pending"
