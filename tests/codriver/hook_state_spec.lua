@@ -50,6 +50,9 @@ local function encode(record)
   if record.write_allow then
     table.insert(parts, ('"write_allow":%s'):format(encode_string_array(record.write_allow)))
   end
+  if record.review_on_save ~= nil then
+    table.insert(parts, ('"review_on_save":%s'):format(tostring(record.review_on_save)))
+  end
   return "{" .. table.concat(parts, ",") .. "}"
 end
 
@@ -84,6 +87,11 @@ local function decode(text)
   local write_block = text:match('"write_allow":(%[[^%]]*%])')
   if write_block then
     record.write_allow = decode_string_array(write_block)
+  end
+
+  local review_on_save = text:match('"review_on_save":(%a+)')
+  if review_on_save then
+    record.review_on_save = review_on_save == "true"
   end
 
   return record
@@ -177,6 +185,24 @@ describe("codriver.hook.state", function()
 
     assert.is_true(live.live)
     assert.are.same({ "notes" }, live.write_allow)
+  end)
+
+  it("round-trips review_on_save through publish/read/probe", function()
+    state.publish({ role = "navigator", review_on_save = true })
+
+    local record = state.read(state.path())
+    assert.is_true(record.review_on_save)
+
+    local live = state.probe({ CODRIVER_STATE_FILE = state.path() })
+    assert.is_true(live.review_on_save)
+  end)
+
+  it("normalizes an absent review_on_save to nil, the same as bash_allow/write_allow", function()
+    state.publish({ role = "navigator" })
+
+    local record = state.read(state.path())
+
+    assert.is_nil(record.review_on_save)
   end)
 
   it("leaves an unrelated file on disk untouched by state.clear()", function()

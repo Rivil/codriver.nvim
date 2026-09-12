@@ -24,13 +24,18 @@ local function is_codriver_entry(entry)
   return false
 end
 
----Pure table transform: ensure `existing` has exactly one PreToolUse entry
----registering `command`, replacing any stale codriver entry, and leaving every
----other key and entry untouched.
+---Pure table transform: ensure `existing` has exactly one `hook_event` entry
+---registering `command`, replacing any stale codriver entry in that event's
+---array, and leaving every other key and entry — including every other
+---hook event's array — untouched.
 ---@param existing table|nil
 ---@param command string
+---@param hook_event string|nil defaults to "PreToolUse", so the pre-existing
+---  2-arg call site (session.lua's `install(path, hook_command())`) keeps working.
 ---@return table
-function M.merge(existing, command)
+function M.merge(existing, command, hook_event)
+  hook_event = hook_event or "PreToolUse"
+
   local doc = {}
   if type(existing) == "table" then
     for k, v in pairs(existing) do
@@ -38,18 +43,18 @@ function M.merge(existing, command)
     end
   end
 
-  local pre_tool_use = {}
+  local target_entries = {}
   local existing_hooks = doc.hooks
-  local existing_pre = type(existing_hooks) == "table" and existing_hooks.PreToolUse or nil
-  if type(existing_pre) == "table" then
-    for _, entry in ipairs(existing_pre) do
+  local existing_target = type(existing_hooks) == "table" and existing_hooks[hook_event] or nil
+  if type(existing_target) == "table" then
+    for _, entry in ipairs(existing_target) do
       if not is_codriver_entry(entry) then
-        table.insert(pre_tool_use, entry)
+        table.insert(target_entries, entry)
       end
     end
   end
 
-  table.insert(pre_tool_use, {
+  table.insert(target_entries, {
     matcher = "*",
     hooks = { { type = "command", command = command } },
   })
@@ -60,7 +65,7 @@ function M.merge(existing, command)
       hooks[k] = v
     end
   end
-  hooks.PreToolUse = pre_tool_use
+  hooks[hook_event] = target_entries
   doc.hooks = hooks
 
   return doc
@@ -76,8 +81,10 @@ local ARRAY_TYPE_PATHS = {
   ["permissions.ask"] = true,
   ["hooks.PreToolUse"] = true,
   ["hooks.PostToolUse"] = true,
+  ["hooks.Stop"] = true,
   ["hooks.PreToolUse.hooks"] = true,
   ["hooks.PostToolUse.hooks"] = true,
+  ["hooks.Stop.hooks"] = true,
 }
 
 local INDENT = "  "
