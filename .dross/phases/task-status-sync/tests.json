@@ -1,6 +1,6 @@
 {
   "phase": "task-status-sync",
-  "generated_at": "2026-09-11T16:30:38.015375Z",
+  "generated_at": "2026-09-12T07:32:49.849619Z",
   "languages": null,
   "skipped": [
     {
@@ -30,6 +30,8 @@
       ".dross/phases/task-status-sync/changes.json",
       ".dross/phases/task-status-sync/plan.toml",
       ".dross/phases/task-status-sync/spec.toml",
+      ".dross/phases/task-status-sync/tests.json",
+      ".dross/phases/task-status-sync/verify.toml",
       ".dross/project.toml",
       "lua/codriver/init.lua",
       "lua/codriver/task_status.lua",
@@ -47,7 +49,7 @@
       ".dross/phases/task-status-sync/changes.json": [
         {
           "start": 1,
-          "end": 39
+          "end": 38
         }
       ],
       ".dross/phases/task-status-sync/plan.toml": [
@@ -59,7 +61,19 @@
       ".dross/phases/task-status-sync/spec.toml": [
         {
           "start": 1,
-          "end": 44
+          "end": 49
+        }
+      ],
+      ".dross/phases/task-status-sync/tests.json": [
+        {
+          "start": 1,
+          "end": 114
+        }
+      ],
+      ".dross/phases/task-status-sync/verify.toml": [
+        {
+          "start": 1,
+          "end": 73
         }
       ],
       ".dross/project.toml": [
@@ -99,11 +113,11 @@
       "tests/nvim/tasks_check.lua": [
         {
           "start": 219,
-          "end": 365
+          "end": 471
         },
         {
-          "start": 372,
-          "end": 376
+          "start": 478,
+          "end": 483
         }
       ]
     },

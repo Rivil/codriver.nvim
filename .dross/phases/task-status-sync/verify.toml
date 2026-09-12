@@ -1,9 +1,9 @@
 [verify]
   phase = "task-status-sync"
-  generated_at = 2026-09-11T16:30:38.015375Z
-  verdict = "partial"
+  generated_at = 2026-09-12T07:32:49.849619Z
+  verdict = "pass"
   finalized = true
-  finalized_at = 2026-09-11T16:32:18.415367Z
+  finalized_at = 2026-09-12T07:33:34.978133Z
 
 [summary]
   mutation_status = "skipped"
@@ -15,42 +15,30 @@
   mutants_in_scope = 0
   unclassified_in_scope = 0
   criteria_total = 4
-  criteria_covered = 2
-  criteria_uncovered = 2
+  criteria_covered = 4
+  criteria_uncovered = 0
 
 [[criterion]]
   id = "c-1"
   status = "covered"
-  tests = ["tests/codriver/task_status_spec.lua:it('invokes vim.system with the dross task status argv, in order')", "tests/nvim/tasks_check.lua:9 (real-dross guarded case, `d` through the real CLI persists status=done to plan.toml, re-read off disk)"]
+  tests = ["tests/codriver/task_status_spec.lua:it('invokes vim.system with the dross task status argv, in order')", "tests/nvim/tasks_check.lua:435 (real-dross guarded case, `d` through the real CLI persists status=done to plan.toml, re-read off disk)"]
 
 [[criterion]]
   id = "c-2"
-  status = "weak"
-  tests = ["tests/nvim/tasks_check.lua:9 (`d`/`u` — asserts vim.fn.getchar(1)==0, i.e. the float does not close)"]
-  notes = "No test asserts the displayed buffer line actually changes to the new status after d/u. A regression that dropped the `rendered = M.render(); redraw()` calls from the d/u branch (while leaving no-close, argv, and notify behaviour intact) would pass every current assertion — the real-dross case in the same file checks plan.toml on disk, not the on-screen line, so it would not catch a stale display either."
+  status = "covered"
+  tests = ["tests/nvim/tasks_check.lua:327-347 (`d` — buffer-snapshot spy asserts the redrawn line shows `done`, was `pending`)", "tests/nvim/tasks_check.lua:349-365 (`u` — same spy asserts the redrawn line shows `in_progress`, was `done`)"]
+  notes = "Amendment closes the gap the prior run flagged: the spy wraps nvim_buf_set_lines so the assertion runs through the real render()->redraw() pipeline and checks the actual displayed line content, not just that the float stays open."
 
 [[criterion]]
   id = "c-3"
-  status = "weak"
-  tests = ["tests/nvim/tasks_check.lua:10 (failed write notifies at ERROR with the failure message)", "tests/nvim/tasks_check.lua:11 (spawn failure notifies without crashing)"]
-  notes = "The \"surfaces the failure\" half is solidly covered by the ERROR-level vim.notify assertions. The \"does not leave the UI showing a status that was never persisted\" half is true by construction (open() never mutates a local status field; it always re-renders from disk) but is not independently asserted — the same hypothetical redraw()-removal regression noted under c-2 would also slip past this half undetected."
+  status = "covered"
+  tests = ["tests/nvim/tasks_check.lua:370-388 (failed write — buffer-snapshot spy asserts the displayed line is unchanged after a failed `d`)", "tests/nvim/tasks_check.lua:390-411 (failed write notifies at ERROR with the failure message)", "tests/nvim/tasks_check.lua:413-429 (spawn failure notifies without crashing)"]
+  notes = "Amendment adds the previously-missing half: the displayed line is now asserted unchanged on failure (370-388), alongside the pre-existing ERROR-notify coverage."
 
 [[criterion]]
   id = "c-4"
   status = "covered"
-  tests = ["tests/nvim/tasks_check.lua:9 (`u` on the cursor task calls task_status.set with status \"in_progress\", from the same key-loop surface as `d`)"]
-
-[[finding]]
-  severity = "FLAG"
-  text = "c-2: no test asserts the float's displayed line actually updates to the new status after d/u — only that it stays open. Add a check spying on tasks._show/redraw (mirroring step 7's shown_lines spy) that presses d/u and asserts the visible line reflects the new status before the trailing q closes it."
-
-[[finding]]
-  severity = "FLAG"
-  text = "c-3: no test asserts the displayed status is unchanged after a failed d/u write — only that vim.notify fires. Add an assertion (same spy approach as the c-2 flag) that the visible line is unchanged from its pre-press value when task_status.set returns ok=false."
-
-[[finding]]
-  severity = "NOTE"
-  text = "mutation skipped: no mutation adapter for .lua in dross (project is a Neovim/Lua plugin) — verdict is based on criterion coverage alone, per the mutation_status != measured rule."
+  tests = ["tests/nvim/tasks_check.lua:252-282 (`u` on the cursor task calls task_status.set with status \"in_progress\", from the same key-loop surface as `d`)"]
 
 [[finding]]
   severity = "NOTE"
@@ -71,3 +59,7 @@
 [[finding]]
   severity = "NOTE"
   text = "skipped tests/nvim/tasks_check.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "mutation skipped: no mutation adapter for .lua in dross (project is a Neovim/Lua plugin) — verdict is based on criterion coverage alone, per the mutation_status != measured rule."
