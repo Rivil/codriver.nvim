@@ -21,6 +21,30 @@ regenerate the whole document from a scan of the code and git history.
 
 <!-- entries below, alphabetical by feature -->
 
+### Ambient review on save
+
+While Claude is navigator and `review_on_save` is on, saving a buffer diffs it
+against a per-buffer snapshot taken as of the last review, and — if anything
+changed — debounces a coalesced review request through the same terminal-send
+path `:CodriverSend` uses; Claude's reply is parsed for `REVIEW path:line:`
+lines by a Stop hook and rendered back into the buffer as cleared-and-redrawn
+extmarks, never as an Edit/Write tool call. Off by default, matching
+`bash_allow`/`write_allow`'s opt-in shape.
+
+- config.M.defaults.review_on_save — lua/codriver/config.lua:52
+- snapshot.M.advance — lua/codriver/review/snapshot.lua:19
+- diff.M.diff — lua/codriver/review/diff.lua:23
+- debounce.M.new — lua/codriver/review/debounce.lua:24
+- autosave.M.install — lua/codriver/review/autosave.lua:69
+- prompt.M.build — lua/codriver/review/prompt.lua:19
+- parse.M.parse — lua/codriver/review/parse.lua:20
+- render.M.show — lua/codriver/review/render.lua:20
+- notify.M.received — lua/codriver/review/notify.lua:35
+- claude_settings.M.merge (Stop hook entry) — lua/codriver/hook/claude_settings.lua:33
+- session.arm (Stop hook registration) — lua/codriver/session.lua:75
+
+_introduced ambient-review-on-save · c7c440c_
+
 ### Coexistence with claudecode.nvim
 
 Codriver loads alongside a real claudecode.nvim install without shadowing its

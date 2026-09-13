@@ -1,0 +1,117 @@
+task_seq = 0
+
+[phase]
+  id = "ambient-review-on-save"
+
+[[task]]
+  id = "t-1"
+  wave = 1
+  title = "Add review_on_save config toggle"
+  files = ["lua/codriver/config.lua", "tests/codriver/config_spec.lua"]
+  description = "New top-level `review_on_save` boolean option in CODRIVER_KEYS/M.defaults,\nvalidated and resolved the same way `auto_start` is. Off by default (c-5).\n"
+  covers = ["c-5"]
+  test_contract = ["config.resolve({}).codriver.review_on_save is false by default", "config.resolve({review_on_save = true}).codriver.review_on_save resolves true", "config.resolve({review_on_save = \"x\"}) raises naming review_on_save, mirroring auto_start's boolean validation", "an unknown key such as reviewOnSave still raises the existing \"unknown top-level option\" error"]
+  status = "done"
+
+[[task]]
+  id = "t-2"
+  wave = 1
+  title = "Per-buffer review snapshot store"
+  files = ["lua/codriver/review/snapshot.lua", "tests/codriver/review_snapshot_spec.lua"]
+  description = "Tracks, per bufnr, the buffer content as of the last review. advance() records\na new snapshot; get() reads it; clear() drops it on buffer wipeout so a\nrecycled bufnr never diffs against a stale, different file's content (c-3).\n"
+  covers = ["c-3"]
+  test_contract = ["advance(bufnr, lines) then get(bufnr) returns lines", "advance(5, {...}) then clear(5) makes get(5) return nil", "snapshots for two different bufnrs are independent"]
+  status = "done"
+
+[[task]]
+  id = "t-3"
+  wave = 1
+  title = "Line-hunk diff via vim.diff()"
+  files = ["lua/codriver/review/diff.lua", "tests/codriver/review_diff_spec.lua"]
+  description = "Wraps vim.diff() (not a hand-rolled line-compare) to turn a snapshot + current\nbuffer lines into changed-line hunks (c-3). Built-in primitive chosen over a\nbespoke algorithm to avoid off-by-one anchor bugs.\n"
+  covers = ["c-3"]
+  test_contract = ["diff(bufnr, lines) returns nil/{} when lines are identical to the last advance(bufnr, lines) call", "changing one line of a 100-line buffer without advancing yields a hunk scoped to that line, not 1..100"]
+  status = "done"
+
+[[task]]
+  id = "t-4"
+  wave = 1
+  title = "Save-coalescing debounce module"
+  files = ["lua/codriver/review/debounce.lua", "tests/codriver/review_debounce_spec.lua"]
+  description = "Short (~500ms-1s) quiet-period debounce so rapid successive saves (e.g.\nformat-on-save bursts) coalesce into a single review trigger (c-6). Uses an\ninjectable/fake timer so tests don't sleep on a real clock.\n"
+  covers = ["c-6"]
+  test_contract = ["10 trigger() calls inside one injected-fake-timer window invoke the callback exactly once, only after the timer fires", "two trigger() calls separated by a fired window produce two separate invocations", "trigger() never calls the callback synchronously"]
+  status = "done"
+
+[[task]]
+  id = "t-5"
+  wave = 1
+  title = "Review prompt builder"
+  files = ["lua/codriver/review/prompt.lua", "tests/codriver/review_prompt_spec.lua"]
+  description = "Synthesizes the review request text from a buffer name and diff hunks (c-1,\nc-3): names the path, lists only the changed range, and asks for the literal\n`REVIEW <path>:<line>: <comment>` grammar t-6's parser keys on.\n"
+  covers = ["c-1", "c-3"]
+  test_contract = ["prompt.build(bufname, hunks) names the buffer's path and lists only the changed line range (e.g. 12-15), never the whole file", "output contains the literal REVIEW <path>:<line>: <comment> instruction"]
+  status = "done"
+
+[[task]]
+  id = "t-6"
+  wave = 1
+  title = "Anchored-comment transcript parser"
+  files = ["lua/codriver/review/parse.lua", "tests/codriver/review_parse_spec.lua"]
+  description = "Parses `REVIEW <path>:<line>: <comment>` lines out of Claude's reply text into\nstructured {file, line, text} entries for rendering (c-4).\n"
+  covers = ["c-4"]
+  test_contract = ["REVIEW lua/foo.lua:12: consider renaming parses to one {file, line=12, text} entry", "a non-REVIEW line is ignored", "two REVIEW lines for the same file at different lines yield two entries", "a non-numeric line field is skipped, not raised"]
+  status = "done"
+
+[[task]]
+  id = "t-7"
+  wave = 1
+  title = "Generalize hook install + publish review state"
+  files = ["lua/codriver/hook/claude_settings.lua", "lua/codriver/hook/state.lua", "tests/codriver/hook_claude_settings_spec.lua", "tests/codriver/hook_state_spec.lua"]
+  description = "merge() takes a 3rd hook-event argument (default \"PreToolUse\" so the existing\nsession.lua:88 2-arg call site keeps working) so a Stop hook entry can be\ninstalled without touching the PreToolUse array. state.publish() gains a\nreview_on_save field alongside role/test_command/bash_allow/write_allow —\nthis is the flag half of the Stop-hook double-gate (c-4, c-5).\n"
+  covers = ["c-4", "c-5"]
+  test_contract = ["merge(existing, command, \"Stop\") inserts into doc.hooks.Stop and leaves an existing doc.hooks.PreToolUse array untouched", "merge() with the 3rd arg omitted still defaults to \"PreToolUse\" so session.lua:88's install(path, hook_command()) 2-arg call keeps working", "state.publish({..., review_on_save = true}) round-trips through read()/probe()", "review_on_save absent normalizes to nil like bash_allow/write_allow"]
+  status = "done"
+
+[[task]]
+  id = "t-8"
+  wave = 1
+  title = "Extmark review-comment renderer"
+  files = ["lua/codriver/review/render.lua", "tests/nvim/review_render_check.lua"]
+  description = "Draws parsed review comments as virtual text extmarks in codriver's own\nnamespace, anchored near the changed lines (c-4). Never touches buffer text —\nno nvim_buf_set_text or any Edit/Write-shaped API.\n"
+  covers = ["c-4"]
+  test_contract = ["render.show(bufnr, {{line=3, text=\"nit\"}}) creates one extmark per entry in codriver's own namespace as virtual text", "a second render.show() call clears the first call's extmarks before drawing new ones", "a line number past the buffer's end is clamped/skipped, not raised, and a second valid comment in the same payload still renders"]
+  status = "done"
+
+[[task]]
+  id = "t-9"
+  wave = 2
+  title = "Stop-hook receiver wiring parsed comments to render"
+  files = ["lua/codriver/review/notify.lua", "tests/nvim/review_notify_check.lua"]
+  description = "RPC receiver called by the Stop hook: takes parsed comments and calls\nrender.show() for the target buffer (c-4). Guards against a stray second Stop\nevent for the same pending review re-rendering or re-firing — the pending\nmarker is cleared after the first successful render.\n"
+  covers = ["c-4"]
+  depends_on = ["t-6", "t-8"]
+  test_contract = ["notify.received({comments = {{file = <open buf>, line = 2, text = \"x\"}}}) produces exactly one extmark in that buffer", "a comment for a file with no matching loaded buffer (bufnr == -1) raises nothing and adds no extmark", "two comments for the same buffer arrive as one render.show() call, not two", "once a review's comments have been rendered, a second stray notify.received() for the same pending review is a no-op — the pending marker is cleared after the first successful render, so a duplicate Stop event never double-renders or re-triggers"]
+  status = "done"
+
+[[task]]
+  id = "t-10"
+  wave = 2
+  title = "Wire BufWritePost review trigger into setup()"
+  files = ["lua/codriver/review/autosave.lua", "lua/codriver/init.lua", "tests/nvim/review_autosave_check.lua"]
+  description = "BufWritePost autocmd, debounced (t-4), gated on role=navigator and\nreview_on_save=true, diffing against the snapshot (t-2/t-3) and dispatching\nthe built prompt (t-5) via send_to_terminal (c-1, c-2, c-3, c-5, c-6). On a\nfailed send, the snapshot is not advanced so the next save's diff still\nincludes the dropped changes.\n"
+  covers = ["c-1", "c-2", "c-3", "c-5", "c-6"]
+  depends_on = ["t-1", "t-2", "t-3", "t-4", "t-5"]
+  test_contract = ["role=navigator + review_on_save=true + a changed buffer -> exactly one send_to_terminal(text, {submit=true}) call", "role=driver on the same changed buffer -> zero calls", "review_on_save=false (default) -> zero calls regardless of role", "10 rapid :write calls inside the debounce window -> exactly one call", "a :write with no diff since the last snapshot -> zero calls", "when send_to_terminal returns false (no terminal open), the snapshot is NOT advanced — the next save's diff still includes the dropped changes"]
+  status = "done"
+
+[[task]]
+  id = "t-11"
+  wave = 3
+  title = "Register Stop hook, verify end-to-end RPC render"
+  files = ["scripts/codriver-review-hook.lua", "lua/codriver/session.lua", "lua/codriver/init.lua", "tests/nvim/review_hook_check.lua", "tests/nvim/hook_settings_check.lua"]
+  description = "New Stop-hook script (nvim --clean -l, mirrors scripts/codriver-hook.lua's\nRPC-over-CODRIVER_NVIM_ADDRESS shape) parses the transcript for REVIEW lines\n(t-6) and RPCs into the live instance, double-gated on review_on_save state\n(t-7) plus the REVIEW-line grammar so an ordinary driver-mode reply never\nmisrenders as a review. session wiring registers hooks.Stop alongside the\nexisting hooks.PreToolUse entry (c-4, c-5).\n"
+  covers = ["c-4", "c-5"]
+  depends_on = ["t-7", "t-9"]
+  test_contract = ["running the Stop hook against a live state file with role=navigator and review_on_save=true, on a transcript containing a REVIEW line, produces exactly one extmark in the target buffer via RPC", "review_on_save=false -> zero extmarks", "role=driver -> zero extmarks", "a transcript containing a REVIEW-shaped line but review_on_save=false does not render (the double-gate blocks the false positive)", "session.ensure_server() registers hooks.Stop pointing at scripts/codriver-review-hook.lua without clobbering the existing hooks.PreToolUse entry"]
+  status = "done"

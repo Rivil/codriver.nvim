@@ -256,6 +256,30 @@ describe("codriver.config", function()
     end)
   end)
 
+  describe("the review_on_save option", function()
+    it("defaults to false", function()
+      assert.is_false(config.resolve({}).codriver.review_on_save)
+    end)
+
+    it("resolves true when set", function()
+      assert.is_true(config.resolve({ review_on_save = true }).codriver.review_on_save)
+    end)
+
+    it("rejects a non-boolean review_on_save, naming it", function()
+      local ok, err = pcall(config.resolve, { review_on_save = "x" })
+
+      assert.is_false(ok)
+      assert.is_truthy(tostring(err):find("review_on_save", 1, true))
+    end)
+
+    it("still rejects a misspelled key as unknown", function()
+      local ok, err = pcall(config.resolve, { reviewOnSave = true })
+
+      assert.is_false(ok)
+      assert.is_truthy(tostring(err):find("reviewOnSave", 1, true))
+    end)
+  end)
+
   describe("the bash_allow option", function()
     it("resolves heads and git_subcommands through unchanged", function()
       local bash_allow = { heads = { "foo" }, git_subcommands = { "stash" } }

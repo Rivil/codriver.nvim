@@ -29,11 +29,13 @@ local CODRIVER_KEYS = {
   test_command = true,
   bash_allow = true,
   write_allow = true,
+  review_on_save = true,
   keys = true,
 }
 
 ---@class CodriverOptions
 ---@field auto_start boolean Open a session when `setup()` runs.
+---@field review_on_save boolean Auto-trigger a review request on save while navigator.
 
 ---Codriver's own defaults.
 ---
@@ -42,12 +44,17 @@ local CODRIVER_KEYS = {
 ---lockfile on every `nvim` launch contradicts that, and litters one lockfile
 ---per Neovim instance. Users who want Claude always reachable opt in.
 ---
+---`review_on_save` is off by default, matching `bash_allow`/`write_allow`'s
+---opt-in shape — ambient review traffic to Claude is something a project
+---turns on, not something that starts happening silently.
+---
 ---`keys` are on by default — a plugin whose commands need to be typed out
 ---isn't "reachable via a keymap". `opts.keys.<name> = false` disables one
 ---without clobbering a user's own binding of the same lhs.
 ---@type CodriverOptions
 M.defaults = {
   auto_start = false,
+  review_on_save = false,
   keys = {
     send = "<leader>cs",
     send_text = "<leader>cS",
@@ -251,6 +258,16 @@ function M.resolve(opts, channel)
     end
     auto_start = opts.auto_start
   end
+  local review_on_save = M.defaults.review_on_save
+  if opts.review_on_save ~= nil then
+    if type(opts.review_on_save) ~= "boolean" then
+      error(
+        ("codriver.config: review_on_save must be a boolean, got %s"):format(vim.inspect(opts.review_on_save)),
+        2
+      )
+    end
+    review_on_save = opts.review_on_save
+  end
   local test_command = nil
   if opts.test_command ~= nil then
     if type(opts.test_command) ~= "string" then
@@ -325,6 +342,7 @@ function M.resolve(opts, channel)
   return {
     codriver = {
       auto_start = auto_start,
+      review_on_save = review_on_save,
       test_command = test_command,
       bash_allow = bash_allow,
       write_allow = write_allow,

@@ -106,8 +106,8 @@ end
 ---as much a bug as write-after-open.
 local function fake_claude_settings()
   local fake = { installs = {} }
-  fake.install = function(path, command)
-    table.insert(fake.installs, { path = path, command = command })
+  fake.install = function(path, command, hook_event)
+    table.insert(fake.installs, { path = path, command = command, hook_event = hook_event })
     table.insert(events, "claude_settings.install")
   end
   return fake
@@ -208,21 +208,34 @@ describe("codriver.session", function()
   end)
 
   describe("arming", function()
-    it("registers the hook before the vendored server ever starts", function()
+    it("registers the hooks before the vendored server ever starts", function()
       session.ensure_server()
 
-      assert.are.same({ "claude_settings.install", "vendor.start" }, events)
+      assert.are.same({ "claude_settings.install", "claude_settings.install", "vendor.start" }, events)
     end)
 
-    it("registers against the current working directory", function()
+    it("registers the PreToolUse hook against the current working directory", function()
       session.ensure_server()
 
-      assert.are.equal(1, #claude_settings.installs)
       assert.are.equal(CWD .. "/.claude/settings.local.json", claude_settings.installs[1].path)
+      assert.is_nil(claude_settings.installs[1].hook_event, "the PreToolUse install omits a 3rd arg, defaulting")
       assert.is_truthy(
         claude_settings.installs[1].command:match("^nvim %-%-clean %-l .*/scripts/codriver%-hook%.lua$"),
         "expected the registered command to run scripts/codriver-hook.lua under --clean, got "
           .. tostring(claude_settings.installs[1].command)
+      )
+    end)
+
+    it("also registers the Stop hook against the same settings path", function()
+      session.ensure_server()
+
+      assert.are.equal(2, #claude_settings.installs)
+      assert.are.equal(CWD .. "/.claude/settings.local.json", claude_settings.installs[2].path)
+      assert.are.equal("Stop", claude_settings.installs[2].hook_event)
+      assert.is_truthy(
+        claude_settings.installs[2].command:match("^nvim %-%-clean %-l .*/scripts/codriver%-review%-hook%.lua$"),
+        "expected the registered Stop command to run scripts/codriver-review-hook.lua under --clean, got "
+          .. tostring(claude_settings.installs[2].command)
       )
     end)
 
@@ -233,7 +246,7 @@ describe("codriver.session", function()
       session.ensure_server()
       session.ensure_server()
 
-      assert.are.equal(2, #claude_settings.installs)
+      assert.are.equal(4, #claude_settings.installs, "two ensure_server() calls, two installs each (PreToolUse + Stop)")
     end)
 
     for _, key in ipairs({ "cwd", "cwd_provider", "git_repo_cwd" }) do
@@ -274,7 +287,10 @@ describe("codriver.session", function()
       local result = session.start()
 
       assert.is_true(result.started)
-      assert.are.same({ "claude_settings.install", "vendor.start", "terminal.open" }, events)
+      assert.are.same(
+        { "claude_settings.install", "claude_settings.install", "vendor.start", "terminal.open" },
+        events
+      )
       assert.are.equal(1, terminal.opened)
     end)
 
@@ -286,7 +302,7 @@ describe("codriver.session", function()
 
       assert.is_true(again.already_running)
       assert.are.same(
-        { "claude_settings.install", "terminal.open" },
+        { "claude_settings.install", "claude_settings.install", "terminal.open" },
         events,
         ":CodriverStart is also a request for somewhere to talk, and ensure_server() re-arms on the way there"
       )

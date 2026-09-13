@@ -1,0 +1,175 @@
+[verify]
+  phase = "ambient-review-on-save"
+  generated_at = 2026-09-13T06:27:23.688664Z
+  verdict = "pass"
+  finalized = true
+  finalized_at = 2026-09-13T06:29:03.944068Z
+
+[summary]
+  mutation_status = "skipped"
+  measured_on = "local"
+  mutation_score = 0.0
+  mutants_killed = 0
+  mutants_survived = 0
+  mutants_not_covered = 0
+  mutants_in_scope = 0
+  unclassified_in_scope = 0
+  criteria_total = 6
+  criteria_covered = 6
+  criteria_uncovered = 0
+
+[[criterion]]
+  id = "c-1"
+  status = "covered"
+  tests = ["tests/nvim/review_autosave_check.lua — 'navigator + changed -> exactly one'", "tests/nvim/review_hook_check.lua — scenario 1 (navigator+review_on_save=true+REVIEW line -> exactly one extmark)"]
+  notes = "BufWritePost fires send_to_terminal automatically while navigator; no manual command path exists in the trigger wiring."
+
+[[criterion]]
+  id = "c-2"
+  status = "covered"
+  tests = ["tests/nvim/review_autosave_check.lua — 'role=driver' (scenario 3, zero calls)", "tests/nvim/review_hook_check.lua — scenario 3 (role=driver -> zero extmarks)"]
+  notes = "Both the outbound trigger (autosave.fire gates on role.is_navigator()) and the inbound render (Stop-hook double-gate) are directly asserted zero under driver."
+
+[[criterion]]
+  id = "c-3"
+  status = "covered"
+  tests = ["tests/codriver/review_diff_spec.lua — 'scopes a hunk to the changed line, not the whole buffer'", "tests/nvim/review_autosave_check.lua — 'a write with no diff since the last snapshot must fire zero reviews'"]
+  notes = "Direct unit assertion matches the criterion's wording almost verbatim; snapshot-advance-on-send semantics are covered by the same file's other cases."
+
+[[criterion]]
+  id = "c-4"
+  status = "covered"
+  tests = ["tests/nvim/review_render_check.lua — one extmark per comment, in codriver's own namespace, cleared before redraw", "tests/nvim/review_hook_check.lua — end-to-end Stop-hook parse-to-RPC-render path"]
+  notes = "Rendering is structurally extmark-only: the Stop hook reads the transcript text and calls render.show via RPC — there is no code path in this feature that emits an Edit/Write tool call."
+
+[[criterion]]
+  id = "c-5"
+  status = "covered"
+  tests = ["tests/codriver/config_spec.lua — 'the review_on_save option' > 'defaults to false' / 'resolves true when set'"]
+  notes = "Matches bash_allow/write_allow's opt-in shape: nil/false unless a project sets it."
+
+[[criterion]]
+  id = "c-6"
+  status = "covered"
+  tests = ["tests/nvim/review_autosave_check.lua — '10 rapid :write calls inside the debounce window must coalesce into exactly one call'"]
+  notes = "Direct assertion of the coalescing behaviour the criterion describes, via the real debounce timer under real Neovim."
+
+[[finding]]
+  severity = "NOTE"
+  text = "mutation skipped: no mutation adapter for .lua in this project — verdict is based on criterion coverage alone (all 6 criteria covered, 270/270 suite green, all test-nvim checks passed)"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/config.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/hook/claude_settings.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/hook/state.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/init.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/review/autosave.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/review/debounce.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/review/diff.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/review/notify.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/review/parse.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/review/prompt.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/review/render.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/review/snapshot.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped lua/codriver/session.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped scripts/codriver-review-hook.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/codriver/config_spec.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/codriver/hook_claude_settings_spec.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/codriver/hook_state_spec.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/codriver/review_debounce_spec.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/codriver/review_diff_spec.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/codriver/review_parse_spec.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/codriver/review_prompt_spec.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/codriver/review_snapshot_spec.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/codriver/session_spec.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/nvim/hook_install_check.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/nvim/hook_settings_check.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/nvim/review_autosave_check.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/nvim/review_hook_check.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/nvim/review_notify_check.lua: no mutation adapter for .lua"
+
+[[finding]]
+  severity = "NOTE"
+  text = "skipped tests/nvim/review_render_check.lua: no mutation adapter for .lua"

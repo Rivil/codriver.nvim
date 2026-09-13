@@ -17,7 +17,7 @@ local M = {}
 M.version = {
   major = 0,
   minor = 3,
-  patch = 2,
+  patch = 3,
 }
 
 ---@return string
@@ -27,6 +27,7 @@ end
 
 M.role = require("codriver.role")
 
+local autosave = require("codriver.review.autosave")
 local commands = require("codriver.commands")
 local config = require("codriver.config")
 local dross = require("codriver.dross")
@@ -343,6 +344,10 @@ function M.setup(opts)
   -- After every command above is registered, so a keymap never fires into a
   -- command that does not exist yet.
   keymaps.apply(resolved.codriver.keys)
+
+  -- Off unless the project opted in (c-5); gated again per-save on live role
+  -- inside autosave.install() itself, since role can flip after setup() runs.
+  autosave.install({ review_on_save = resolved.codriver.review_on_save })
 
   -- Not guarded by first_setup: the vendored setup above just (re-)created the
   -- shutdown augroup with `clear = true`, which wipes any autocmd a previous
