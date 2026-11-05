@@ -3,7 +3,7 @@ phases = ["shorten-send-commands", "write-allowlist", "ambient-review-on-save"]
 [milestone]
   version = "v0.3"
   title = "Real world usage - part 1"
-  status = "active"
+  status = "complete"
   started = "2026-09-12"
   base = "main"
 
