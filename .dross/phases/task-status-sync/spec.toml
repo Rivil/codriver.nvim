@@ -47,3 +47,4 @@
   id = "2c035c8381119b21"
   text = "dross state set version round-trips .dross/project.toml through its project schema and silently strips [[competition]].note fields, comments, and unschematized keys (build_command/migrate_command, key ordering) — same destructive path as dross project set, different command name. Recurred 3x in this repo (2026-09-07, 2026-09-09, 2026-09-11)."
   why = "version bump should patch the field in place, not re-serialize the whole document — worth reporting upstream to dross itself"
+  dismissed = true

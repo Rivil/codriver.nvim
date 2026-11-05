@@ -35,6 +35,41 @@ local NVIM_MCP_ALLOW = {
   [NVIM_MCP_PREFIX .. "closeAllDiffTabs"] = true,
 }
 
+-- The tool_input field each write tool carries its target path under.
+-- NotebookEdit uses notebook_path, never file_path.
+local WRITE_TOOL_PATH_FIELD = {
+  Edit = "file_path",
+  Write = "file_path",
+  MultiEdit = "file_path",
+  NotebookEdit = "notebook_path",
+}
+
+---True when `path` equals `prefix` exactly, or starts with `prefix` followed
+---by a path separator. A bare Lua "starts with" is not enough: the entry
+---"notes" would also match "notes-leak/secret.md" without this boundary
+---check (locked decision: match_semantics).
+---@param path string
+---@param prefix string
+---@return boolean
+local function matches_allowed_prefix(path, prefix)
+  return path == prefix or path:sub(1, #prefix + 1) == prefix .. "/"
+end
+
+---@param path any
+---@param write_allow table?
+---@return boolean
+local function path_write_allowed(path, write_allow)
+  if type(path) ~= "string" or path == "" or type(write_allow) ~= "table" then
+    return false
+  end
+  for _, prefix in ipairs(write_allow) do
+    if matches_allowed_prefix(path, prefix) then
+      return true
+    end
+  end
+  return false
+end
+
 ---Pure decision core for the PreToolUse hook: no vim.* here, this is
 ---busted-testable and must stay that way.
 ---@param payload { tool: string, tool_input: table? }
@@ -60,6 +95,15 @@ function M.decide(payload, session)
   if tool == "Bash" then
     local tool_input = payload.tool_input or {}
     if bash.allows(tool_input.command, session.test_command, session.bash_allow) then
+      return { permission = "allow" }
+    end
+    return { permission = "deny", reason = NAVIGATOR_REASON }
+  end
+
+  local path_field = WRITE_TOOL_PATH_FIELD[tool]
+  if path_field then
+    local tool_input = payload.tool_input or {}
+    if path_write_allowed(tool_input[path_field], session.write_allow) then
       return { permission = "allow" }
     end
     return { permission = "deny", reason = NAVIGATOR_REASON }

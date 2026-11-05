@@ -1,0 +1,12 @@
+phases = ["shorten-send-commands", "write-allowlist", "ambient-review-on-save"]
+
+[milestone]
+  version = "v0.3"
+  title = "Real world usage - part 1"
+  status = "active"
+  started = "2026-09-12"
+  base = "main"
+
+[scope]
+  success_criteria = ["Saving a buffer while Claude is navigator triggers a review comment (virtual text/quickfix) on what changed, without Claude proposing an edit.", "Sending the visual selection or a file to Claude is reachable via a keymap, without typing the full :CodriverSend/:CodriverSendText command name.", "A project can configure a set of paths Claude may write to at will even while navigator; a note Claude writes there survives a session restart and is readable in a later session."]
+  non_goals = ["Ambient review stays comment-only in this milestone — no auto-apply or one-click-accept of Claude's review comments.", "No write-allowlist UI/config wizard — configured via opts like bash_allow already is, no interactive setup flow or :Codriver command to manage it this milestone."]

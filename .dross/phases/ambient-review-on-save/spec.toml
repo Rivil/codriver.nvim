@@ -1,0 +1,57 @@
+[phase]
+  id = "ambient-review-on-save"
+  title = "ambient-review-on-save"
+  milestone = "v0.3"
+
+[[criteria]]
+  id = "c-1"
+  text = "Saving a buffer while Claude is navigator automatically triggers a review request to Claude — no manual command needed."
+
+[[criteria]]
+  id = "c-2"
+  text = "Saving a buffer while Claude is driver triggers no review action."
+
+[[criteria]]
+  id = "c-3"
+  text = "The review is scoped to what changed in the buffer since the last review, not a re-review of the whole file every time."
+
+[[criteria]]
+  id = "c-4"
+  text = "Claude's review response renders in the buffer as virtual text anchored near the changed lines — it never appears as a proposed Edit/Write tool call."
+
+[[criteria]]
+  id = "c-5"
+  text = "The feature is off by default; a project opts in via a config toggle, matching bash_allow/write_allow's opt-in shape."
+
+[[criteria]]
+  id = "c-6"
+  text = "Rapid successive saves (e.g. format-on-save firing multiple BufWritePost events in quick succession) coalesce into a single review rather than one review per save."
+
+[[decisions]]
+  key = "diff_basis"
+  choice = "A review diffs the buffer against a per-buffer snapshot taken as of the last review; the snapshot advances after each review fires. Diff basis is never the whole file or a git ref."
+  why = "Keeps each review incremental and avoids re-flagging lines already reviewed; a git-diff basis would tie the feature to a clean repo state, and an open-buffer basis would re-review a growing scope on every save."
+  locked = true
+
+[[decisions]]
+  key = "delivery_mechanism"
+  choice = "The review request is synthesized as a prompt and sent via the existing terminal.send_to_terminal path (the same mechanism as :CodriverSend), auto-submitted. It appears as a normal turn in the visible Claude transcript."
+  why = "No headless/invisible call path exists anywhere in this codebase; building one is new infrastructure with no precedent, while reusing the terminal-injection path from shorten-send-commands needs zero new plumbing."
+  locked = true
+
+[[decisions]]
+  key = "rendering_surface"
+  choice = "Review comments render exclusively as virtual text (extmarks) anchored near the changed lines. No quickfix list."
+  why = "Matches the README's public promise of the feature exactly; quickfix would be new surface area to build and keep in sync for no criterion that requires it."
+  locked = true
+
+[[decisions]]
+  key = "save_cadence"
+  choice = "Saves are debounced with a short (~500ms–1s) quiet-period window before a review request fires; sending and waiting for Claude's reply is fully asynchronous — the editor never blocks on it."
+  why = "A short debounce absorbs format-on-save bursts (c-6) without adding a perceptible delay to a deliberate save; blocking on Claude's reply would make every save feel laggy and contradicts codriver's non-goal of not being in the way of the driver."
+  locked = true
+
+[[deferred]]
+  id = "9d9f0710f684723d"
+  text = "dross stack loadout misdetects this repo as JavaScript (suggests eslint/vitest guardrails) despite project.toml declaring stack.locked as Lua/LuaJIT — observed again during /dross-execute pre-flight for ambient-review-on-save"
+  why = "Recurring false-positive stack detection surfaces irrelevant guardrails at the start of every /dross-execute run in this repo; first noticed during task-status-sync (2026-09-11), recurred 2026-09-12."

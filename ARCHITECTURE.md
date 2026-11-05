@@ -21,6 +21,30 @@ regenerate the whole document from a scan of the code and git history.
 
 <!-- entries below, alphabetical by feature -->
 
+### Ambient review on save
+
+While Claude is navigator and `review_on_save` is on, saving a buffer diffs it
+against a per-buffer snapshot taken as of the last review, and — if anything
+changed — debounces a coalesced review request through the same terminal-send
+path `:CodriverSend` uses; Claude's reply is parsed for `REVIEW path:line:`
+lines by a Stop hook and rendered back into the buffer as cleared-and-redrawn
+extmarks, never as an Edit/Write tool call. Off by default, matching
+`bash_allow`/`write_allow`'s opt-in shape.
+
+- config.M.defaults.review_on_save — lua/codriver/config.lua:52
+- snapshot.M.advance — lua/codriver/review/snapshot.lua:19
+- diff.M.diff — lua/codriver/review/diff.lua:23
+- debounce.M.new — lua/codriver/review/debounce.lua:24
+- autosave.M.install — lua/codriver/review/autosave.lua:69
+- prompt.M.build — lua/codriver/review/prompt.lua:19
+- parse.M.parse — lua/codriver/review/parse.lua:20
+- render.M.show — lua/codriver/review/render.lua:20
+- notify.M.received — lua/codriver/review/notify.lua:35
+- claude_settings.M.merge (Stop hook entry) — lua/codriver/hook/claude_settings.lua:33
+- session.arm (Stop hook registration) — lua/codriver/session.lua:75
+
+_introduced ambient-review-on-save · c7c440c_
+
 ### Coexistence with claudecode.nvim
 
 Codriver loads alongside a real claudecode.nvim install without shadowing its
@@ -39,6 +63,20 @@ codriver owns exactly one namespace.
 - as_registered — tests/nvim/command_surface_check.lua:97
 
 _introduced session-bringup · 7cfaf6e_
+
+### Configurable send keymaps
+
+Default `<leader>cs`/`<leader>cS` keymaps reach `:CodriverSend`/`:CodriverSendText`
+without typing the command, rebindable or disable-able via `opts.keys` following
+config.lua's existing deep-merge/unknown-key-raises convention — a key set to
+`false` is omitted from the resolved table entirely rather than carried forward
+falsy, so it never clobbers a user's own binding.
+
+- config.resolve_keys — lua/codriver/config.lua:171
+- keymaps.M.apply — lua/codriver/keymaps.lua:17
+- keymaps_check — tests/nvim/keymaps_check.lua:1
+
+_introduced shorten-send-commands · 4de727c_
 
 ### Dross phase reader
 
@@ -268,3 +306,22 @@ applying the require-rewrite and health rename in-script rather than by hand.
 - vendor-sync health rename step — scripts/vendor-sync.sh:114
 
 _introduced session-bringup · 1c8b0fc_
+
+### Write allowlist
+
+While Claude holds the navigator role, Edit/Write/MultiEdit/NotebookEdit calls
+targeting a path under a configured `write_allow` prefix are allowed without a
+human handover; everything else still denies exactly as before, and Bash stays
+governed solely by `bash_allow` regardless of write_allow. Matching is
+directory-prefix with a path-segment boundary (no glob), the list validates at
+`setup()` with the same rigor as `bash_allow`, and the configured prefixes
+round-trip through session state and survive a Neovim restart.
+
+- config.CODRIVER_KEYS.write_allow — lua/codriver/config.lua:31
+- decision.WRITE_TOOL_PATH_FIELD·path_write_allowed — lua/codriver/hook/decision.lua:38
+- state.M.publish·state.M.probe write_allow field — lua/codriver/hook/state.lua:19
+- check_write_allowlist — lua/codriver/health.lua:116
+- hook_decision_spec — tests/codriver/hook_decision_spec.lua:182
+- hook_state_spec — tests/codriver/hook_state_spec.lua:160
+
+_introduced write-allowlist · 95dea16_

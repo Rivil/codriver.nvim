@@ -17,6 +17,8 @@ function M.publish(record)
       role = record.role,
       test_command = record.test_command,
       bash_allow = record.bash_allow,
+      write_allow = record.write_allow,
+      review_on_save = record.review_on_save,
     }),
   }, tmp)
 
@@ -39,6 +41,12 @@ function M.read(path)
   if decoded.bash_allow == vim.NIL then
     decoded.bash_allow = nil
   end
+  if decoded.write_allow == vim.NIL then
+    decoded.write_allow = nil
+  end
+  if decoded.review_on_save == vim.NIL then
+    decoded.review_on_save = nil
+  end
   return decoded
 end
 
@@ -58,7 +66,14 @@ function M.probe(env)
     return { live = true }
   end
 
-  return { live = true, role = record.role, test_command = record.test_command, bash_allow = record.bash_allow }
+  return {
+    live = true,
+    role = record.role,
+    test_command = record.test_command,
+    bash_allow = record.bash_allow,
+    write_allow = record.write_allow,
+    review_on_save = record.review_on_save,
+  }
 end
 
 function M.clear()

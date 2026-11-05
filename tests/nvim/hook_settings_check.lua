@@ -74,7 +74,28 @@ harness.expect_eq(
   "install() must never write under this repository's own .claude/ regardless of the target path it was given"
 )
 
+-- 5. A separate install() call for the Stop hook registers hooks.Stop
+-- without clobbering the hooks.PreToolUse entry a prior install() wrote.
+local stop_path = harness.sandbox_root .. "/stop-project/.claude/settings.local.json"
+local STOP_COMMAND = "nvim --clean -l /plugin/root/scripts/codriver-review-hook.lua"
+
+claude_settings.install(stop_path, COMMAND)
+claude_settings.install(stop_path, STOP_COMMAND, "Stop")
+
+local stop_doc = vim.json.decode(table.concat(vim.fn.readfile(stop_path), "\n"))
+harness.expect_eq(
+  stop_doc.hooks.PreToolUse[1].hooks[1].command,
+  COMMAND,
+  "the PreToolUse entry from the first install() must survive a later Stop install()"
+)
+harness.expect_eq(
+  stop_doc.hooks.Stop[1].hooks[1].command,
+  STOP_COMMAND,
+  "the Stop entry must register the command the second install() was given"
+)
+
 harness.ok(
   "install() atomically read-merge-writes the settings file, refuses a malformed existing file by name without "
-    .. "touching it, and never drifts outside the path it was given"
+    .. "touching it, never drifts outside the path it was given, and a later Stop-hook install() does not clobber "
+    .. "an existing PreToolUse entry"
 )

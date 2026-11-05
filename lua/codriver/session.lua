@@ -63,6 +63,13 @@ local function hook_command()
   return ("nvim --clean -l %s/scripts/codriver-hook.lua"):format(plugin_root())
 end
 
+---The command registered as codriver's Stop hook — ambient review on save
+---(c-4). Same `--clean -l` shape as the PreToolUse hook.
+---@return string
+local function review_hook_command()
+  return ("nvim --clean -l %s/scripts/codriver-review-hook.lua"):format(plugin_root())
+end
+
 ---Fires at most once per session: a non-default terminal cwd is out of this
 ---phase's scope, and enforcement armed at `vim.fn.getcwd()` regardless would
 ---otherwise look installed while quietly watching the wrong directory.
@@ -85,7 +92,13 @@ local function arm()
     )
   end
 
-  claude_settings().install(vim.fn.getcwd() .. "/.claude/settings.local.json", hook_command())
+  local settings_path = vim.fn.getcwd() .. "/.claude/settings.local.json"
+  claude_settings().install(settings_path, hook_command())
+  -- A separate install() call, not a single merged write: install() is what
+  -- keeps this atomic (read-merge-write), and merge()'s hook_event param
+  -- (t-7) means this second pass only ever touches hooks.Stop, leaving the
+  -- hooks.PreToolUse entry the call above just wrote untouched.
+  claude_settings().install(settings_path, review_hook_command(), "Stop")
 end
 
 ---Test-only: forget whether the cwd-scope warning already fired. "Once" means

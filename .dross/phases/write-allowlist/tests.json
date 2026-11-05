@@ -1,0 +1,258 @@
+{
+  "phase": "write-allowlist",
+  "generated_at": "2026-09-12T11:18:51.051985Z",
+  "languages": null,
+  "skipped": [
+    {
+      "file": "README.md",
+      "reason": "no mutation adapter for .md"
+    },
+    {
+      "file": "lua/codriver/config.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "lua/codriver/health.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "lua/codriver/hook/decision.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "lua/codriver/hook/state.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "lua/codriver/init.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/codriver/config_spec.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/codriver/hook_decision_spec.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/codriver/hook_state_spec.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/codriver/readme_spec.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/nvim/health_check.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/nvim/hook_publish_check.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/nvim/hook_state_check.lua",
+      "reason": "no mutation adapter for .lua"
+    }
+  ],
+  "scope": {
+    "files": [
+      ".dross/phases/write-allowlist/REVIEW.md",
+      ".dross/phases/write-allowlist/changes.json",
+      ".dross/phases/write-allowlist/plan.toml",
+      ".dross/phases/write-allowlist/spec.toml",
+      ".dross/project.toml",
+      "README.md",
+      "lua/codriver/config.lua",
+      "lua/codriver/health.lua",
+      "lua/codriver/hook/decision.lua",
+      "lua/codriver/hook/state.lua",
+      "lua/codriver/init.lua",
+      "tests/codriver/config_spec.lua",
+      "tests/codriver/hook_decision_spec.lua",
+      "tests/codriver/hook_state_spec.lua",
+      "tests/codriver/readme_spec.lua",
+      "tests/nvim/health_check.lua",
+      "tests/nvim/hook_publish_check.lua",
+      "tests/nvim/hook_state_check.lua"
+    ],
+    "hunks": {
+      ".dross/phases/write-allowlist/REVIEW.md": [
+        {
+          "start": 1,
+          "end": 75
+        }
+      ],
+      ".dross/phases/write-allowlist/changes.json": [
+        {
+          "start": 1,
+          "end": 90
+        }
+      ],
+      ".dross/phases/write-allowlist/plan.toml": [
+        {
+          "start": 1,
+          "end": 53
+        }
+      ],
+      ".dross/phases/write-allowlist/spec.toml": [
+        {
+          "start": 1,
+          "end": 48
+        }
+      ],
+      ".dross/project.toml": [
+        {
+          "start": 3,
+          "end": 3
+        }
+      ],
+      "README.md": [
+        {
+          "start": 95,
+          "end": 104
+        }
+      ],
+      "lua/codriver/config.lua": [
+        {
+          "start": 31,
+          "end": 31
+        },
+        {
+          "start": 277,
+          "end": 281
+        },
+        {
+          "start": 326,
+          "end": 332
+        }
+      ],
+      "lua/codriver/health.lua": [
+        {
+          "start": 116,
+          "end": 124
+        },
+        {
+          "start": 193,
+          "end": 193
+        }
+      ],
+      "lua/codriver/hook/decision.lua": [
+        {
+          "start": 38,
+          "end": 72
+        },
+        {
+          "start": 103,
+          "end": 111
+        }
+      ],
+      "lua/codriver/hook/state.lua": [
+        {
+          "start": 20,
+          "end": 20
+        },
+        {
+          "start": 43,
+          "end": 45
+        },
+        {
+          "start": 65,
+          "end": 71
+        }
+      ],
+      "lua/codriver/init.lua": [
+        {
+          "start": 20,
+          "end": 20
+        },
+        {
+          "start": 293,
+          "end": 297
+        },
+        {
+          "start": 304,
+          "end": 304
+        }
+      ],
+      "tests/codriver/config_spec.lua": [
+        {
+          "start": 314,
+          "end": 340
+        }
+      ],
+      "tests/codriver/hook_decision_spec.lua": [
+        {
+          "start": 182,
+          "end": 226
+        }
+      ],
+      "tests/codriver/hook_state_spec.lua": [
+        {
+          "start": 1,
+          "end": 191
+        }
+      ],
+      "tests/codriver/readme_spec.lua": [
+        {
+          "start": 36,
+          "end": 48
+        }
+      ],
+      "tests/nvim/health_check.lua": [
+        {
+          "start": 136,
+          "end": 162
+        },
+        {
+          "start": 164,
+          "end": 165
+        }
+      ],
+      "tests/nvim/hook_publish_check.lua": [
+        {
+          "start": 23,
+          "end": 23
+        },
+        {
+          "start": 66,
+          "end": 66
+        },
+        {
+          "start": 86,
+          "end": 90
+        },
+        {
+          "start": 99,
+          "end": 103
+        },
+        {
+          "start": 154,
+          "end": 158
+        }
+      ],
+      "tests/nvim/hook_state_check.lua": [
+        {
+          "start": 235,
+          "end": 249
+        },
+        {
+          "start": 285,
+          "end": 289
+        },
+        {
+          "start": 336,
+          "end": 336
+        },
+        {
+          "start": 351,
+          "end": 355
+        }
+      ]
+    },
+    "base": "ca45a954eac0945de299fbd0c28691b4b349bf66",
+    "source": "git+changes"
+  },
+  "measured_on": "local"
+}

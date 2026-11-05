@@ -1,0 +1,566 @@
+{
+  "phase": "ambient-review-on-save",
+  "generated_at": "2026-09-13T06:27:23.688664Z",
+  "languages": null,
+  "skipped": [
+    {
+      "file": "lua/codriver/config.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "lua/codriver/hook/claude_settings.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "lua/codriver/hook/state.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "lua/codriver/init.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "lua/codriver/review/autosave.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "lua/codriver/review/debounce.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "lua/codriver/review/diff.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "lua/codriver/review/notify.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "lua/codriver/review/parse.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "lua/codriver/review/prompt.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "lua/codriver/review/render.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "lua/codriver/review/snapshot.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "lua/codriver/session.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "scripts/codriver-review-hook.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/codriver/config_spec.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/codriver/hook_claude_settings_spec.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/codriver/hook_state_spec.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/codriver/review_debounce_spec.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/codriver/review_diff_spec.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/codriver/review_parse_spec.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/codriver/review_prompt_spec.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/codriver/review_snapshot_spec.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/codriver/session_spec.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/nvim/hook_install_check.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/nvim/hook_settings_check.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/nvim/review_autosave_check.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/nvim/review_hook_check.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/nvim/review_notify_check.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/nvim/review_render_check.lua",
+      "reason": "no mutation adapter for .lua"
+    }
+  ],
+  "scope": {
+    "files": [
+      ".dross/phases/ambient-review-on-save/REVIEW.md",
+      ".dross/phases/ambient-review-on-save/changes.json",
+      ".dross/phases/ambient-review-on-save/panel/mvp.md",
+      ".dross/phases/ambient-review-on-save/panel/risk.md",
+      ".dross/phases/ambient-review-on-save/panel/synthesis.md",
+      ".dross/phases/ambient-review-on-save/panel/verification.md",
+      ".dross/phases/ambient-review-on-save/plan.toml",
+      ".dross/phases/ambient-review-on-save/spec.toml",
+      ".dross/project.toml",
+      "lua/codriver/config.lua",
+      "lua/codriver/hook/claude_settings.lua",
+      "lua/codriver/hook/state.lua",
+      "lua/codriver/init.lua",
+      "lua/codriver/review/autosave.lua",
+      "lua/codriver/review/debounce.lua",
+      "lua/codriver/review/diff.lua",
+      "lua/codriver/review/notify.lua",
+      "lua/codriver/review/parse.lua",
+      "lua/codriver/review/prompt.lua",
+      "lua/codriver/review/render.lua",
+      "lua/codriver/review/snapshot.lua",
+      "lua/codriver/session.lua",
+      "scripts/codriver-review-hook.lua",
+      "tests/codriver/config_spec.lua",
+      "tests/codriver/hook_claude_settings_spec.lua",
+      "tests/codriver/hook_state_spec.lua",
+      "tests/codriver/review_debounce_spec.lua",
+      "tests/codriver/review_diff_spec.lua",
+      "tests/codriver/review_parse_spec.lua",
+      "tests/codriver/review_prompt_spec.lua",
+      "tests/codriver/review_snapshot_spec.lua",
+      "tests/codriver/session_spec.lua",
+      "tests/nvim/hook_install_check.lua",
+      "tests/nvim/hook_settings_check.lua",
+      "tests/nvim/review_autosave_check.lua",
+      "tests/nvim/review_hook_check.lua",
+      "tests/nvim/review_notify_check.lua",
+      "tests/nvim/review_render_check.lua"
+    ],
+    "hunks": {
+      ".dross/phases/ambient-review-on-save/REVIEW.md": [
+        {
+          "start": 1,
+          "end": 82
+        }
+      ],
+      ".dross/phases/ambient-review-on-save/changes.json": [
+        {
+          "start": 1,
+          "end": 192
+        }
+      ],
+      ".dross/phases/ambient-review-on-save/panel/mvp.md": [
+        {
+          "start": 1,
+          "end": 93
+        }
+      ],
+      ".dross/phases/ambient-review-on-save/panel/risk.md": [
+        {
+          "start": 1,
+          "end": 129
+        }
+      ],
+      ".dross/phases/ambient-review-on-save/panel/synthesis.md": [
+        {
+          "start": 1,
+          "end": 208
+        }
+      ],
+      ".dross/phases/ambient-review-on-save/panel/verification.md": [
+        {
+          "start": 1,
+          "end": 72
+        }
+      ],
+      ".dross/phases/ambient-review-on-save/plan.toml": [
+        {
+          "start": 1,
+          "end": 117
+        }
+      ],
+      ".dross/phases/ambient-review-on-save/spec.toml": [
+        {
+          "start": 1,
+          "end": 57
+        }
+      ],
+      ".dross/project.toml": [
+        {
+          "start": 3,
+          "end": 3
+        },
+        {
+          "start": 46,
+          "end": 46
+        },
+        {
+          "start": 50,
+          "end": 50
+        }
+      ],
+      "lua/codriver/config.lua": [
+        {
+          "start": 32,
+          "end": 32
+        },
+        {
+          "start": 38,
+          "end": 38
+        },
+        {
+          "start": 47,
+          "end": 50
+        },
+        {
+          "start": 57,
+          "end": 57
+        },
+        {
+          "start": 261,
+          "end": 270
+        },
+        {
+          "start": 345,
+          "end": 345
+        }
+      ],
+      "lua/codriver/hook/claude_settings.lua": [
+        {
+          "start": 8,
+          "end": 12
+        },
+        {
+          "start": 14,
+          "end": 14
+        },
+        {
+          "start": 24,
+          "end": 29
+        },
+        {
+          "start": 35,
+          "end": 38
+        },
+        {
+          "start": 41,
+          "end": 42
+        },
+        {
+          "start": 44,
+          "end": 46
+        },
+        {
+          "start": 54,
+          "end": 54
+        },
+        {
+          "start": 56,
+          "end": 58
+        },
+        {
+          "start": 60,
+          "end": 60
+        },
+        {
+          "start": 65,
+          "end": 65
+        },
+        {
+          "start": 76,
+          "end": 76
+        },
+        {
+          "start": 92,
+          "end": 92
+        },
+        {
+          "start": 95,
+          "end": 95
+        },
+        {
+          "start": 217,
+          "end": 219
+        },
+        {
+          "start": 222,
+          "end": 223
+        },
+        {
+          "start": 234,
+          "end": 234
+        }
+      ],
+      "lua/codriver/hook/state.lua": [
+        {
+          "start": 21,
+          "end": 21
+        },
+        {
+          "start": 47,
+          "end": 49
+        },
+        {
+          "start": 75,
+          "end": 75
+        }
+      ],
+      "lua/codriver/init.lua": [
+        {
+          "start": 20,
+          "end": 20
+        },
+        {
+          "start": 30,
+          "end": 30
+        },
+        {
+          "start": 348,
+          "end": 351
+        }
+      ],
+      "lua/codriver/review/autosave.lua": [
+        {
+          "start": 1,
+          "end": 104
+        }
+      ],
+      "lua/codriver/review/debounce.lua": [
+        {
+          "start": 1,
+          "end": 48
+        }
+      ],
+      "lua/codriver/review/diff.lua": [
+        {
+          "start": 1,
+          "end": 63
+        }
+      ],
+      "lua/codriver/review/notify.lua": [
+        {
+          "start": 1,
+          "end": 60
+        }
+      ],
+      "lua/codriver/review/parse.lua": [
+        {
+          "start": 1,
+          "end": 35
+        }
+      ],
+      "lua/codriver/review/prompt.lua": [
+        {
+          "start": 1,
+          "end": 44
+        }
+      ],
+      "lua/codriver/review/render.lua": [
+        {
+          "start": 1,
+          "end": 35
+        }
+      ],
+      "lua/codriver/review/snapshot.lua": [
+        {
+          "start": 1,
+          "end": 40
+        }
+      ],
+      "lua/codriver/session.lua": [
+        {
+          "start": 66,
+          "end": 72
+        },
+        {
+          "start": 95,
+          "end": 101
+        }
+      ],
+      "scripts/codriver-review-hook.lua": [
+        {
+          "start": 1,
+          "end": 111
+        }
+      ],
+      "tests/codriver/config_spec.lua": [
+        {
+          "start": 259,
+          "end": 282
+        }
+      ],
+      "tests/codriver/hook_claude_settings_spec.lua": [
+        {
+          "start": 87,
+          "end": 114
+        }
+      ],
+      "tests/codriver/hook_state_spec.lua": [
+        {
+          "start": 53,
+          "end": 55
+        },
+        {
+          "start": 92,
+          "end": 96
+        },
+        {
+          "start": 190,
+          "end": 207
+        }
+      ],
+      "tests/codriver/review_debounce_spec.lua": [
+        {
+          "start": 1,
+          "end": 95
+        }
+      ],
+      "tests/codriver/review_diff_spec.lua": [
+        {
+          "start": 1,
+          "end": 77
+        }
+      ],
+      "tests/codriver/review_parse_spec.lua": [
+        {
+          "start": 1,
+          "end": 47
+        }
+      ],
+      "tests/codriver/review_prompt_spec.lua": [
+        {
+          "start": 1,
+          "end": 38
+        }
+      ],
+      "tests/codriver/review_snapshot_spec.lua": [
+        {
+          "start": 1,
+          "end": 45
+        }
+      ],
+      "tests/codriver/session_spec.lua": [
+        {
+          "start": 109,
+          "end": 110
+        },
+        {
+          "start": 211,
+          "end": 211
+        },
+        {
+          "start": 214,
+          "end": 214
+        },
+        {
+          "start": 217,
+          "end": 217
+        },
+        {
+          "start": 221,
+          "end": 221
+        },
+        {
+          "start": 229,
+          "end": 241
+        },
+        {
+          "start": 249,
+          "end": 249
+        },
+        {
+          "start": 290,
+          "end": 293
+        },
+        {
+          "start": 305,
+          "end": 305
+        }
+      ],
+      "tests/nvim/hook_install_check.lua": [
+        {
+          "start": 48,
+          "end": 48
+        },
+        {
+          "start": 50,
+          "end": 50
+        },
+        {
+          "start": 77,
+          "end": 82
+        },
+        {
+          "start": 107,
+          "end": 127
+        },
+        {
+          "start": 142,
+          "end": 142
+        }
+      ],
+      "tests/nvim/hook_settings_check.lua": [
+        {
+          "start": 77,
+          "end": 96
+        },
+        {
+          "start": 99,
+          "end": 100
+        }
+      ],
+      "tests/nvim/review_autosave_check.lua": [
+        {
+          "start": 1,
+          "end": 134
+        }
+      ],
+      "tests/nvim/review_hook_check.lua": [
+        {
+          "start": 1,
+          "end": 134
+        }
+      ],
+      "tests/nvim/review_notify_check.lua": [
+        {
+          "start": 1,
+          "end": 73
+        }
+      ],
+      "tests/nvim/review_render_check.lua": [
+        {
+          "start": 1,
+          "end": 43
+        }
+      ]
+    },
+    "base": "6464f86cb86c3f689b84da5f88bdb77d45849418",
+    "source": "git+changes"
+  },
+  "measured_on": "local"
+}

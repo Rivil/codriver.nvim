@@ -1,0 +1,168 @@
+{
+  "phase": "shorten-send-commands",
+  "generated_at": "2026-09-12T09:52:01.099724Z",
+  "languages": null,
+  "skipped": [
+    {
+      "file": "README.md",
+      "reason": "no mutation adapter for .md"
+    },
+    {
+      "file": "lua/codriver/config.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "lua/codriver/init.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "lua/codriver/keymaps.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/codriver/config_spec.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/codriver/init_spec.lua",
+      "reason": "no mutation adapter for .lua"
+    },
+    {
+      "file": "tests/nvim/keymaps_check.lua",
+      "reason": "no mutation adapter for .lua"
+    }
+  ],
+  "scope": {
+    "files": [
+      ".dross/phases/shorten-send-commands/REVIEW.md",
+      ".dross/phases/shorten-send-commands/changes.json",
+      ".dross/phases/shorten-send-commands/plan.toml",
+      ".dross/phases/shorten-send-commands/spec.toml",
+      ".dross/project.toml",
+      "README.md",
+      "lua/codriver/config.lua",
+      "lua/codriver/init.lua",
+      "lua/codriver/keymaps.lua",
+      "tests/codriver/config_spec.lua",
+      "tests/codriver/init_spec.lua",
+      "tests/nvim/keymaps_check.lua"
+    ],
+    "hunks": {
+      ".dross/phases/shorten-send-commands/REVIEW.md": [
+        {
+          "start": 1,
+          "end": 27
+        }
+      ],
+      ".dross/phases/shorten-send-commands/changes.json": [
+        {
+          "start": 1,
+          "end": 41
+        }
+      ],
+      ".dross/phases/shorten-send-commands/plan.toml": [
+        {
+          "start": 1,
+          "end": 25
+        }
+      ],
+      ".dross/phases/shorten-send-commands/spec.toml": [
+        {
+          "start": 1,
+          "end": 42
+        }
+      ],
+      ".dross/project.toml": [
+        {
+          "start": 3,
+          "end": 3
+        }
+      ],
+      "README.md": [
+        {
+          "start": 94,
+          "end": 102
+        },
+        {
+          "start": 121,
+          "end": 121
+        },
+        {
+          "start": 123,
+          "end": 123
+        }
+      ],
+      "lua/codriver/config.lua": [
+        {
+          "start": 31,
+          "end": 31
+        },
+        {
+          "start": 43,
+          "end": 46
+        },
+        {
+          "start": 50,
+          "end": 53
+        },
+        {
+          "start": 147,
+          "end": 213
+        },
+        {
+          "start": 276,
+          "end": 276
+        },
+        {
+          "start": 320,
+          "end": 320
+        }
+      ],
+      "lua/codriver/init.lua": [
+        {
+          "start": 19,
+          "end": 20
+        },
+        {
+          "start": 33,
+          "end": 33
+        },
+        {
+          "start": 341,
+          "end": 344
+        }
+      ],
+      "lua/codriver/keymaps.lua": [
+        {
+          "start": 1,
+          "end": 49
+        }
+      ],
+      "tests/codriver/config_spec.lua": [
+        {
+          "start": 313,
+          "end": 350
+        }
+      ],
+      "tests/codriver/init_spec.lua": [
+        {
+          "start": 321,
+          "end": 325
+        },
+        {
+          "start": 342,
+          "end": 342
+        }
+      ],
+      "tests/nvim/keymaps_check.lua": [
+        {
+          "start": 1,
+          "end": 151
+        }
+      ]
+    },
+    "base": "53ea15f3cdc00ebe6f88ff4ffcce289b7c6cd98f",
+    "source": "git+changes"
+  },
+  "measured_on": "local"
+}

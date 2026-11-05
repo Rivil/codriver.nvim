@@ -1,0 +1,42 @@
+[phase]
+id        = "shorten-send-commands"
+title     = "Shorten send commands"
+milestone = "v0.3"
+
+[[criteria]]
+id   = "c-1"
+text = "A default keymap in normal mode triggers CodriverSend's current-buffer/tree-selection behavior, without typing the command."
+
+[[criteria]]
+id   = "c-2"
+text = "A default keymap in visual mode triggers CodriverSend on the visual selection, without typing the command."
+
+[[criteria]]
+id   = "c-3"
+text = "Keymaps are configurable via a new opts.keys surface (rebind or disable), following config.lua's existing deep-merge / unknown-key-raises convention."
+
+[[criteria]]
+id   = "c-4"
+text = "A default keymap for CodriverSendText lets you send ad-hoc text without typing the full command."
+
+[[criteria]]
+id   = "c-5"
+text = "Setting a keymap to false/nil disables it, so it doesn't clobber a user's existing binding."
+
+[[decisions]]
+key    = "keymap_default"
+choice = "Send keymaps are enabled by default with sensible bindings, overridable/disable-able via opts.keys"
+why    = "Matches the milestone's 'reachable via a keymap' framing and mirrors how auto_start/bash_allow already ship with sane defaults; collision risk is mitigated by c-5's disable escape hatch."
+locked = true
+
+[[decisions]]
+key    = "default_keys"
+choice = "<leader>cs for CodriverSend (dispatches normal/visual like the command already does), <leader>cS for CodriverSendText"
+why    = "Short and mnemonic; no existing leader-key convention in codriver to conflict with."
+locked = true
+
+[[decisions]]
+key    = "sendtext_ux"
+choice = "<leader>cS prefills the command-line with ':CodriverSendText ' rather than popping a vim.ui.input() prompt"
+why    = "Keeps the existing command's bang/nargs semantics visible and editable instead of hiding them behind a modal prompt."
+locked = true

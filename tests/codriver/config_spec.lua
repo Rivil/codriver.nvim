@@ -256,6 +256,30 @@ describe("codriver.config", function()
     end)
   end)
 
+  describe("the review_on_save option", function()
+    it("defaults to false", function()
+      assert.is_false(config.resolve({}).codriver.review_on_save)
+    end)
+
+    it("resolves true when set", function()
+      assert.is_true(config.resolve({ review_on_save = true }).codriver.review_on_save)
+    end)
+
+    it("rejects a non-boolean review_on_save, naming it", function()
+      local ok, err = pcall(config.resolve, { review_on_save = "x" })
+
+      assert.is_false(ok)
+      assert.is_truthy(tostring(err):find("review_on_save", 1, true))
+    end)
+
+    it("still rejects a misspelled key as unknown", function()
+      local ok, err = pcall(config.resolve, { reviewOnSave = true })
+
+      assert.is_false(ok)
+      assert.is_truthy(tostring(err):find("reviewOnSave", 1, true))
+    end)
+  end)
+
   describe("the bash_allow option", function()
     it("resolves heads and git_subcommands through unchanged", function()
       local bash_allow = { heads = { "foo" }, git_subcommands = { "stash" } }
@@ -308,6 +332,71 @@ describe("codriver.config", function()
 
     it("defaults to nil", function()
       assert.is_nil(config.resolve({}).codriver.bash_allow)
+    end)
+  end)
+
+  describe("the write_allow option", function()
+    it("round-trips a valid list of strings unchanged", function()
+      local write_allow = { "notes", "scratch/logs" }
+      local resolved = config.resolve({ write_allow = write_allow })
+
+      assert.are.same(write_allow, resolved.codriver.write_allow)
+    end)
+
+    it("rejects a non-table write_allow, naming it", function()
+      local ok, err = pcall(config.resolve, { write_allow = "nope" })
+
+      assert.is_false(ok)
+      assert.is_truthy(tostring(err):find("write_allow", 1, true))
+    end)
+
+    it("rejects an empty-string entry, naming the offending index", function()
+      local ok, err = pcall(config.resolve, { write_allow = { "" } })
+
+      assert.is_false(ok)
+      assert.is_truthy(tostring(err):find("write_allow[1]", 1, true))
+    end)
+
+    it("defaults to nil", function()
+      assert.is_nil(config.resolve({}).codriver.write_allow)
+    end)
+  end)
+
+  describe("the keys option", function()
+    it("overrides the default lhs for a known key", function()
+      local resolved = config.resolve({ keys = { send = "<leader>xx" } })
+
+      assert.are.equal("<leader>xx", resolved.codriver.keys.send)
+    end)
+
+    it("omits a key disabled with false rather than carrying a falsy value forward", function()
+      local resolved = config.resolve({ keys = { send = false } })
+
+      assert.is_nil(resolved.codriver.keys.send)
+    end)
+
+    it("rejects an unknown key under opts.keys, naming it", function()
+      local ok, err = pcall(config.resolve, { keys = { nope = "<leader>x" } })
+
+      assert.is_false(ok)
+      assert.is_truthy(tostring(err):find("nope", 1, true))
+    end)
+
+    it("rejects a non-string, non-false value, naming it", function()
+      local ok, err = pcall(config.resolve, { keys = { send = 42 } })
+      assert.is_false(ok)
+      assert.is_truthy(tostring(err):find("keys.send", 1, true))
+
+      assert.has_error(function()
+        config.resolve({ keys = { send = "" } })
+      end)
+    end)
+
+    it("resolves both send and send_text at their defaults when opts.keys is omitted", function()
+      local keys = config.resolve({}).codriver.keys
+
+      assert.are.equal("<leader>cs", keys.send)
+      assert.are.equal("<leader>cS", keys.send_text)
     end)
   end)
 end)

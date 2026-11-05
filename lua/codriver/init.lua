@@ -16,7 +16,7 @@ local M = {}
 
 M.version = {
   major = 0,
-  minor = 2,
+  minor = 3,
   patch = 3,
 }
 
@@ -27,9 +27,11 @@ end
 
 M.role = require("codriver.role")
 
+local autosave = require("codriver.review.autosave")
 local commands = require("codriver.commands")
 local config = require("codriver.config")
 local dross = require("codriver.dross")
+local keymaps = require("codriver.keymaps")
 local ownership = require("codriver.ownership")
 local session = require("codriver.session")
 local state = require("codriver.hook.state")
@@ -289,16 +291,18 @@ function M.setup(opts)
     M.role.set(existing.role)
   end
 
-  ---Publish the role, keeping the resolved test_command and bash_allow that
-  ---were here before — the on_change republish must not drop a field it is not
-  ---changing, or c-5's allowlisted test command (or a bash_allow addition)
-  ---silently stops working after the first handover.
+  ---Publish the role, keeping the resolved test_command, bash_allow and
+  ---write_allow that were here before — the on_change republish must not drop
+  ---a field it is not changing, or c-5's allowlisted test command (or a
+  ---bash_allow/write_allow addition) silently stops working after the first
+  ---handover.
   ---@param role string
   local function publish_role(role)
     state.publish({
       role = role,
       test_command = resolved.codriver.test_command,
       bash_allow = resolved.codriver.bash_allow,
+      write_allow = resolved.codriver.write_allow,
     })
   end
 
@@ -336,6 +340,14 @@ function M.setup(opts)
     { nargs = "+", desc = "Claim (default/'claude') or release ('human') a dross task, for the current phase" }
   )
   vim.api.nvim_create_user_command("CodriverTasks", tasks.open, { desc = "List the current dross phase's tasks" })
+
+  -- After every command above is registered, so a keymap never fires into a
+  -- command that does not exist yet.
+  keymaps.apply(resolved.codriver.keys)
+
+  -- Off unless the project opted in (c-5); gated again per-save on live role
+  -- inside autosave.install() itself, since role can flip after setup() runs.
+  autosave.install({ review_on_save = resolved.codriver.review_on_save })
 
   -- Not guarded by first_setup: the vendored setup above just (re-)created the
   -- shutdown augroup with `clear = true`, which wipes any autocmd a previous

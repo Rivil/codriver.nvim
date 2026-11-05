@@ -179,6 +179,51 @@ describe("codriver.hook.decision", function()
       )
     end)
 
+    it("allows a Write call whose file_path starts with a configured write_allow prefix", function()
+      local session = { live = true, role = "navigator", write_allow = { "notes" } }
+      local result = decide("Write", { file_path = "notes/todo.md" }, session)
+      assert.are.equal("allow", result.permission)
+    end)
+
+    it("allows a MultiEdit call whose file_path starts with a configured write_allow prefix, same as Write", function()
+      local session = { live = true, role = "navigator", write_allow = { "notes" } }
+      local result = decide("MultiEdit", { file_path = "notes/todo.md" }, session)
+      assert.are.equal("allow", result.permission)
+    end)
+
+    it("allows a NotebookEdit call whose notebook_path is allowed, reading notebook_path not file_path", function()
+      local session = { live = true, role = "navigator", write_allow = { "notes" } }
+      -- file_path deliberately points outside the allowlist: this only passes
+      -- if decide() reads notebook_path for NotebookEdit, not file_path.
+      local result = decide("NotebookEdit", { notebook_path = "notes/nb.ipynb", file_path = "secret/x" }, session)
+      assert.are.equal("allow", result.permission)
+    end)
+
+    it("denies an Edit call whose file_path is outside every write_allow prefix", function()
+      local session = { live = true, role = "navigator", write_allow = { "notes" } }
+      local result = decide("Edit", { file_path = "secret/x" }, session)
+      assert.are.equal("deny", result.permission)
+    end)
+
+    it("denies Write/Edit/MultiEdit/NotebookEdit with session.write_allow nil, exactly as before this phase", function()
+      for _, tool in ipairs({ "Write", "Edit", "MultiEdit", "NotebookEdit" }) do
+        local result = decide(tool, { file_path = "notes/todo.md", notebook_path = "notes/nb.ipynb" }, NAVIGATOR)
+        assert.are.equal("deny", result.permission, tool .. " must still deny with no write_allow configured")
+      end
+    end)
+
+    it('does not match entry "notes" against "notes-leak/secret.md" — segment boundary is enforced', function()
+      local session = { live = true, role = "navigator", write_allow = { "notes" } }
+      local result = decide("Write", { file_path = "notes-leak/secret.md" }, session)
+      assert.are.equal("deny", result.permission, "a raw string prefix would wrongly allow this")
+    end)
+
+    it("leaves a Bash command targeting an allowlisted path unaffected by write_allow", function()
+      local session = { live = true, role = "navigator", write_allow = { "notes" } }
+      local result = decide("Bash", { command = "rm notes/todo.md" }, session)
+      assert.are.equal("deny", result.permission, "write_allow must not extend to Bash")
+    end)
+
     it("allows everything when no codriver session is live", function()
       -- no_session_behaviour: a bare `claude` run with no Neovim behind it
       -- must not be crippled by a hook that has nothing to enforce.

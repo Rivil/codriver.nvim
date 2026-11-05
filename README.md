@@ -91,6 +91,25 @@ require("codriver").setup({
     heads = { "jq" },
     git_subcommands = { "stash" },
   },
+
+  -- A flat list of path-prefix strings. While navigator, an Edit/Write/
+  -- MultiEdit/NotebookEdit call whose target path matches one of these
+  -- prefixes is allowed without a handover. Matched with a segment boundary,
+  -- not glob and not a raw string prefix: the entry "notes" matches "notes"
+  -- itself and anything under "notes/", but never "notes-leak/x".
+  -- Does not extend to Bash — a shell write is still governed solely by
+  -- `bash_allow`, even against a path this list covers. Omit it and nothing
+  -- is writable while navigator, same as before this option existed.
+  write_allow = { "notes" },
+
+  -- Default keymaps for CodriverSend/CodriverSendText, reachable without
+  -- typing the command. Rebind by overriding the lhs, or disable one by
+  -- setting it to `false` — that leaves your own binding of the same lhs
+  -- alone rather than clobbering it.
+  keys = {
+    send = "<leader>cs", -- normal: current buffer; visual: the selection
+    send_text = "<leader>cS", -- prefills `:CodriverSendText `
+  },
 })
 ```
 
@@ -109,9 +128,9 @@ environment variables, port, or lockfile path by hand.
 | `:CodriverStatus`                           | One line: listening, and whether Claude has connected |
 | `:Codriver` / `:CodriverFocus`              | Toggle / smart-focus the Claude terminal              |
 | `:CodriverOpen` / `:CodriverClose`          | Show / hide the terminal window                       |
-| `:CodriverSend`                             | Send the visual selection as an at-mention            |
+| `:CodriverSend` (`<leader>cs`)              | Send the buffer/visual selection as an at-mention     |
 | `:CodriverAdd` / `:CodriverTreeAdd`         | Add a file or tree selection to context               |
-| `:CodriverSendText`                         | Send text to the terminal and submit it               |
+| `:CodriverSendText` (`<leader>cS`)          | Send text to the terminal and submit it               |
 | `:CodriverDiffAccept` / `:CodriverDiffDeny` | Accept / reject the current proposed diff             |
 | `:CodriverCloseAllDiffs`                    | Close pending diffs, leaving accepted ones            |
 | `:CodriverSelectModel`                      | Pick a model and open the terminal with it            |

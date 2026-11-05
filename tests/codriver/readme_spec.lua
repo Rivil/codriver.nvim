@@ -33,6 +33,19 @@ describe("README Options section", function()
     assert.is_truthy(lowered:find("bash allowlist", 1, true), "README must tie test_command to the Bash allowlist")
   end)
 
+  it("documents write_allow's shape, segment-boundary matching, and Bash exclusion", function()
+    assert.is_truthy(readme:find("write_allow = {", 1, true), "README must show write_allow's flat string-list shape")
+    assert.is_truthy(
+      lowered:find("segment boundary", 1, true),
+      "README must state write_allow is prefix-matched with a segment boundary"
+    )
+    assert.is_truthy(lowered:find("not glob", 1, true), "README must state write_allow does not support glob")
+    assert.is_truthy(
+      lowered:find("does not extend to bash", 1, true) or lowered:find("governed solely by `bash_allow`", 1, true),
+      "README must state write_allow does not extend to Bash"
+    )
+  end)
+
   it("lists all four Options keys in one coherent example block, in order", function()
     local options_start = readme:find("### Options", 1, true)
     assert.is_truthy(options_start, "README must have an Options section")

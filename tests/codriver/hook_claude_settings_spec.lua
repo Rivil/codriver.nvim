@@ -84,6 +84,34 @@ describe("codriver.hook.claude_settings", function()
 
       assert.equal("*", merged.hooks.PreToolUse[1].matcher)
     end)
+
+    it("defaults the hook event to PreToolUse when the 3rd arg is omitted", function()
+      local merged = claude_settings.merge(nil, NEW_COMMAND)
+
+      assert.is_table(merged.hooks.PreToolUse)
+      assert.is_nil(merged.hooks.Stop)
+    end)
+
+    it("inserts into hooks.Stop when told, leaving an existing PreToolUse array untouched", function()
+      local existing = claude_settings.merge(nil, "nvim --clean -l scripts/codriver-hook.lua")
+
+      local merged = claude_settings.merge(existing, "nvim --clean -l scripts/codriver-review-hook.lua", "Stop")
+
+      assert.equal(1, #codriver_entries(merged))
+      assert.same(existing.hooks.PreToolUse, merged.hooks.PreToolUse)
+      assert.is_table(merged.hooks.Stop)
+      assert.equal(
+        "nvim --clean -l scripts/codriver-review-hook.lua",
+        merged.hooks.Stop[1].hooks[1].command
+      )
+    end)
+
+    it("is idempotent for a Stop entry too", function()
+      local once = claude_settings.merge(nil, NEW_COMMAND, "Stop")
+      local twice = claude_settings.merge(once, NEW_COMMAND, "Stop")
+
+      assert.equal(1, #twice.hooks.Stop)
+    end)
   end)
 
   describe("encode", function()
